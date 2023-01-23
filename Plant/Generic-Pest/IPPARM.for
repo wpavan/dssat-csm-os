@@ -22,13 +22,14 @@ C=======================================================================
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      USE flexibleio
       IMPLICIT NONE
       SAVE
 !-----------------------------------------------------------------------
 
       CHARACTER*1   BLANK, ISWDIS
       CHARACTER*2   NEWLIN
-      CHARACTER*5   PID(MAXPEST),PCPID(MAXPEST,6)
+      CHARACTER*5   PID(MAXPEST),PCPID(MAXPEST,6), IPESTID
       CHARACTER*6   ERRKEY
       CHARACTER*12  FILEP
       CHARACTER*20  PNAME(MAXPEST)
@@ -45,6 +46,8 @@ C=======================================================================
       REAL PDCF1(MAXPEST,6)
       
 !      LOGICAL EOF
+      LOGICAL FEXIST
+      TYPE (ControlType) CONTROL
 
       PARAMETER  (BLANK  = ' ')
       PARAMETER  (ERRKEY = 'IPPARM')
@@ -119,6 +122,20 @@ C----------------------------------------------------------------------
 C     Completed reading pest coefficient file
 C----------------------------------------------------------------------
       CLOSE(LUN)
+
+!-----------------------------------------------------------------------
+!    FlexibleIO - Pest - 2018-01-07 - Added by: Willingthon Pavan
+!-----------------------------------------------------------------------
+      call fio%get("PEST","IPESTID",IPESTID)
+       
+      FILEP(1:12) = IPESTID(1:2)//'GEN'//CONTROL%MODEL(6:8)//'.PST'
+      !WRITE(*,*) "IPPARM", FILEP, IPESTID, ISECT
+      INQUIRE (FILE = FILEP,EXIST = FEXIST)
+      IF (FEXIST) THEN
+         CALL READPEST(FILEP, IPESTID, ISECT)
+         IF (ISECT .EQ. -1) CALL ERROR(ERRKEY,ERRNUM,FILEP,0) 
+      ENDIF
+!----------------------------------------------------------------------- 
 
       RETURN
       END  !SUBROUTINE IPPARM

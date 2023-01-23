@@ -46,13 +46,46 @@ C The statements begining with !*! are refer to APSIM source codes
 !        JZW note: KCAN/KEP  ic calculated in WH_PHENO. RWUMX is not used 
 !        PUptake/FracRts is not calculated for Nwheat, 
       USE ModuleDefs
+      USE ModuleData     ! which contain control information, soil
+                         ! parameters, hourly weather data.
+!------ Generic Disease Purpose -----!      
+      use flexibleio
+      use, intrinsic :: iso_c_binding
+!----------------END-----------------! 
       USE WH_module
       IMPLICIT NONE
       EXTERNAL GETLUN, HRES_CERES, PEST, WH_PHENOL, WH_GROSUB, 
      &  WH_OPGROW, WH_OPNIT, WH_OPHARV
 
       SAVE
+!------ Generic Disease Purpose -----!      
+   	  interface
+        subroutine couplingInitSpore(
+     &      YRDOY,      ! Input - Current day of simulation (YYDDD)
+     &      YRPLT       ! Input - Planting date (YYDDD)
+     &  ) bind(C, name = 'couplingInitSpore') 
+            INTEGER :: YRDOY
+            INTEGER :: YRPLT
+        end subroutine couplingInitSpore
+        subroutine couplingOutputSpore(val) bind(C, name = 'couplingOutputSpore')
+            INTEGER :: val
+        end subroutine couplingOutputSpore
 
+        subroutine couplingRateSpore(
+     &      YRDOY
+     &  ) bind(C, name = 'couplingRateSpore') 
+            INTEGER :: YRDOY
+        end subroutine couplingRateSpore
+
+!        subroutine couplingIntegrationSpore(
+!     &      YRDOY       ! Input - Days After Simulation
+!     &  ) bind(C, name = 'couplingIntegrationSpore') 
+!            INTEGER :: YRDOY
+!        end subroutine couplingIntegrationSpore
+      end interface
+      CHARACTER*1  ISDYNAMICDIS,TEMPCHAR1
+      REAL TEST
+!----------------END-----------------!  
 !----------------------------------------------------------------------
       real rwu_nw (NL)! (nwheats_watup_new OUTPUT) root water 
                       !  uptake (mm)
@@ -231,6 +264,8 @@ C The statements begining with !*! are refer to APSIM source codes
       INTEGER         YRPLT 
       INTEGER         YRSIM    
 !      REAL            Z2STAGE
+      CHARACTER*12  FILEP
+
       REal GAD2 ! Grain# if there wwas no temperature effect
 
 !     Added by W.D.B. for pest damage at CIMMYT 4/14/2001
@@ -359,6 +394,13 @@ C The statements begining with !*! are refer to APSIM source codes
 !      value refers to this. In this way NWheat model runs normally.
 !      (Fabio - 09/10/2018)
       NR2 = 10000
+
+      FILEP = 'WHGEN048.PST'
+
+      CALL READPEST(FILEP, 'WH001', 0)
+
+      call couplingInitSpore(YRDOY, YRPLT)
+      call couplingRateSpore(YRDOY)
 C----------------------------------------------------------------------
 C
 C              Code for all Dynamic Variables
@@ -763,6 +805,11 @@ C
 C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       ELSEIF(DYNAMIC.EQ.OUTPUT) THEN
+!------ Generic Disease Purpose -----!      
+      IF (DYNAMIC .EQ. OUTPUT .AND. ISDYNAMICDIS .EQ. 'Y') THEN
+          call couplingOutputSpore(YRDOY)
+      ENDIF
+!----------------END-----------------! 
         IF (YRDOY .EQ. YREND) THEN
           STGDOY(16) = YREND
         ENDIF

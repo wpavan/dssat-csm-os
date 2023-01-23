@@ -22,6 +22,9 @@ C-------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+!------ Generic Disease Purpose -----!      
+      use flexibleio
+!----------------END-----------------! 
       IMPLICIT NONE
       SAVE
 
@@ -40,6 +43,7 @@ C-------------------------------------------------------------------
       REAL PPLTD,CPPLTD
       REAL CLFM,CLAI,CSTEM,LAIDOT
       REAL CSDM,CSDN,CSHM,CSHN
+      REAL PCLMT
 
       LOGICAL FEXIST, FIRST
 
@@ -116,6 +120,8 @@ C-----------------------------------------------------------------------
         DAP = MAX(0,TIMDIF(YRPLT,YRDOY))
         CALL YR_DOY(YRDOY, YEAR, DOY) 
 
+       call fio%get("PEST","PCLMT",PCLMT)
+        
 !       Convert units from g/m2 to kg/ha for output
         WRITE (NOUTDD,300)YEAR, DOY, DAS, DAP,NINT(DISLA),DISLAP,
      &      LAIDOT,NINT(WLIDOT*10.),NINT(WSIDOT*10.),NINT(SWIDOT*10.),
@@ -123,11 +129,11 @@ C-----------------------------------------------------------------------
      &      RLVDOT,RLFDOT,ASMDOT,PPLTD,
      &      CLAI,NINT(CLFM*10.),NINT(CSTEM*10.),NINT(CSDM*10.),
      &      NINT(CSDN),CSHM*10.,NINT(CSHN),CRTM*10.,CRLV,
-     &      CRLF,CASM,CPPLTD
+     &      CRLF,CASM,CPPLTD,PCLMT
   300   FORMAT(1X,I4,1X,I3.3,2(1X,I5),1X,I6,1X,F6.1,1X,F7.1,2(1X,I7),
      &      1X, I6,4(1X,F6.1),
      &      4(1X,F6.2),1X,F6.1,2(1X,I7),2(1X,I6),1X,F6.0,1X,I6,1X,F6.0,
-     &      2(1X,F6.1),1X,F7.1,1X,F6.1)
+     &      2(1X,F6.1),1X,F7.1,1X,F6.1,1X,F6.1)
       ENDIF
 
 !***********************************************************************

@@ -40,10 +40,16 @@ C=======================================================================
       USE Forecast
       USE SumModule
 
+!-----------------------------------------------------------------------
+! FlexibleIO
+!-----------------------------------------------------------------------
+      use flexibleio
+!-----------------------------------------------------------------------
+
       IMPLICIT NONE
       SAVE
 
-      CHARACTER*1  BLANK, MEWTH, RNMODE, UPCASE
+      CHARACTER*1  BLANK, MEWTH, RNMODE, UPCASE, TEMPCHAR1
       CHARACTER*4  INSI
       CHARACTER*6  SECTION, ERRKEY, SOURCE
       CHARACTER*8  WSTAT
@@ -56,6 +62,15 @@ C=======================================================================
       CHARACTER*80 PATHWTC, PATHWTG, PATHWTW, WPath
       CHARACTER*92 FILEWW, WFile
       CHARACTER*120 LINE
+
+!-----------------------------------------------------------------------
+! FlexibleIO
+!-----------------------------------------------------------------------
+      CHARACTER*12  FILEX
+      INTEGER EOF
+      INTEGER DATE
+      INTEGER END_OF_FILE
+!-----------------------------------------------------------------------
 
       INTEGER DOY, DYNAMIC, ERR, ErrCode, FOUND, INCYD, ISIM
       INTEGER LINWTH, LNUM, LUNIO, LUNWTH, MULTI, NYEAR
@@ -173,6 +188,8 @@ C     The components are copied into local variables for use here.
 
         CLOSE (LUNIO)
 
+        CALL GETLUN('FILEW', LUNWTH)
+        
         IF (FILEW /= LastFileW) THEN
 !          NRecords = 0
           LastWeatherDay  = 0
@@ -305,6 +322,21 @@ C     The components are copied into local variables for use here.
       IF (YRDOY == YRSIM) THEN
         YRDOY_WY = INCYD(YRSIM,-1)
       ENDIF
+
+!-----------------------------------------------------------------------
+! FlexibleIO
+!-----------------------------------------------------------------------
+      CALL READWEATHER(FILEWW,YRDOYWY,CONTROL%YRDOY,CONTROL%YRSIM,
+     &  CONTROL%MULTI,END_OF_FILE,FILEX,CONTROL%MODEL,1,ErrCode)
+
+      IF(ErrCode .NE. 0) THEN
+        CALL WeatherError(CONTROL, ErrCode, FILEWW, 0, YRDOYWY, YREND)
+        CALL ERROR(ERRKEY,ErrCode,FILEWW,0)
+        RETURN
+      ENDIF
+
+      CALL fio%get('WTH', YRDOY-1,"DATE",DATE)
+!-----------------------------------------------------------------------
 
 !     Forecast mode - check bounds of weather file. Needed to determine
 !     that correct century is read for files with 2-digit years
@@ -1272,6 +1304,10 @@ C         Read in weather file header.
       ErrCode = 0
       IF (SRAD < 0.0)  ErrCode = 2
       IF (SRAD > 100.) ErrCode = 2
+      !The following is still necessary to deal with issues on 
+      !weather file (TF - 09/15/2021) 
+      IF (SRAD < 1.E-2) ErrCode = 2
+
 !      Check for negative solar radiation and extreme high values
       IF (RAIN .LT. 0.0) ErrCode = 3
       IF (NINT(TMAX * 100.) .EQ. 0 .AND. NINT(TMIN * 100.) .EQ. 0)

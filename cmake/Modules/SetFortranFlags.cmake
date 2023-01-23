@@ -111,7 +111,7 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                  Fortran "/fpe:0"                           # Intel Windows
                          "-fpe0"                            # Intel Linux/Mac
-                         "-ffpe-trap=invalid,zero,overflow" # GNU
+                         "-ffpe-trap=overflow" # GNU
                 )
 
 # Hack to make MacOS happy.

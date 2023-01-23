@@ -43,8 +43,174 @@ C=======================================================================
       USE ModuleDefs     !Definitions of constructed variable types, 
                          ! which contain control information, soil
                          ! parameters, hourly weather data.
+      USE ModuleData
+!------ Generic Disease Purpose -----!      
+      use flexibleio
+      use, intrinsic :: iso_c_binding
+!----------------END-----------------! 
       IMPLICIT NONE
       SAVE
+!------ Generic Disease Purpose -----!      
+   	  interface
+        subroutine couplingInit(
+     &      YRDOY,      ! Input - Current day of simulation (YYDDD)
+     &      YRPLT       ! Input - Planting date (YYDDD)
+     &  ) bind(C, name = 'couplingInit') 
+            INTEGER :: YRDOY
+            INTEGER :: YRPLT
+        end subroutine couplingInit
+        subroutine couplingOutput(val) bind(C, name = 'couplingOutput')
+            INTEGER :: val
+        end subroutine couplingOutput
+        subroutine couplingRate(
+     &      YRDOY,      ! Input - Current day of simulation (YYDDD)
+     &      AREALF,	! Input - Area of leaves (one side) per unit ground area (cm2[leaf] / m2[ground])
+     &      CLW,	! Input - Cumulative leaf growth (g[leaf]/m2)
+     &      CSW,	! Input - Cumulative stem growth (g[stem]/m2)
+     &      PCLMT,	! Input - Percent of total leaf mass (WTLF + senescence) destroyed (%)
+     &      PCSTMD,	! Input - Observed cumulative percentage stem mass damage (%)
+     &      PDLA,	! Input - Percent diseased leaf area (%)
+     &      PLFAD,	! Input - Daily percent leaf area damage (%/d)
+     &      PLFMD,	! Input - Daily percent stem mass damage (%)
+     &      PSTMD, 	! Input - Daily percent stem mass damage (%)
+     &      PVSTGD, 	! Input - Percent V-stage damage (%)
+     &      SLA,	! Input - Specific leaf area (cm2[leaf] / m2[ground])
+     &      SLDOT,	! Input - Defoliation due to daily leaf senescence (g/m2/day)
+     &      SSDOT,	! Input - Daily senescence of petioles (g / m2 / d)
+     &      STMWT, 	! Input - Dry mass of stem tissue, including C and N (g[stem] / m2[ground)
+     &      TDLA,	! Input - Total diseased leaf area (cm2/m2)
+     &      VSTGD,	! Input - Absolute daily V-stage damage (nodes/day)
+     &      WLFDOT,	! Input - Leaf weight losses due to freezing (g[leaf]/m2-d)
+     &      WSTMD,	! Input - Daily absolute stem damage (g/m2/day)
+     &      WTLF,	! Input - Dry mass of leaf tissue including C and N (g[leaf] / m2[ground]) 
+     &      TLFAD,	! Input - Total leaf area damage (cm2/cm2/d)
+     &      TLFMD,	! Input - Total leaf mass damage (g/m2/day)
+     &      VSTAGE,	! Input - Number of nodes on main stem of plant (nodes)
+     &      WLIDOT,	! Output - Daily pest or freeze damage to leaf mass (g/m2/day)
+     &      CLAI,	! Output - Cumulative leaf area index destroyed (m2/m2)
+     &      CLFM,	! Output - Cumulative leaf mass destroyed  (g/m2)
+     &      CSTEM,	! Output - Cumulative stem mass destroyed (g/m2)
+     &      DISLA,	! Output - Diseased leaf area (cm2[leaf]/m2[ground]/d)
+     &      DISLAP,	! Output - Percent diseased leaf area (%/d)
+     &      LAIDOT,	! Output - Daily change in leaf area index due to pest damage (m2/m2/d)
+     &      WSIDOT,	! Output - Daily change in leaf area index due to pest damage (m2/m2/d)
+     &      SDWT,
+     &      WSDD,
+     &      PSDD,
+     &      DAS         ! Input - Days After Simulation
+     &  ) bind(C, name = 'couplingRate') 
+            INTEGER :: YRDOY
+            REAL :: AREALF
+            REAL :: CLW
+            REAL :: CSW
+            REAL :: PCLMT
+            REAL :: PCSTMD
+            REAL :: PDLA
+            REAL :: PLFAD
+            REAL :: PLFMD
+            REAL :: PSTMD
+            REAL :: PVSTGD
+            REAL :: SLA
+            REAL :: SLDOT
+            REAL :: SSDOT
+            REAL :: STMWT
+            REAL :: TDLA
+            REAL :: VSTGD
+            REAL :: WLFDOT
+            REAL :: WSTMD
+            REAL :: WTLF
+            REAL :: TLFAD
+            REAL :: TLFMD
+            REAL :: VSTAGE
+            REAL :: WLIDOT
+            REAL :: CLAI
+            REAL :: CLFM
+            REAL :: CSTEM
+            REAL :: DISLA
+            REAL :: DISLAP
+            REAL :: LAIDOT
+            REAL :: WSIDOT
+            REAL :: SDWT
+            REAL :: WSDD
+            REAL :: PSDD
+            INTEGER :: DAS
+        end subroutine couplingRate
+        subroutine couplingIntegration(
+     &      YRDOY,      ! Input - Current day of simulation (YYDDD)
+     &      AREALF,	! Input - Area of leaves (one side) per unit ground area (cm2[leaf] / m2[ground])
+     &      CLW,	! Input - Cumulative leaf growth (g[leaf]/m2)
+     &      CSW,	! Input - Cumulative stem growth (g[stem]/m2)
+     &      PCLMT,	! Input - Percent of total leaf mass (WTLF + senescence) destroyed (%)
+     &      PCSTMD,	! Input - Observed cumulative percentage stem mass damage (%)
+     &      PDLA,	! Input - Percent diseased leaf area (%)
+     &      PLFAD,	! Input - Daily percent leaf area damage (%/d)
+     &      PLFMD,	! Input - Daily percent stem mass damage (%)
+     &      PSTMD, 	! Input - Daily percent stem mass damage (%)
+     &      PVSTGD, 	! Input - Percent V-stage damage (%)
+     &      SLA,	! Input - Specific leaf area (cm2[leaf] / m2[ground])
+     &      SLDOT,	! Input - Defoliation due to daily leaf senescence (g/m2/day)
+     &      SSDOT,	! Input - Daily senescence of petioles (g / m2 / d)
+     &      STMWT, 	! Input - Dry mass of stem tissue, including C and N (g[stem] / m2[ground)
+     &      TDLA,	! Input - Total diseased leaf area (cm2/m2)
+     &      VSTGD,	! Input - Absolute daily V-stage damage (nodes/day)
+     &      WLFDOT,	! Input - Leaf weight losses due to freezing (g[leaf]/m2-d)
+     &      WSTMD,	! Input - Daily absolute stem damage (g/m2/day)
+     &      WTLF,	! Input - Dry mass of leaf tissue including C and N (g[leaf] / m2[ground]) 
+     &      TLFAD,	! Input - Total leaf area damage (cm2/cm2/d)
+     &      TLFMD,	! Input - Total leaf mass damage (g/m2/day)
+     &      VSTAGE,	! Input - Number of nodes on main stem of plant (nodes)
+     &      WLIDOT,	! Output - Daily pest or freeze damage to leaf mass (g/m2/day)
+     &      CLAI,	! Output - Cumulative leaf area index destroyed (m2/m2)
+     &      CLFM,	! Output - Cumulative leaf mass destroyed  (g/m2)
+     &      CSTEM,	! Output - Cumulative stem mass destroyed (g/m2)
+     &      DISLA,	! Output - Diseased leaf area (cm2[leaf]/m2[ground]/d)
+     &      DISLAP,	! Output - Percent diseased leaf area (%/d)
+     &      LAIDOT,	! Output - Daily change in leaf area index due to pest damage (m2/m2/d)
+     &      WSIDOT,	! Output - Daily change in leaf area index due to pest damage (m2/m2/d)
+     &      SDWT,
+     &      WSDD,
+     &      PSDD,
+     &      DAS         ! Input - Days After Simulation
+     &  ) bind(C, name = 'couplingIntegration') 
+            INTEGER :: YRDOY
+            REAL :: AREALF
+            REAL :: CLW
+            REAL :: CSW
+            REAL :: PCLMT
+            REAL :: PCSTMD
+            REAL :: PDLA
+            REAL :: PLFAD
+            REAL :: PLFMD
+            REAL :: PSTMD
+            REAL :: PVSTGD
+            REAL :: SLA
+            REAL :: SLDOT
+            REAL :: SSDOT
+            REAL :: STMWT
+            REAL :: TDLA
+            REAL :: VSTGD
+            REAL :: WLFDOT
+            REAL :: WSTMD
+            REAL :: WTLF
+            REAL :: TLFAD
+            REAL :: TLFMD
+            REAL :: VSTAGE
+            REAL :: WLIDOT
+            REAL :: CLAI
+            REAL :: CLFM
+            REAL :: CSTEM
+            REAL :: DISLA
+            REAL :: DISLAP
+            REAL :: LAIDOT
+            REAL :: WSIDOT
+            REAL :: SDWT
+            REAL :: WSDD
+            REAL :: PSDD
+            INTEGER :: DAS
+        end subroutine couplingIntegration
+      end interface
+      CHARACTER*1  ISDYNAMICDIS,TEMPCHAR1
+!----------------END-----------------!  
 !-----------------------------------------------------------------------
       CHARACTER*1   ISWDIS
       CHARACTER*5   PSTHD(6)
@@ -144,6 +310,12 @@ C***********************************************************************
 !     Run Initialization - Called once per simulation
 C***********************************************************************
       IF (DYNAMIC .EQ. RUNINIT) THEN
+          call fio%get("PEST","ISDYNAMICDIS",TEMPCHAR1)
+          IF(TEMPCHAR1 .EQ. 'D') THEN
+              ISDYNAMICDIS = 'Y'
+          ELSE
+              ISDYNAMICDIS = 'N'
+          ENDIF
 C-----------------------------------------------------------------------
 C     Call IPPEST to read data from FILEIO
 C-----------------------------------------------------------------------
@@ -164,10 +336,17 @@ C***********************************************************************
 !     Seasonal initialization - run once per season
 C***********************************************************************
       ELSEIF (DYNAMIC .EQ. SEASINIT) THEN
+!------ Generic Disease Purpose -----!      
+        !call fio%get("PEST", "ISDYNAMICDIS",ISDYNAMICDIS)
+        IF (ISDYNAMICDIS .EQ. 'Y') THEN  ! Dynamic Disease Model 
+            call couplingInit(YRDOY, YRPLT)
+        ENDIF
+!----------------END-----------------!  
 C-----------------------------------------------------------------------
 C     Subroutine IPPROG reads FILET, the pest time series file.
 C-----------------------------------------------------------------------
-      IF (ISWDIS .EQ. 'Y') THEN
+      ! Generic Disease Purpose - Only one disease system at a time
+      IF (ISDYNAMICDIS .NE. 'Y' .AND. ISWDIS .EQ. 'Y') THEN
         CALL IPPROG(CONTROL, 
      &    FILET, PATHEX, PID, YRPLT, TRTNUM,              !Input
      &    IDAP, PCN, PNO, POBS, PSTHD, YPL)               !Output
@@ -240,7 +419,9 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C     Interpolate between pest damage factors to get today's pest level.
 C-----------------------------------------------------------------------
-      IF (PCN .LE. 0) RETURN
+!------ Generic Disease Purpose -----!      
+      IF (PCN .LE. 0 .AND. ISDYNAMICDIS .NE. 'Y') RETURN
+!----------------END-----------------!  
 
       DAP   = MAX(0,TIMDIF(YRPLT,YRDOY))
       CALL LINDM(
@@ -266,7 +447,38 @@ C-----------------------------------------------------------------------
      &    PSHDL, PSHDM, PSHDS, PSTMD, PVSTGD,             !Output
      &    TDLA, TPSR, TRTLF, VSTGD, WSTMD,                !Output
      &    RATE,WSDD,PSDD,PRLV)
+C-----------------------------------------------------------------------
+C     Generic Disease Purpose - DMI
+C-----------------------------------------------------------------------
+C-----------------------------------------------------------------------
+      IF (ISDYNAMICDIS .EQ. 'Y') THEN  ! Dynamic Disease Model 
+        
+        call couplingRate(YRDOY, 
+     &    AREALF, CLW, CSW, PCLMT, PCSTMD, PDLA, PLFAD,   
+     &    PLFMD, PSTMD, PVSTGD, SLA, SLDOT, SSDOT,        
+     &    STMWT, TDLA, VSTGD, WLFDOT, WSTMD, WTLF,        
+     &    TLFAD, TLFMD, VSTAGE, WLIDOT,                   
+     &    CLAI, CLFM, CSTEM, DISLA, DISLAP,               
+     &    LAIDOT, WSIDOT, SDWT, WSDD, PSDD, DAS)
 
+        call couplingIntegration(YRDOY, 
+     &    AREALF, CLW, CSW, PCLMT, PCSTMD, PDLA, PLFAD,   
+     &    PLFMD, PSTMD, PVSTGD, SLA, SLDOT, SSDOT,        
+     &    STMWT, TDLA, VSTGD, WLFDOT, WSTMD, WTLF,        
+     &    TLFAD, TLFMD, VSTAGE, WLIDOT,                   
+     &    CLAI, CLFM, CSTEM, DISLA, DISLAP,               
+     &    LAIDOT, WSIDOT, SDWT, WSDD, PSDD, DAS)
+
+        call fio%set("PEST","PCLMT",PCLMT)
+        CALL PUT('PDLABETA','BETA',1.0)
+        CALL PUT('PDLABETA','PDLA',PDLA)
+        CALL PUT('PDLABETA','PSDD',PSDD)
+      ENDIF
+         
+!----------------END-----------------!
+C-----------------------------------------------------------------------
+C     Call grain pest damage routine and compute damage rates
+C-----------------------------------------------------------------------     
       CALL SEEDDM(
      &    DAS, LAGSD, LNGPEG, NR2, PHTIM, PHTHRS8,        !Input
      &    PSDDL, PSDDM, PSDDS, PSHDL, PSHDM, PSHDS,       !Input
@@ -304,7 +516,7 @@ C-----------------------------------------------------------------------
 !***********************************************************************
       ELSEIF (DYNAMIC .EQ. INTEGR) THEN
 C-----------------------------------------------------------------------
-      IF (PCN .LE. 0) RETURN
+      IF (PCN .LE. 0 .AND. ISDYNAMICDIS .NE. 'Y') RETURN
 C-----------------------------------------------------------------------
 C     Call assimilative damage routine to update assimilative damage
 !          variables.
@@ -352,12 +564,19 @@ C-----------------------------------------------------------------------
 !     OUTPUT/SEASEND
 !***********************************************************************
       ELSEIF (DYNAMIC .EQ. OUTPUT .OR. DYNAMIC .EQ. SEASEND) THEN
+!------ Generic Disease Purpose -----!      
+      IF (DYNAMIC .EQ. OUTPUT .AND. ISDYNAMICDIS .EQ. 'Y') THEN
+          call couplingOutput(YRDOY)
+      ENDIF
+!----------------END-----------------! 
 C-----------------------------------------------------------------------
+      IF(DYNAMIC .EQ. OUTPUT) THEN
       CALL OPPEST(CONTROL, ISWITCH, 
      &    ASMDOT, CASM, CLAI, CLFM, CPPLTD, CRLF, CRLV,      
      &    CRTM, CSDM, CSDN, CSHM, CSHN, CSTEM, DISLA, DISLAP,   
      &    LAIDOT, PPLTD, RLFDOT, RLVDOT, SDIDOT, SHIDOT, 
      &    SWIDOT, WLIDOT, WRIDOT, WSIDOT, WSHIDT, YRPLT)     
+      ENDIF
 
 !***********************************************************************
 !***********************************************************************

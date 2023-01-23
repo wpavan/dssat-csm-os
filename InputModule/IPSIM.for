@@ -47,6 +47,9 @@ C=======================================================================
       USE ModuleDefs
       USE ModuleData
       USE CsvOutput
+!------ Generic Disease Purpose -----!
+      use flexibleio
+!----------------END-----------------!
       IMPLICIT NONE
       EXTERNAL ERROR, FIND, IGNORE, UPCASE, WARNING, IGNORE2, Y4K_DOY, 
      &  YR_DOY, MODEL_NAME, FILL_ISWITCH, DEFAULT_SIMCONTROLS, GET_CROPD
@@ -56,7 +59,7 @@ C=======================================================================
 
       CHARACTER*1   UPCASE,ISIMI, RNMODE
       CHARACTER*2   CROP
-      CHARACTER*5   NEND,NCODE,IOFF,IAME, TEXT
+      CHARACTER*5   NEND,NCODE,IOFF,IAME, TEXT, IPESTID
       CHARACTER*6   ERRKEY,FINDCH
       CHARACTER*8   MODEL, MODELARG, CRMODEL, TRY_MODEL, Try_MODELARG
       CHARACTER*12  FILEX
@@ -222,6 +225,11 @@ C
          ISWTIL = UPCASE(ISWTIL)
          ICO2   = UPCASE(ICO2)
 
+         IF(ISWDIS .EQ. 'D') THEN 
+            call fio%set("PEST","ISDYNAMICDIS",ISWDIS)
+            ISWDIS = 'Y'
+         ENDIF
+
 !        IF (INDEX ('BNSBPNPECHPPVBCPCBFB',CROP) .EQ. 0) THEN
          SELECT CASE (CROP)
          CASE ('BN','SB','PN','PE','CH','PP',
@@ -333,14 +341,20 @@ C
 C        Read FOURTH line of simulation control - MANAGEMENT
 C
          CALL IGNORE(LUNEXP,LINEXP,ISECT,CHARTEST)
-         READ (CHARTEST,60,IOSTAT=ERRNUM) LN,IPLTI,IIRRI,
-     &        IFERI,IRESI,IHARI
+         READ (CHARTEST,62,IOSTAT=ERRNUM) LN,IPLTI,IIRRI,
+     &        IFERI,IRESI,IHARI, IPESTID
          IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEX,LINEXP)
          IPLTI = UPCASE(IPLTI)
          IIRRI = UPCASE(IIRRI)
          IFERI = UPCASE(IFERI)
          IRESI = UPCASE(IRESI)
          IHARI = UPCASE(IHARI)
+
+!------- Generic Disease Purpose ------------!
+         IF(IPESTID .NE. ' ') THEN
+             call fio%set("PEST","IPESTID",IPESTID)
+         ENDIF
+!--------------------------------------------!
 
          IF ((INDEX('CSPT',CROP)) .GT. 0) THEN
            IF (IHARI .EQ. 'A') THEN
@@ -904,6 +918,7 @@ C-----------------------------------------------------------------------
   55  FORMAT (I3,11X,2(1X,I5),5X,A1,1X,I5,1X,I5,1X,A25,1X,A8)
   60  FORMAT (I3,11X,9(5X,A1))
   61  FORMAT (I3,11X,7(5X,A1),5X,I1,5(5X,A1))
+  62  FORMAT  (I3,11X,5(5X,A1),1X,A5)
   65  FORMAT (I3,11X,3(5X,A1),4X,I2,9(5X,A1),
      &5X, A1)   ! VSH
   66  FORMAT (I3,11X,2(1X,I5),5(1X,F5.0))
