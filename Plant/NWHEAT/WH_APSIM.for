@@ -396,11 +396,13 @@ C The statements begining with !*! are refer to APSIM source codes
       NR2 = 10000
 
       FILEP = 'WHGEN048.PST'
+      !WRITE(*,*) ISWDIS
+      IF(ISWDIS.EQ.'Y') THEN
+            CALL READPEST(FILEP, 'WH001', 0)
 
-      CALL READPEST(FILEP, 'WH001', 0)
-
-      call couplingInitSpore(YRDOY, YRPLT)
-      call couplingRateSpore(YRDOY)
+            call couplingInitSpore(YRDOY, YRPLT)
+            call couplingRateSpore(YRDOY)
+      ENDIF
 C----------------------------------------------------------------------
 C
 C              Code for all Dynamic Variables
