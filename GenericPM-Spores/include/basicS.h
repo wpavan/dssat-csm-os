@@ -39,6 +39,7 @@ public:
         }
         //out << fileName << std::endl;
         for (unsigned int i = 0; i < output.size(); i++)
+            //out << output[i] << " " << BasicS::getWeather() << std::endl;
             out << output[i] << std::endl;
         out.close();
         output.clear();

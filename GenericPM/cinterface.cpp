@@ -61,21 +61,26 @@ int couplingRate(int *YRDOY,
     double CloudField = 0;
     // Get an instance of Simulator
     Simulator *s = Simulator::getInstance();
+    SimulatorS *sS = SimulatorS::getInstanceS();
     newOrgan = s->getCropInterface()->getOrgansQtd()+1;
     // Set the current YearDOY for next Disease step computation
     s->updateCurrentYearDoy(*YRDOY);
+    
+    CloudField = sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS();
+    
+    //std::cout<<"sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS(); "<<sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS()<<std::endl;
 
-    CinterfaceSpore spores;
-    //CloudField = spores.couplingIntegrationSpore(*YRDOY);
-    spores.couplingIntegrationSpore(*YRDOY);
-    CloudField = spores.getcouplingCloudSpore();
+    //CinterfaceSpore spores;
+    ////CloudField = spores.couplingIntegrationSpore(*YRDOY);
+    //spores.couplingIntegrationSpore(*YRDOY);
+    //CloudField = spores.getcouplingCloudSpore();
     // Set the current Leaf area for a specific organ (one big leaf for awhile)
     if(*SDWT-SDWTp > 0){ //&& CloudField > 0){
         s->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));
         //printf("SDWT %f SDWTp %f *SDWT-SDWTp %f\n", *SDWT, SDWTp, *SDWT-SDWTp);
         if(s->getPlants().size()>0) {
         s->getPlants()[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
-        //std::cout << "Ano "<< *YRDOY<< " Alterando SPORES para: " << CloudField << " : " << s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << std::endl;
+        std::cout << "Data "<< *YRDOY<< " Alterando SPORES de: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " para: " << CloudField <<std::endl;
         }
     }
 
@@ -120,7 +125,7 @@ int couplingIntegration(int *YRDOY,
         *PSDD = (dArea/tArea*5);
         //printf("ORIGINAL YRDOY: %i CloudF: %f PSDD %f\n",*YRDOY, s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue(), PSDD);
         //printf("YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f AREALF: %f PDLA: %f PLFAD: %f\n", *YRDOY, tArea,dArea,sArea,*AREALF,*PDLA,*PLFAD);
-        //printf("YRDOY: %i SDWT: %f PSDD: %f\n", *YRDOY, *SDWT, *PSDD);
+        printf("YRDOY: %i SDWT: %f PSDD: %f\n", *YRDOY, *SDWT, *PSDD);
 
 
     }

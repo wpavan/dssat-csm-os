@@ -351,9 +351,9 @@ C
          IHARI = UPCASE(IHARI)
 
 !------- Generic Disease Purpose ------------!
-         IF(IPESTID .NE. ' ') THEN
-             call fio%set("PEST","IPESTID",IPESTID)
-         ENDIF
+         !IF(IPESTID .NE. ' ') THEN
+         !    call fio%set("PEST","IPESTID",IPESTID)
+         !ENDIF
 !--------------------------------------------!
 
          IF ((INDEX('CSPT',CROP)) .GT. 0) THEN

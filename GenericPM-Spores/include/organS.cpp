@@ -51,7 +51,7 @@ void OrganS::integrationS() {
             //std::cout << "cloudF: " << cloudFvalue << std::endl;
             //std::cout << "cloudP: " << cloudPValue << std::endl;
             //std::cout << "cloudO: " << cloudOValue << std::endl;
-            //std::cout << "healthAreaProportion " << healthAreaProportion << " getProportionFromTotalArea " << getProportionFromTotalArea() <<
+            ////std::cout << "healthAreaProportion " << healthAreaProportion << " getProportionFromTotalArea " << getProportionFromTotalArea() <<
             //" newLesionsFromField " << newLesionsFromField << std::endl;
             if ((newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField) > 0 && physiologicalLife >= 5) {
                 newLesionsS = newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField;

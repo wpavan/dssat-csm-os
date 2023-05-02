@@ -48,44 +48,12 @@ C The statements begining with !*! are refer to APSIM source codes
       USE ModuleDefs
       USE ModuleData     ! which contain control information, soil
                          ! parameters, hourly weather data.
-!------ Generic Disease Purpose -----!      
-      use flexibleio
-      use, intrinsic :: iso_c_binding
-!----------------END-----------------! 
       USE WH_module
       IMPLICIT NONE
       EXTERNAL GETLUN, HRES_CERES, PEST, WH_PHENOL, WH_GROSUB, 
      &  WH_OPGROW, WH_OPNIT, WH_OPHARV
 
       SAVE
-!------ Generic Disease Purpose -----!      
-   	  interface
-        subroutine couplingInitSpore(
-     &      YRDOY,      ! Input - Current day of simulation (YYDDD)
-     &      YRPLT       ! Input - Planting date (YYDDD)
-     &  ) bind(C, name = 'couplingInitSpore') 
-            INTEGER :: YRDOY
-            INTEGER :: YRPLT
-        end subroutine couplingInitSpore
-        subroutine couplingOutputSpore(val) bind(C, name = 'couplingOutputSpore')
-            INTEGER :: val
-        end subroutine couplingOutputSpore
-
-        subroutine couplingRateSpore(
-     &      YRDOY
-     &  ) bind(C, name = 'couplingRateSpore') 
-            INTEGER :: YRDOY
-        end subroutine couplingRateSpore
-
-!        subroutine couplingIntegrationSpore(
-!     &      YRDOY       ! Input - Days After Simulation
-!     &  ) bind(C, name = 'couplingIntegrationSpore') 
-!            INTEGER :: YRDOY
-!        end subroutine couplingIntegrationSpore
-      end interface
-      CHARACTER*1  ISDYNAMICDIS,TEMPCHAR1
-      REAL TEST
-!----------------END-----------------!  
 !----------------------------------------------------------------------
       real rwu_nw (NL)! (nwheats_watup_new OUTPUT) root water 
                       !  uptake (mm)
@@ -395,14 +363,6 @@ C The statements begining with !*! are refer to APSIM source codes
 !      (Fabio - 09/10/2018)
       NR2 = 10000
 
-      FILEP = 'WHGEN048.PST'
-      !WRITE(*,*) ISWDIS
-      IF(ISWDIS.EQ.'Y') THEN
-            CALL READPEST(FILEP, 'WH001', 0)
-
-            call couplingInitSpore(YRDOY, YRPLT)
-            call couplingRateSpore(YRDOY)
-      ENDIF
 C----------------------------------------------------------------------
 C
 C              Code for all Dynamic Variables
@@ -807,11 +767,6 @@ C
 C----------------------------------------------------------------------
 C----------------------------------------------------------------------
       ELSEIF(DYNAMIC.EQ.OUTPUT) THEN
-!------ Generic Disease Purpose -----!      
-      IF (DYNAMIC .EQ. OUTPUT .AND. ISDYNAMICDIS .EQ. 'Y') THEN
-          call couplingOutputSpore(YRDOY)
-      ENDIF
-!----------------END-----------------! 
         IF (YRDOY .EQ. YREND) THEN
           STGDOY(16) = YREND
         ENDIF
