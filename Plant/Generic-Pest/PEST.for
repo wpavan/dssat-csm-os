@@ -473,6 +473,7 @@ C-----------------------------------------------------------------------
         CALL PUT('PDLABETA','BETA',1.0)
         CALL PUT('PDLABETA','PDLA',PDLA)
         CALL PUT('PDLABETA','PSDD',PSDD)
+        !WRITE(*,*) "PSDD: ", PSDD
       ENDIF
          
 !----------------END-----------------!

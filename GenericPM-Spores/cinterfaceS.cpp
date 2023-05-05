@@ -118,6 +118,12 @@ double couplingIntegrationSpore(int *YRDOY)
 
     }
     //setcouplingCloudSpore(CloudField);
+    std::ofstream out;    
+    out.open("Daily_CloudF.txt", std::ofstream::out | std::ofstream::app);
+
+    out << *YRDOY<< " " << CloudField << std::endl;
+    out.close();
+    
     //std::cout << "MODELO SPOROS -- Data "<< *YRDOY<< " NUVEM CAMPO " << CloudField <<std::endl;
     return (CloudField);
 }
