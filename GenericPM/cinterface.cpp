@@ -79,6 +79,7 @@ int couplingRate(int *YRDOY,
         s->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));
         //printf("SDWT %f SDWTp %f *SDWT-SDWTp %f\n", *SDWT, SDWTp, *SDWT-SDWTp);
         if(s->getPlants().size()>0) {
+        //std::cout <<"Spores antes: "<<s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue()<<std::endl;
         s->getPlants()[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
         std::cout << "Data "<< *YRDOY<< " Alterando SPORES de: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " para: " << CloudField <<std::endl;
         }
@@ -106,6 +107,7 @@ int couplingIntegration(int *YRDOY,
         float *WSDD, float *PSDD, int *DAS) {
     // Temporary variable used for computations 
     float dArea = 0,tArea=0,sArea=0; //,pclaCalc=0,pDArea=0;
+     int seedAge = 0;
     
     // Get an instance of Simulator
     Simulator *s = Simulator::getInstance();
@@ -120,12 +122,14 @@ int couplingIntegration(int *YRDOY,
         dArea = s->getPlants()[0].getDiseaseArea();
         tArea = s->getPlants()[0].getTotalArea();
         sArea = s->getPlants()[0].getSenescenceArea();
+        seedAge = s->getPlants()[0].getOrgans().size();
         //pDArea = (dArea/(tArea-sArea)*100);
 
-        *PSDD = (dArea/tArea*5);
+        //*PSDD = (dArea/tArea*5);
+        *PSDD= ((dArea/tArea)*15);
         //printf("ORIGINAL YRDOY: %i CloudF: %f PSDD %f\n",*YRDOY, s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue(), PSDD);
         //printf("YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f AREALF: %f PDLA: %f PLFAD: %f\n", *YRDOY, tArea,dArea,sArea,*AREALF,*PDLA,*PLFAD);
-        printf("YRDOY: %i SDWT: %f PSDD: %f\n", *YRDOY, *SDWT, *PSDD);
+        //printf("YRDOY: %i SDWT: %f PSDD: %f\n", *YRDOY, *SDWT, *PSDD);
 
 
     }

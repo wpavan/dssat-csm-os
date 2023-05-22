@@ -21,7 +21,7 @@ extern "C"
     // Coupling Functionsa
     int couplingInitSpore(int *YRDOY, int *YRPLT);
     int couplingRateSpore(int *YRDOY);
-    double couplingIntegrationSpore(int *YRDOY);
+    double couplingIntegrationSpore(int *YRDOY, int *YRPLT);
     int couplingOutputSpore(int *doy);
 }
 
@@ -81,7 +81,7 @@ int couplingRateSpore(int *YRDOY)
     return (1);
 }
 
-double couplingIntegrationSpore(int *YRDOY)
+double couplingIntegrationSpore(int *YRDOY,  int *YRPLT)
 {
     // Temporary variable used for computations
     float dArea = 0, tArea = 0, pDArea = 0, sArea = 0, pclaCalc = 0;
@@ -119,7 +119,7 @@ double couplingIntegrationSpore(int *YRDOY)
     }
     //setcouplingCloudSpore(CloudField);
     std::ofstream out;    
-    out.open("Daily_CloudF.txt", std::ofstream::out | std::ofstream::app);
+    out.open("Daily_CloudF_"+ std::to_string(*YRPLT) +".txt", std::ofstream::out | std::ofstream::app);
 
     out << *YRDOY<< " " << CloudField << std::endl;
     out.close();

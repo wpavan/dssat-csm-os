@@ -107,9 +107,11 @@ C=======================================================================
         end subroutine couplingRateSpore
 !     being called at couplingRateSpore
         subroutine couplingIntegrationSpore(
-     &      YRDOY       ! Input - Days After Simulation
+     &      YRDOY,       ! Input - Days After Simulation
+     &      YRPLT
      &  ) bind(C, name = 'couplingIntegrationSpore') 
             INTEGER :: YRDOY
+            INTEGER :: YRPLT
         end subroutine couplingIntegrationSpore
       end interface
       CHARACTER*1  ISDYNAMICDIS,TEMPCHAR1
@@ -550,7 +552,7 @@ C-----------------------------------------------------------------------
       
       IF(ISWDIS.EQ.'Y') THEN
         CALL couplingRateSpore(YRDOY)
-        CALL couplingIntegrationSpore(YRDOY)
+        CALL couplingIntegrationSpore(YRDOY, YRPLT)
       ENDIF
 C*********************************************************************** 
 C     RATE CALCULATIONS
