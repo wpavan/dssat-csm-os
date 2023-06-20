@@ -62,20 +62,22 @@ void LesionCohort::output() {
 void LesionCohort::rate() {
     //double dailyVisibleGrowRate = 0, dailyInvisibleGrowRate = 0;
     Disease *disease = cloudo->getDisease();
+//    std::cout<<"getHostFactor: "<<disease->getHostFactor()<<std::endl;
+
     physiologicalDay = util.temperatureFavorability(
                             Basic::getWeather()->getTMean(),
                             disease->getTemperatureFavorabilitySet());
     // Thinking on: cumsum(runif(25, min = 0.01, max = 0.1))
     dailyInvisibleAreaGrow  = util.growthFunction(disease->getInvisibleGrowthFunction(), 
                                                   getPhysiologicalDaysAcumm()) 
-/*                              * disease->getHostFactor() 
+                              * disease->getHostFactor() 
                               * totalArea 
-                              * getOrganHealthAreaProportion()*/;
+                              * getOrganHealthAreaProportion();
     dailyVisibleAreaGrow    = util.growthFunction(disease->getVisibleGrowthFunction(), 
                                                   getPhysiologicalDaysAcumm()) 
-/*                              * disease->getHostFactor()
+                              * disease->getHostFactor()
                               * totalArea
-                              * getOrganHealthAreaProportion()*/;
+                              * getOrganHealthAreaProportion();
     if (isLatentPeriod()) { 
         dailyVisibleAreaGrow = 0;
     } else if (isNecroticPeriod()) { 
