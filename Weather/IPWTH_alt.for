@@ -47,6 +47,9 @@ C=======================================================================
 !-----------------------------------------------------------------------
 
       IMPLICIT NONE
+      EXTERNAL YR_DOY, INCYD, ERROR, FIND, GETLUN, WARNING, UPCASE, 
+     &  IGNORE, PARSE_HEADERS, WEATHERERROR, IGNORE2, 
+     &  CHECK_WEATHER_HEADERS, SUMVALS, IPWREC, DAILYWEATHERCHECK
       SAVE
 
       CHARACTER*1  BLANK, MEWTH, RNMODE, UPCASE, TEMPCHAR1
@@ -934,6 +937,7 @@ C         Read in weather file header.
       USE ModuleDefs
       USE Forecast
       IMPLICIT NONE
+      EXTERNAL IGNORE, WEATHERERROR, Y2K_DOYW, YR_DOY, WARNING
       SAVE
 
       INTEGER MaxRecords
@@ -1100,7 +1104,7 @@ C         Read in weather file header.
             CALL Y2K_DOYW(MULTI, YRDOYWY, YRDOYW, CENTURY)
             IF (NRecords == 0 .AND. YRDOY == YRSIM .AND.  !First record
      &          YRDOYW > YRSIM .AND.                      ! > YRSIM
-     &          YRDOYW_SAVE < 99366) THEN       ! & century set by program
+     &          YRDOYW_SAVE < 99366) THEN     ! & century set by program
               CENTURY = CENTURY - 1
               YRDOYW = YRDOYW - 100000
             ENDIF
@@ -1203,6 +1207,8 @@ C         Read in weather file header.
 !     Checks that required headers are found in weather file.  Reports
 !     to INFO.OUT the headers that are found.
 !-----------------------------------------------------------------------
+      EXTERNAL UPCASE, INFO, WARNING, ERROR
+
       CHARACTER*1 UPCASE
       CHARACTER*92 FILEWW
       INTEGER IM, LINWTH
@@ -1293,6 +1299,7 @@ C         Read in weather file header.
       Use ModuleDefs
       Use ModuleData
       Implicit None
+      EXTERNAL WARNING, WeatherError
 
       CHARACTER*(*) ERRKEY, FILEWW
       CHARACTER*78 MSG(10)
@@ -1400,6 +1407,7 @@ C         Read in weather file header.
       USE ModuleDefs
       USE ModuleData
       IMPLICIT NONE
+      EXTERNAL YR_DOY, LENSTRING, WARNING, ERROR
 
       CHARACTER*6, PARAMETER :: ERRKEY = 'IPWTH '
       CHARACTER*78 MSG(4)

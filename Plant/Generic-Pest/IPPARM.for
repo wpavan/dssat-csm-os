@@ -24,6 +24,7 @@ C=======================================================================
                          ! parameters, hourly weather data.
       USE flexibleio
       IMPLICIT NONE
+      EXTERNAL GETLUN, IGNORE, ERROR
       SAVE
 !-----------------------------------------------------------------------
 
@@ -88,8 +89,6 @@ C----------------------------------------------------------------------
 C     Read each line of coefficient file, checking for comments
 C     or blank lines using the subroutine IGNORE.
 C----------------------------------------------------------------------
-!     EOF not portable. CHP 7/24/2007
-!     DO WHILE (.NOT. EOF(LUN))
       DO WHILE (ERRNUM == 0)
         CALL IGNORE(LUN,LNUM,ISECT,C200)
         IF (ISECT .EQ. 0) THEN

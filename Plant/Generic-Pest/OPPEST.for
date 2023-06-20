@@ -26,6 +26,7 @@ C-------------------------------------------------------------------
       use flexibleio
 !----------------END-----------------! 
       IMPLICIT NONE
+      EXTERNAL GETLUN, HEADER, INCDAT, TIMDIF, YR_DOY
       SAVE
 
       CHARACTER*1 IDETD, ISWDIS, RNMODE
