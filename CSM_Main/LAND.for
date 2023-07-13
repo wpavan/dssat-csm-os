@@ -30,10 +30,51 @@ C-----------------------------------------------------------------------
       USE FloodModule      
       USE CsvOutput   ! VSH 
 
+!------ Generic Disease Purpose -----!      
+      USE flexibleio
+      USE, intrinsic :: iso_c_binding
+!----------------END-----------------! 
+
       IMPLICIT NONE
       EXTERNAL INFO, ERROR, WARNING, IPIBS, WEATHR, SOIL, SPAM, PLANT, 
      &  OPSUM, MGMTOPS
       SAVE
+
+!------ Generic Disease Purpose -----!      
+   	  interface
+        subroutine couplingInitSpore(
+     &      YRDOY,      ! Input - Current day of simulation (YYDDD)
+     &      YRPLT       ! Input - Planting date (YYDDD)
+     &  ) bind(C, name = 'couplingInitSpore') 
+            INTEGER :: YRDOY
+            INTEGER :: YRPLT
+        end subroutine couplingInitSpore
+        subroutine couplingOutputSpore(val) bind(C, name = 'couplingOutputSpore')
+            INTEGER :: val
+        end subroutine couplingOutputSpore
+
+        subroutine couplingRateSpore(
+     &      YRDOY, 
+     &      SL1
+     &  ) bind(C, name = 'couplingRateSpore') 
+            INTEGER :: YRDOY
+            REAL :: SL1
+        end subroutine couplingRateSpore
+!     being called at couplingRateSpore
+        subroutine couplingIntegrationSpore(
+     &      YRDOY,       ! Input - Days After Simulation
+     &      YRPLT
+     &  ) bind(C, name = 'couplingIntegrationSpore') 
+            INTEGER :: YRDOY
+            INTEGER :: YRPLT
+        end subroutine couplingIntegrationSpore
+      end interface
+      CHARACTER*1  ISDYNAMICDIS,TEMPCHAR1
+      REAL TEMP, SINGLE_RUN
+      CHARACTER*1 ISWDIS
+      CHARACTER*12  FILEP
+!----------------END-----------------!  
+
 C-----------------------------------------------------------------------
 C     Crop, Experiment, Command line Variables
 C-----------------------------------------------------------------------
@@ -72,6 +113,7 @@ C-----------------------------------------------------------------------
 !     Needed for ORYZA-Rice
       REAL, DIMENSION(0:NL) :: SomLitC
       REAL, DIMENSION(0:NL,NELEM) :: SomLitE
+      REAL SL1
 
 C-----------------------------------------------------------------------
 C     Soil - Plant - Atmosphere Module Variables
@@ -136,7 +178,9 @@ C     Transfer values from constructed data types into local variables.
       YRSIM   = CONTROL % YRSIM
 
       IPLTI   = ISWITCH % IPLTI
-
+      ISWDIS = ISWITCH % ISWDIS
+      
+      FILEP = 'WHGEN048.PST'
 C***********************************************************************
 C***********************************************************************
 C     Run Initialization - Called once per simulation
@@ -206,6 +250,13 @@ C-----------------------------------------------------------------------
       CALL OPSUM (CONTROL, ISWITCH, YRPLT)
 
 C*********************************************************************** 
+
+      IF(ISWDIS.EQ.'Y') THEN
+          YRPLT = YRDOY
+          CALL READPEST(FILEP, 'WH001', 0)
+          call couplingInitSpore(YRDOY, YRPLT)
+      ENDIF
+
 C*********************************************************************** 
 C     SEASONAL INITIALIZATION
 C*********************************************************************** 
@@ -347,6 +398,11 @@ C-----------------------------------------------------------------------
      &    STGDOY, FracRts, UH2O, UNH4, UNO3, XHLAI, XLAI) !Output
 !      ENDIF
 
+      IF(ISWDIS.EQ.'Y') THEN
+        SL1 = SW(1)
+        CALL couplingRateSpore(YRDOY, SL1)
+      ENDIF
+
 C***********************************************************************
 C     DAILY INTEGRATION 
 C***********************************************************************
@@ -402,6 +458,10 @@ C-----------------------------------------------------------------------
      &    STGDOY, SW, WEATHER,                            !Input
      &    YREND, FERTDATA, HARVFRAC, IRRAMT,              !Output
      &    MDATE, OMADATA, TILLVALS, YRPLT)                !Output
+
+      IF(ISWDIS.EQ.'Y') THEN
+        CALL couplingIntegrationSpore(YRDOY, YRPLT)
+      ENDIF
 
 C***********************************************************************
 C***********************************************************************

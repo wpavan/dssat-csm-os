@@ -10,6 +10,7 @@ protected:
     static CropInterfaceS *instance;
     int lastOrgan = 0;
     int plantingDate = 0;
+    double soilMoisture = 0;
     double newDailySenescenceArea = 0;
     bool newOrgan = false;
     std::vector<std::vector<double>> data;
@@ -157,8 +158,13 @@ public:
         return plantingDate;
     }
 
-
-
+    void setSoilMoisture(double soilMoisture) {
+        this->soilMoisture = soilMoisture;
+    }
+    
+    double getSoilMoisture() const {
+        return soilMoisture;
+    }
 
 };
 

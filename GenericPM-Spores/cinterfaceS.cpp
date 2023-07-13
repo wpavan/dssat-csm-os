@@ -20,7 +20,7 @@ extern "C"
 {
     // Coupling Functionsa
     int couplingInitSpore(int *YRDOY, int *YRPLT);
-    int couplingRateSpore(int *YRDOY);
+    int couplingRateSpore(int *YRDOY, float *SL1);
     double couplingIntegrationSpore(int *YRDOY, int *YRPLT);
     int couplingOutputSpore(int *doy);
 }
@@ -45,7 +45,7 @@ int couplingInitSpore(int *YRDOY, int *YRPLT)
     return (1);
 }
 
-int couplingRateSpore(int *YRDOY)
+int couplingRateSpore(int *YRDOY, float *SL1)
 {
     // Temporary variable used for computations 
     float temp = 0, newOrgan = 0;
@@ -56,16 +56,13 @@ int couplingRateSpore(int *YRDOY)
     //std::cout<<"newOrgan "<<newOrgan<<" sS->getCropInterface()->getOrganArea(newOrgan) "
     //<<sS->getCropInterface()->getOrganArea(newOrgan-1)<<std::endl;
     sS->getCropInterface()->setOrganAreaS(1, AREALF);
+    sS->getCropInterface()->setSoilMoisture(*SL1);
     // Set the current YearDOY for next Disease step computation
     sS->updateCurrentYearDoyS(*YRDOY);
 
     //CinterfaceSpore spores;
     //spores.couplingIntegrationSpore(*YRDOY);
     //CloudField = spores.getcouplingCloudSpore();
-    
-    //ver pq ta vindo 0 e se realmenta ta chamando as funcoes pra estimar a nuvem de esporos
-    
-    // Set the current Leaf area for a specific organ (one big leaf for awhile)
 
     sS->getCropInterface()->setOrganAreaS(newOrgan, AREALF);
 

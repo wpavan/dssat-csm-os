@@ -79,48 +79,10 @@ C=======================================================================
       USE ModuleData
       USE HeaderMod
 
-!------ Generic Disease Purpose -----!      
-      USE flexibleio
-      USE, intrinsic :: iso_c_binding
-!----------------END-----------------! 
-
       IMPLICIT NONE
       EXTERNAL CHECKRUNMODE, ERROR, FIND, GETLUN, IGNORE, INCYD, INFO, 
      &  INPUT_SUB, LAND, OPCLEAR, OPNAMES, PATHD, RUNLIST, TIMDIF, 
      &  UPCASE, YR_DOY
-
-!------ Generic Disease Purpose -----!      
-   	  interface
-        subroutine couplingInitSpore(
-     &      YRDOY,      ! Input - Current day of simulation (YYDDD)
-     &      YRPLT       ! Input - Planting date (YYDDD)
-     &  ) bind(C, name = 'couplingInitSpore') 
-            INTEGER :: YRDOY
-            INTEGER :: YRPLT
-        end subroutine couplingInitSpore
-        subroutine couplingOutputSpore(val) bind(C, name = 'couplingOutputSpore')
-            INTEGER :: val
-        end subroutine couplingOutputSpore
-
-        subroutine couplingRateSpore(
-     &      YRDOY
-     &  ) bind(C, name = 'couplingRateSpore') 
-            INTEGER :: YRDOY
-        end subroutine couplingRateSpore
-!     being called at couplingRateSpore
-        subroutine couplingIntegrationSpore(
-     &      YRDOY,       ! Input - Days After Simulation
-     &      YRPLT
-     &  ) bind(C, name = 'couplingIntegrationSpore') 
-            INTEGER :: YRDOY
-            INTEGER :: YRPLT
-        end subroutine couplingIntegrationSpore
-      end interface
-      CHARACTER*1  ISDYNAMICDIS,TEMPCHAR1
-      REAL TEMP, SINGLE_RUN
-      CHARACTER*1 ISWDIS
-      CHARACTER*12  FILEP
-!----------------END-----------------!  
 
 C-----------------------------------------------------------------------
       CHARACTER*1   ANS,RNMODE,BLANK,UPCASE
@@ -460,16 +422,6 @@ C-----------------------------------------------------------------------
 
       CALL LAND(CONTROL, ISWITCH, 
      &          YRPLT, MDATE, YREND)
-     
-      ISWDIS = ISWITCH % ISWDIS
-      
-      FILEP = 'WHGEN048.PST'
-
-      IF(ISWDIS.EQ.'Y') THEN
-          YRPLT = YRDOY
-          CALL READPEST(FILEP, 'WH001', 0)
-          call couplingInitSpore(YRDOY, YRPLT)
-      ENDIF
 
 C*********************************************************************** 
 C*********************************************************************** 
@@ -551,11 +503,6 @@ C-----------------------------------------------------------------------
       DAS   = MAX(0,TIMDIF(INCYD(YRSIM,-1),YRDOY))
       CONTROL % YRDOY   = YRDOY
       CONTROL % DAS     = DAS
-      
-      IF(ISWDIS.EQ.'Y') THEN
-        CALL couplingRateSpore(YRDOY)
-        CALL couplingIntegrationSpore(YRDOY, YRPLT)
-      ENDIF
 C*********************************************************************** 
 C     RATE CALCULATIONS
 C*********************************************************************** 
@@ -582,10 +529,6 @@ C***********************************************************************
 
       CALL LAND(CONTROL, ISWITCH, 
      &          YRPLT, MDATE, YREND)
-
-      !IF(ISWDIS.EQ.'Y') THEN
-      !  CALL couplingOutputSpore(YRDOY)
-      !ENDIF
 
 C***********************************************************************
       ENDDO DAY_LOOP   !End of daily loop

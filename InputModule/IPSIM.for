@@ -375,12 +375,6 @@ C TF, FO & DP - 2022-07-12 - AutomaticMOW Switch
            ISWITCH%ATMOW = .FALSE.
          ENDIF
 
-!------- Generic Disease Purpose ------------!
-         IF(IPESTID .NE. ' ') THEN
-             call fio%set("PEST","IPESTID",IPESTID)  
-             CALL READPEST(FILEP, IPESTID, 0)
-         ENDIF
-!--------------------------------------------!
 
          IF ((INDEX('CSPT',CROP)) .GT. 0) THEN
            IF (IHARI .EQ. 'A') THEN
