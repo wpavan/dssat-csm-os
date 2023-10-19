@@ -117,9 +117,9 @@ int couplingIntegration(int *YRDOY,
     s->integration();
     printf("Integ - \n");
     printf("YRDOY: %i ", *YRDOY);
-    printf("Plant size: %d ", s->getPlants().size());
-    if(s->getPlants() > 0) {
-        printf("Organ size: %f\n", s->getPlants()[0].getOrgans().size());
+    printf("Plant size: %i ", s->getPlants().size());
+    if(s->getPlants().size() > 0) {
+        printf("Organ size: %i\n", s->getPlants()[0].getOrgans().size());
     } else {
         printf("\n");
     }
