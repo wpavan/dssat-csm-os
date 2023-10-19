@@ -92,7 +92,7 @@ int couplingRate(int *YRDOY,
     Weather::getInstance()->update();
     // Disease Simulator Rate
     s->rate();
-    //printf("Returning rate\n");
+    printf("Returning rate\n");
     return (1);
 }
 
@@ -115,7 +115,8 @@ int couplingIntegration(int *YRDOY,
 
     // Call the Disease Model Integration function
     s->integration();
-    printf("Integ - YRDOY: %i Plant size: %f Organ size: %f\n", *YRDOY, s->getPlants().size(),s->getPlants()[0].getOrgans().size());
+    printf("Integ - ");
+    printf("YRDOY: %i Plant size: %f Organ size: %f\n", *YRDOY, s->getPlants().size(),s->getPlants()[0].getOrgans().size());
     //std::cout<<"s->getPlants().size() "<<s->getPlants().size()<<std::endl;
     //std::cout<<s->getPlants()[0].getOrgans().size()<<std::endl;
     if(s->getPlants().size() > 0 && s->getPlants()[0].getOrgans().size() > 0) {
@@ -135,7 +136,7 @@ int couplingIntegration(int *YRDOY,
     }
     
     //printf("YRDOY: %i PCLMT: %f\n", *YRDOY,*PCLMT);
-    //printf("Returning integration\n");
+    printf("Returning integration\n");
     return (1);
 }
 int couplingOutput(int *doy) {
