@@ -17,7 +17,7 @@ int Disease::newLesions(double cloudDensity, double healthyAreaProportion) {
     Utilities util;
     double newLesions = 0;
     double fitWetnessThreshold = getWetnessThreshold();
-    std::cout<<"fitWetnessThreshold: " <<fitWetnessThreshold<<std::endl;
+    std::cout<<"fitWetnessThreshold: " <<fitWetnessThreshold<<"WebDur: "<<Basic::getWeather()->getWetDur()<<std::endl;
     if (healthyAreaProportion > 0 && Basic::getWeather()->getWetDur() >= fitWetnessThreshold) {
         newLesions = (cloudDensity * healthyAreaProportion * getInfectionEfficiency() *
                 util.temperatureFavorability(Basic::getWeather()->getTMean(),
