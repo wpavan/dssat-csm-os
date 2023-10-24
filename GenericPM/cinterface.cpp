@@ -81,7 +81,7 @@ int couplingRate(int *YRDOY,
         if(s->getPlants().size()>0) {
         //std::cout <<"Spores antes: "<<s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue()<<std::endl;
         s->getPlants()[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
-        std::cout << "Data "<< *YRDOY<< " Alterando SPORES de: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " para: " << CloudField <<std::endl;
+        std::cout << "Data "<< *YRDOY<< " Adicionado SPORES para CloudF: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " para: " << CloudField <<std::endl;
         }
     }
 
@@ -135,8 +135,8 @@ int couplingIntegration(int *YRDOY,
 
         //*PSDD = (dArea/tArea*5);
         *PSDD= ((dArea/tArea)*15);
-        //printf("ORIGINAL YRDOY: %i CloudF: %f PSDD %f\n",*YRDOY, s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue(), PSDD);
-        //printf("YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f AREALF: %f PDLA: %f PLFAD: %f\n", *YRDOY, tArea,dArea,sArea,*AREALF,*PDLA,*PLFAD);
+        printf("ORIGINAL YRDOY: %i CloudF: %f PSDD %f\n",*YRDOY, s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue(), PSDD);
+        printf("YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f AREALF: %f PDLA: %f PLFAD: %f\n", *YRDOY, tArea,dArea,sArea,*AREALF,*PDLA,*PLFAD);
         //printf("YRDOY: %i SDWT: %f PSDD: %f\n", *YRDOY, *SDWT, *PSDD);
 
 
