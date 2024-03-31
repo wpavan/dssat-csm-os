@@ -1,6 +1,7 @@
 #include "include/simulator.h"
 #include<cmath>
 #include "../GenericPM-Spores/cinterfaceS.h"
+#include "../FlexibleIO/Data/FlexibleIO.hpp"
 using namespace std;
 
 extern "C" {
@@ -28,7 +29,7 @@ extern "C" {
 
 }
 
-float CLWp, SLAp, SDWTp;
+float CLWp, SLAp, SDWTp, SL1, SSAT1, SDUL1;
 
 // Coupling Functions Implementation 
 
@@ -57,7 +58,7 @@ int couplingRate(int *YRDOY,
         float *LAIDOT, float *WSIDOT, float *SDWT, 
         float *WSDD, float *PSDD, int *DAS) {
     // Temporary variable used for computations 
-    float temp = 0, newOrgan = 0;
+    float temp = 0, newOrgan = 0, SL1 = 0, SSAT1 = 0, SDUL1 = 0; 
     double CloudField = 0;
     // Get an instance of Simulator
     Simulator *s = Simulator::getInstance();
@@ -81,6 +82,12 @@ int couplingRate(int *YRDOY,
         if(s->getPlants().size()>0) {
         //std::cout <<"Spores antes: "<<s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue()<<std::endl;
         s->getPlants()[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
+        SL1 = FlexibleIO::getInstance()->getReal("PEST", "SL1");
+        SDUL1 = FlexibleIO::getInstance()->getReal("PEST", "SDUL1");
+        SSAT1 = FlexibleIO::getInstance()->getReal("PEST", "SSAT1");
+
+        std::cout << "FIO: "<<SL1<<" "<<SSAT1<<" "<<SDUL1<<std::endl;
+  
         std::cout << "Data "<< *YRDOY<< " Alterando SPORES de: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " para: " << CloudField <<std::endl;
         }
     }

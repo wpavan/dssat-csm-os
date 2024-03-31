@@ -113,7 +113,7 @@ C-----------------------------------------------------------------------
 !     Needed for ORYZA-Rice
       REAL, DIMENSION(0:NL) :: SomLitC
       REAL, DIMENSION(0:NL,NELEM) :: SomLitE
-      REAL SL1
+      REAL SL1, SLL1, SSAT1, SDUL1
 
 C-----------------------------------------------------------------------
 C     Soil - Plant - Atmosphere Module Variables
@@ -261,6 +261,21 @@ C***********************************************************************
 C     SEASONAL INITIALIZATION
 C*********************************************************************** 
       ELSEIF (DYNAMIC .EQ. SEASINIT) THEN
+
+            IF(ISWDIS.EQ.'Y') THEN
+      
+              SLL1 = SOILPROP % LL(1)   !Lower limit soil water,1st layer
+              SDUL1 = SOILPROP % DUL(1) !Drained upper limit, 1st layer
+              SSAT1 = SOILPROP % SAT(1) !Upper limit, saturated,1st layer
+              
+              WRITE(*,*) "SL1", SL1, "SLL1", SLL1,"SDUL1",SDUL1, 
+     &         "SSAT1", SSAT1
+              
+              call fio%set("PEST","SL1",SL1)
+              call fio%set("PEST","SDUL1",SDUL1)
+              call fio%set("PEST","SSAT1",SSAT1)
+      
+            ENDIF
 C-----------------------------------------------------------------------
 C     Call WEATHR for initialization - reads first day of weather
 C     data for use in soil N and soil temp initialization.
