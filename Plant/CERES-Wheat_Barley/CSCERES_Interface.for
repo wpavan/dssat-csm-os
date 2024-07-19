@@ -22,7 +22,8 @@ C=======================================================================
       EXTERNAL YR_DOY, CSCER
       SAVE
 
-      CHARACTER*1   IDETG, IDETL, IDETO, IDETS, ISWWAT, ISWNIT, RNMODE
+      CHARACTER*1   ISWDIS, IDETG, IDETL, IDETO, IDETS, ISWWAT
+      CHARACTER*1   ISWNIT, RNMODE
       !CHARACTER*2   CROP
       !CHARACTER*30  FILEIO
       CHARACTER*250 FILEIOCS
@@ -66,6 +67,7 @@ C=======================================================================
 
       ISWWAT  = ISWITCH % ISWWAT
       ISWNIT  = ISWITCH % ISWNIT
+      ISWDIS  = ISWITCH % ISWDIS
       IDETG   = ISWITCH % IDETG
       IDETL   = ISWITCH % IDETL
       IDETO   = ISWITCH % IDETO
@@ -126,8 +128,8 @@ C=======================================================================
 
 C-----------------------------------------------------------------------
       CALL CSCER (FILEIOCS, RUN, TN, RN, RNMODE,           !Command line
-     & ISWWAT, ISWNIT, IDETS, IDETO, IDETG, IDETL, FROP,   !Controls
-     & SN, ON, RUNI, REP, YEAR, DOY, STEP, CN,             !Run+loop
+     & ISWWAT, ISWNIT, ISWDIS, IDETS, IDETO, IDETG, IDETL, !Controls
+     & FROP, SN, ON, RUNI, REP, YEAR, DOY, STEP, CN,       !Run+loop
      & SRAD, TMAX, TMIN, CO2, RAIN, TOTIR,                 !Weather
      & TWILEN, WINDSP, SOILTEMP, EO,                       !Weather
      & NLAYR, DLAYR, DEPMAX, LL, DUL, SAT, BD, SHF, SLPF,  !Soil states
@@ -139,7 +141,8 @@ C-----------------------------------------------------------------------
      & UNO3, UNH4, UH2O,                                   !Uptake
      & SENC, SENN, SENLIG,                                 !Senescence
      & CRESC, CRESN, CRESLIG,                              !Residue
-     & STGDOY,                                             !Stage dates
+     & STGDOY,                                          !Stage dates
+     & WEATHER, SOILPROP, CONTROL, ISWITCH,  
      & DYNAMIC)                                            !Control 
 
       XLAI   = LAI

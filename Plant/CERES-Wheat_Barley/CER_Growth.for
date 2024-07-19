@@ -544,6 +544,13 @@ C-GH      IF (snow.GT.0) THEN
           ! Following is to stop assim once mature
           IF (XSTAGE.GT.6.0) CARBO = AMAX1(0.0,CARBO*(6.3-XSTAGE)/0.3)
           
+!-----------------------------------------------------------------------          
+!*! Begin assimilative damage due to pests (TF - 01/10/2024)
+!-----------------------------------------------------------------------
+          CARBO = CARBO - ASMDOT
+          CARBO = MAX(CARBO, 0.0)
+!-----------------------------------------------------------------------          
+          
           ! Available carbohydrate for growth
           IF (ISTAGE.EQ.6) THEN
             CARBOAT = 0.0
@@ -1456,16 +1463,16 @@ C-GH      IF (snow.GT.0) THEN
      &       (GRAINNG+GRAINNGR+GRAINNGL+GRAINNGS+RSNUSEG)*(100./GRNMN)
             IF (GROGRPN.LT.GROGRPA.AND.GRAINANC*100.0.LE.GRNMN) THEN
               GRORSGR = GROGRPA - GROGRPN
-              GROGR = GROGRPN
+              GROGR = MAX(0.0,GROGRPN)
             ELSE
-              GROGR = GROGRPA
+              GROGR = MAX(0.0,GROGRPA)
               GRWTTMP = GRWT + GROGRPA
               IF (GRWTTMP.GT.0.0) THEN
                 GRAINNTMP = GRAINN +
      &          (GRAINNG+GRAINNGR+GRAINNGL+GRAINNGS+RSNUSEG)
                 IF (GRAINNTMP/GRWTTMP*100.0 .LT. GRNMN) THEN
                   GRWTTMP = GRAINNTMP*(100.0/GRNMN)
-                  GROGR = GRWTTMP - GRWT
+                  GROGR = MAX(0.0,GRWTTMP - GRWT)
                   IF (GROGR.LT.GROGRPA) GRORSGR = GROGRPA - GROGR
                 ENDIF
               ENDIF

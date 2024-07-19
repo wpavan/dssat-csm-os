@@ -27,8 +27,8 @@
 
       ! For Cropsim
 !     SUBROUTINE CSCER (FILEIOIN, RUN, TN, RN,             !Command line
-!    & ISWWAT, ISWNIT, IDETO, IDETG, IDETL, FROP,          !Controls
-!    & SN, ON, RUNI, REP, YEAR, DOY, STEP, CN,             !Run+loop
+!    & ISWWAT, ISWNIT, ISWDIS, IDETO, IDETG, IDETL,        !Controls
+!    & FROP, SN, ON, RUNI, REP, YEAR, DOY, STEP, CN,       !Run+loop
 !    & SRAD, TMAX, TMIN, CO2, RAIN, DEWDUR,                !Weather
 !    & DAYLT, WINDSP, ST, EO,                              !Weather
 !    & NLAYR, DLAYR, DEPMAX, LL, DUL, SAT, BD, SHF, SLPF,  !Soil states
@@ -45,8 +45,8 @@
 
       ! For CSM
       SUBROUTINE CSCER (FILEIOIN, RUN, TN, RN, RNMODE,     !Command line
-     & ISWWAT, ISWNIT, IDETS, IDETO, IDETG, IDETL, FROP,   !Controls
-     & SN, ON, RUNI, REP, YEAR, DOY, STEP, CN,             !Run+loop
+     & ISWWAT, ISWNIT, ISWDIS, IDETS, IDETO, IDETG, IDETL, !Controls
+     & FROP, SN, ON, RUNI, REP, YEAR, DOY, STEP, CN,       !Run+loop
      & SRAD, TMAX, TMIN, CO2, RAIN, TOTIR,                 !Weather
      & DAYLT, WINDSP, ST, EO,                              !Weather
      & NLAYR, DLAYR, DEPMAX, LL, DUL, SAT, BD, SHF, SLPF,  !Soil states
@@ -59,6 +59,7 @@
      & SENCALG, SENNALG, SENLGALG,                         !Senescence
      & RESCALG, RESNALG, RESLGALG,                         !Residues
      & STGDOY,                                             !Stage dates
+     &  WEATHER, SOILPROP, CONTROL, ISWITCH,                        
      & DYNAMIC)                                            !Control
 
 ! 2023-01-25 CHP removed unused variables from argument list
@@ -181,11 +182,13 @@
       USE CER_First_Trans_m
       
       IMPLICIT NONE
-      EXTERNAL CER_Init, CER_Growth, CER_Integrate, CER_Output
+      EXTERNAL CER_Init, CER_Growth, CER_Integrate, CER_Output, PEST
 
-!      TYPE (ControlType), intent (in) :: CONTROL ! Defined in ModuleDefs
-!      TYPE (WeatherType), intent (in) :: WEATHER ! Defined in ModuleDefs
-!      TYPE (SoilType), intent (in) ::   SOILPROP ! Defined in ModuleDefs
+      TYPE (ControlType), intent (in) :: CONTROL ! Defined in ModuleDefs
+      TYPE (WeatherType), intent (in) :: WEATHER ! Defined in ModuleDefs
+      TYPE (SoilType), intent (in) ::   SOILPROP ! Defined in ModuleDefs
+      TYPE (SwitchType), intent (in) ::   ISWITCH ! Defined in ModuleDefs
+
     
 !     INTEGER ADAT10, CSTIMDIF, CSINCDAT, DAPCALC
       INTEGER CN, DOY, DYNAMIC, DYNAMICI, FROP, NLAYR, ON, REP, RN          
@@ -205,15 +208,25 @@
       REAL CO2, TMAX, TMIN, SRAD, WINDSP, SNOW
       REAL TOTIR !, TFAC4, YVALXY, YVAL1
 
-      CHARACTER*1   IDETG, ISWNIT, ISWWAT, IDETL, IDETO, IDETS
+      CHARACTER*1   IDETG, ISWNIT, ISWWAT, IDETL, IDETO, IDETS, ISWDIS
       CHARACTER*1   RNMODE
       CHARACTER*250 FILEIOIN
 !     CHARACTER*10  TL10FROMI  
 
+      REAL    LAGSD,LNGPEG
+      REAL    SLDOT,SSDOT,WLFDOT
+      REAL    PHTIM(NCOHORTS)
+      REAL    WTSD(NCOHORTS), SDNO(NCOHORTS)
+      REAL    TOPWT !Add WTLF+PODWT+STMWTO+SDWT 
+      REAL    WTSHE(NCOHORTS), SHELN(NCOHORTS)
+      REAL    SDDES(NCOHORTS)
+      REAL    WSHIDT,NPLTD
 
       YEARDOY = YEAR*1000 + DOY
 
+!***********************************************************************
       IF (DYNAMIC.EQ.RUNINIT .OR. DYNAMIC.EQ.SEASINIT) THEN
+!***********************************************************************
 
         CALL CER_Init (LAI, CANHT,
      &     CN, DOY, HARVFRAC,
@@ -224,7 +237,19 @@
      &     UH2O, YEAR, SLPF, SN,
      &     STGDOY, TN, TRWUP, DYNAMIC)
 
+        IF (ISWDIS.EQ.'Y') THEN
+          CALL PEST(CONTROL, ISWITCH, 
+     &      LAI, LFWTGM, STWTGM, LAGSD, LNGPEG, NR2, CARBO,     !Input
+     &      PHTIM, PLTPOP, RTWTGM, SLA, SLDOT, SOILPROP,        !Input
+     &      SSDOT, STWTGM, TOPWT, WLFDOT, LFWTGM, YEARPLTCSM,   !Input
+     &      RLV, SDNO, SHELN, SWIDOT,                           !Input/Output
+     &      ZSTAGE, WSHIDT, WTSD, WTSHE,                        !Input/Output
+     &      ASMDOT, DISLA, NPLTD, PPLTD,                        !Output
+     &      SDDES, WLIDOT, WRIDOT, WSIDOT,SDWT)  
+        ENDIF
+!***********************************************************************
       ELSEIF (DYNAMIC.EQ.RATE) THEN
+!***********************************************************************
 
         CALL CER_Growth (BD, CANHT, CO2, DAYLT,
      &     DLAYR, DUL, EO, EOP, ISWNIT, ISWWAT,
@@ -233,6 +258,17 @@
      &     SHF, SLPF, SNOW, SRAD, ST, STGDOY, SW,
      &     TMAX, TMIN, TRWUP, UH2O, UNH4ALG, UNO3ALG, 
      &     WINDSP, YEARPLTCSM, LAI)
+
+        IF (ISWDIS.EQ.'Y') THEN
+          CALL PEST(CONTROL, ISWITCH, 
+     &      LAI, LFWTGM, STWTGM, LAGSD, LNGPEG, NR2, CARBO,     !Input
+     &      PHTIM, PLTPOP, RTWTGM, SLA, SLDOT, SOILPROP,        !Input
+     &      SSDOT, STWTGM, TOPWT, WLFDOT, LFWTGM, YEARPLTCSM,   !Input
+     &      RLV, SDNO, SHELN, SWIDOT,                           !Input/Output
+     &      ZSTAGE, WSHIDT, WTSD, WTSHE,                        !Input/Output
+     &      ASMDOT, DISLA, NPLTD, PPLTD,                        !Output
+     &      SDDES, WLIDOT, WRIDOT, WSIDOT,SDWT)  
+        ENDIF
 
         IF (YEARDOY.GE.YEARPLT) THEN   
 
@@ -255,8 +291,9 @@
           DYNAMICI = 0
 
         ENDIF
-
+!***********************************************************************
       ELSEIF (DYNAMIC.EQ.INTEGR) THEN
+!***********************************************************************
 
         CALL CER_Integrate (LAI, CANHT, CO2,
      &     DAYLT, DEPMAX, DLAYR, DOY, EOP, EP, ET, KCAN,
@@ -266,16 +303,42 @@
      &     SRAD, STGDOY, SW, TMAX, TMIN,
      &     YEAR)
 
+        IF (ISWDIS.EQ.'Y') THEN
+          CALL PEST(CONTROL, ISWITCH, 
+     &      LAI, LFWTGM, STWTGM, LAGSD, LNGPEG, NR2, CARBO,     !Input
+     &      PHTIM, PLTPOP, RTWTGM, SLA, SLDOT, SOILPROP,        !Input
+     &      SSDOT, STWTGM, TOPWT, WLFDOT, LFWTGM, YEARPLTCSM,   !Input
+     &      RLV, SDNO, SHELN, SWIDOT,                           !Input/Output
+     &      ZSTAGE, WSHIDT, WTSD, WTSHE,                        !Input/Output
+     &      ASMDOT, DISLA, NPLTD, PPLTD,                        !Output
+     &      SDDES, WLIDOT, WRIDOT, WSIDOT,SDWT)  
+        ENDIF
+
+!***********************************************************************
       ELSEIF (DYNAMIC.EQ.OUTPUT .OR. 
      &        DYNAMIC.EQ.SEASEND .AND. SEASENDOUT.NE.'Y') THEN
+!***********************************************************************
 
         CALL CER_Output (LAI, CANHT, CN, DOY,
      &     DYNAMIC, EOP, IDETG, IDETL, IDETO, IDETS,
      &     ISWNIT, ISWWAT, NFP, ON, REP,
      &     RLV, RN, RNMODE, RUN, RUNI, SN, STEP, STGDOY,
      &     TOTIR, TN, YEAR)
-     
+
+        IF (ISWDIS.EQ.'Y') THEN
+          CALL PEST(CONTROL, ISWITCH, 
+     &      LAI, LFWTGM, STWTGM, LAGSD, LNGPEG, NR2, CARBO,     !Input
+     &      PHTIM, PLTPOP, RTWTGM, SLA, SLDOT, SOILPROP,        !Input
+     &      SSDOT, STWTGM, TOPWT, WLFDOT, LFWTGM, YEARPLTCSM,   !Input
+     &      RLV, SDNO, SHELN, SWIDOT,                           !Input/Output
+     &      ZSTAGE, WSHIDT, WTSD, WTSHE,                        !Input/Output
+     &      ASMDOT, DISLA, NPLTD, PPLTD,                        !Output
+     &      SDDES, WLIDOT, WRIDOT, WSIDOT,SDWT)  
+        ENDIF 
+
+!***********************************************************************     
       ELSEIF (DYNAMIC.EQ.SEASEND) THEN
+!***********************************************************************
 
         CLOSE (NOUTPG)
         INQUIRE (FILE = OUTPN, EXIST = FEXIST)
