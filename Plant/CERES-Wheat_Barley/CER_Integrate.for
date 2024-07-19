@@ -158,6 +158,13 @@
 
           IF (ISTAGE.GT.0) GPLA(ISTAGE) = AMAX1(0.0,PLA-SENLA)
           LAI = AMAX1 (0.0,(PLA-SENLA)*PLTPOP*0.0001)
+
+!-----------------------------------------------------------------------          
+!*!       Begin diseased leaf area damage due to pest (TF - 01/10/2024)
+!-----------------------------------------------------------------------
+          LAI = MAX(0.0, LAI - DISLA)
+!----------------------------------------------------------------------- 
+
           LAIX = AMAX1(LAIX,LAI)
 
           PLASTMP = PLAS + PLASS + PLASC + PLAST
@@ -1152,6 +1159,85 @@
             ENDIF
           END DO
 
+          SDWT = GRWT*PLTPOP !g/m2
+          RTWTGM = RTWT*PLTPOP !g/m2
+          STWTGM = STWT*PLTPOP !g/m2
+          LFWTGM = LFWT*PLTPOP !g/m2
+
+!======================================================================
+! PEST COUPLING POINTS
+!---------------------------------------------------------------------- 
+!*! Begin leaf damage due to pests (TF - 01/10/2024)
+!---------------------------------------------------------------------- 
+          IF (PLTPOP .GT. 0.0 .AND. LFWT .GT. 0.0 .AND. 
+     &       WLIDOT .GT. 0.0) THEN
+            LAIDOT = MAX(0.0,WLIDOT * (PLA - SENLA)/LFWT) !cm2/m2
+          ENDIF
+
+          IF(PLTPOP .GT. 0.0 .AND. LAIDOT .GT. 0.0 .AND.
+     &        LFWT .GT. 0.0) THEN
+             LEAFN = LEAFN - LEAFN * (WLIDOT/PLTPOP) / LFWT
+             LFWT = LFWT - WLIDOT/PLTPOP
+             LFWT = MAX(LFWT,0.0)
+             
+             PLA = PLA - (LAIDOT/PLTPOP)
+              
+             LAI = LAI - LAIDOT/10000 !LAIDOT/10000 - m2/m2
+             LAI = MAX(LAI, 0.0)
+          ENDIF          
+!----------------------------------------------------------------------
+!*! End leaf damage due to pests. 
+!----------------------------------------------------------------------
+!*! Begin stem damage due to pests (TF - 01/10/2024)
+!----------------------------------------------------------------------
+          IF(PLTPOP.GT.0.0 .AND. STWT .GT. 0.0 .AND. 
+     &     WSIDOT .GT. 0.0) THEN
+            STEMN= STEMN- STEMN*(WSIDOT/PLTPOP)/STWT
+            STWT = STWT - WSIDOT/PLTPOP
+            STWT = MAX(STWT, 0.0)
+          ENDIF  
+!----------------------------------------------------------------------
+!*! End stem damage due to pests. 
+!====================================================================== 
+!---------------------------------------------------------------------- 
+!*! Begin root damage due to pests (TF - 01/10/2024)
+!----------------------------------------------------------------------
+          IF(PLTPOP.GT.0.0 .AND. RTWT .GT. 0.0 .AND. WRIDOT .GT. 0.0) THEN
+            ROOTN= ROOTN - ROOTN * (WRIDOT/PLTPOP)/RTWT
+            RTWT = RTWT - WRIDOT/PLTPOP
+            RTWT = MAX(RTWT, 0.0)
+          ENDIF
+!----------------------------------------------------------------------
+!*! End root damage due to pests. 
+!====================================================================== 
+!*! Begin grain weight and number damage due to pests (TF - 01/10/2024) 
+!---------------------------------------------------------------------- 
+          IF (PLTPOP.GT. 0.0 .AND. GRWT .GT. 0.0 .AND. 
+     &      SWIDOT .GT. 0.0) THEN
+            GRAINN = GRAINN - GRAINN * (SWIDOT/PLTPOP)/GRWT
+            GRNUM = GRNUM - GRNUM *(SWIDOT/PLTPOP)/GRWT
+          ENDIF
+          
+          IF(PLTPOP.GT.0.0 .AND. SWIDOT .GT. 0.0) THEN 
+            GRWT = GRWT - SWIDOT/PLTPOP
+            GRWT = MAX(GRWT, 0.0)
+          ENDIF
+!----------------------------------------------------------------------
+!*! End grain weight and number damage due to pests. 
+!====================================================================== 
+!-----------------------------------------------------------------------
+!*! Begin plants damage due to pests TF - 01/10/2024) 
+!-----------------------------------------------------------------------
+          IF(PLTPOP.GT. 0.0 .AND. PPLTD.GT.0) THEN
+            PLTPOP = PLTPOP - PLTPOP * PPLTD/100
+            PLTPOP = MAX(PLTPOP, 0.0)
+            LAI = LAI - LAI*(PPLTD/100)
+            LAI = MAX(LAI, 0.0)
+          ENDIF
+!-----------------------------------------------------------------------
+!*! End plants damage due to pests. 
+!======================================================================= 
+        
         ENDIF
 
 

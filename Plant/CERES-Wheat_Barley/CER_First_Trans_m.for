@@ -1234,6 +1234,27 @@
      6              '          ','          '/
 
 
+!-----------------------------------------------------------------------
+!*! PEST VARIABLES (TF - 01/09/2024)
+!-----------------------------------------------------------------------
+      REAL          SWIDOT ! Seed loss due to pests               g/m2
+      REAL          WRIDOT ! Root loss due to pests               g/m2
+      REAL          WSIDOT ! Stem loss due to pests               g/m2
+      REAL          WLIDOT ! Leaf loss due to pests               g/m2
+      REAL          LAIDOT ! Leaf area consumed by pests          cm2/m2
+      REAL          PPLTD  ! Percent plants destroyed             %/m2
+      REAL          DISLA  ! Diseased leaf area                   cm2/m2
+      REAL          ASMDOT ! Reduction in photosyn. due to pests  g/p
+!-----------------------------------------------------------------------
+!*! VARIABLES ADDED TO ADJUST UNITS AND PROVIDE INPUT TO THE PEST MODULE
+!-----------------------------------------------------------------------      
+      REAL          RTWTGM ! Root weight in g/m2 for pest module  g/m2
+      REAL          STWTGM ! Stem weight in g/m2 for pest module  g/m2
+      REAL          LFWTGM ! Leaf weight in g/m2 for pest module  g/m2
+      REAL          SDWT   !
+!     NR2 is a required variable however is only used for CROPGRO.
+      INTEGER       NR2      
+!-----------------------------------------------------------------------
     
         End Module CER_First_Trans_m
         
@@ -1499,6 +1520,26 @@
         xstagefs = 0.0
         gplasenf = 0.0
 
+!-----------------------------------------------------------------------
+!*! PEST VARIABLES (TF - 01/09/2024)
+!-----------------------------------------------------------------------
+        SWIDOT = 0.0
+        WRIDOT = 0.0
+        WSIDOT = 0.0
+        WLIDOT = 0.0
+        LAIDOT = 0.0
+        PPLTD  = 0.0
+        DISLA  = 0.0
+        ASMDOT = 0.0
+!-----------------------------------------------------------------------
+!*! VARIABLES ADDED TO ADJUST UNITS AND PROVIDE INPUT TO THE PEST MODULE
+!-----------------------------------------------------------------------              
+        SDWT   = 0.0
+        RTWTGM = 0.0
+        STWTGM = 0.0
+        LFWTGM = 0.0
+        NR2    = 10000
+!-----------------------------------------------------------------------  
 
       end subroutine clear_CER_First_Trans_m
         
