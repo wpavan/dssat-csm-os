@@ -21,8 +21,8 @@ void Cloud::integration()
     }
     //std::cout<<"Rain: "<< Basic::getWeather()->getRain()<<std::endl;
     //std::cout<<"New function: "<< Utilities::dispersalRainFunction(Basic::getWeather()->getRain(),disease->getDispersionFreequency())<<std::endl;
-    values.push_back(Utilities::dispersalRainFunction(Basic::getWeather()->getRain(), disease->getDispersionFreequency()) * sporesCreated);
-    //std::cout << disease->getDispersionFreequency() * sporesCreated << std::endl;
+    values.push_back(sporesCreated); //Utilities::dispersalRainFunction(Basic::getWeather()->getRain(), disease->getDispersionFreequency()) * sporesCreated);
+    //std::cout << " Adicionou: " << Utilities::dispersalRainFunction(Basic::getWeather()->getRain(), disease->getDispersionFreequency()) * sporesCreated << " " << sporesCreated << " Removeu: " << sporesToBeRemoved << std::endl;
     sporesCreated = sporesToBeRemoved = 0;
 }
 
@@ -42,40 +42,56 @@ void Cloud::removeSporesCloud(double toBeRemoved)
     {
         values[i] -= (toBeRemoved * (values[i] / total));
     }
+//    std::cout<< "  " << total-getValue() << " Anterior: " << total << " Atual: " << getValue() << std::endl;
 }
 
 void Cloud::removeSporesCloudByRain(double percent)
 {
+    double total = getValue();
     double oldValue = 0;
     for (unsigned int i = 0; i < values.size(); i++)
     {
         oldValue = values[i];
         values[i] = (oldValue * percent);
     }
+//    std::cout<< " Removidos by Rain: " << total-getValue() << " Anterior: " << total << " Atual: " << getValue() << std::endl;
 }
 
 void Cloud::removeSporesCloudFByAge(void)
 {
+    /*
     int yearDoy = Simulator::getInstance()->getCurrentYearDoy();
+    double total = getValue();
 
     for (int i = values.size(); i > 0; i--)
     {
         values[values.size() - i] = values[values.size() - i] * (1.61 * exp(-0.369 * (values.size() - i + 1))) > 0 ? values[values.size() - i] * (1.61 * exp(-0.369 * (values.size() - i + 1))) : 0;
     }
+    std::cout << yearDoy << " Removed by Age (F): " << total-getValue() << " Anterior: " << total << " Atual: " << getValue() << std::endl;
+    */
 }
 void Cloud::removeSporesCloudPByAge(void)
 {
+    /*int yearDoy = Simulator::getInstance()->getCurrentYearDoy();
+    double total = getValue();
 
     for (int i = values.size(); i > 0; i--)
     {
         values[values.size() - i] = values[values.size() - i] * (1.40 * exp(-0.2030 * (values.size() - i + 1))) > 0 ? values[values.size() - i] * (1.40 * exp(-0.2030 * (values.size() - i + 1))) : 0;
     }
+    std::cout<< yearDoy << " Removed by Age (P): " << total-getValue() << " Anterior: " << total << " Atual: " << getValue() << std::endl;
+    */
 }
 void Cloud::removeSporesCloudOByAge(void)
 {
+    /*
+    int yearDoy = Simulator::getInstance()->getCurrentYearDoy();
+    double total = getValue();
 
     for (int i = values.size(); i > 0; i--)
     {
         values[values.size() - i] = values[values.size() - i] * (1.4268 * exp(-0.2184 * (values.size() - i + 1))) > 0 ? values[values.size() - i] * (1.4268 * exp(-0.2184 * (values.size() - i + 1))) : 0;
     }
+    std::cout<< yearDoy << " Removed by Age (O): " << total-getValue() << " Anterior: " << total << " Atual: " << getValue() << std::endl;
+    */
 }

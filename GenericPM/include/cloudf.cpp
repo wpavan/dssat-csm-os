@@ -9,6 +9,7 @@ void CloudF::integration() {
     Cloud::integration();
     float porcent=0;
     if (values.size() > (unsigned) disease->getVectorSizeCloudF()) {
+        //std::cout << "Size: " << values.size() << " Remove first (By Age): " << values[0] << std::endl;
         values.erase(values.begin());
     }
     if (getValue() > disease->getMaxSporeCloudsDensity()) {

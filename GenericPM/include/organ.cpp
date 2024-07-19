@@ -31,15 +31,16 @@ void Organ::integration() {
     dailyNecroticDiseaseArea = necroticDiseaseArea;
     dailyTotalLesions = totalLesions;
     dailyVisibleLesions = visibleLesions;
-    diseaseArea = 0;
+    totalLesions = diseaseArea = 0;
     visibleLesions = 0;
     visibleDiseaseArea = invisibleDiseaseArea = 0;
-    latentDiseaseArea = infectionDiseaseArea = necroticDiseaseArea = 0;    newLesions = 0;
+    latentDiseaseArea = infectionDiseaseArea = necroticDiseaseArea = newLesions = 0;
 
     if (suceptible) {
         for (unsigned int i = 0; i < cloudsO.size(); i++) {
             cloudo = &cloudsO[i];
-            physiologicalLife += Utilities::trapezoidalFunction(Basic::getWeather()->getTMean(), cloudo->getDisease()->getCardinalTempPhysiologicalLife());
+            physiologicalLife += Utilities::trapezoidalFunction(Basic::getWeather()->getTMean(), 
+            cloudo->getDisease()->getCardinalTempPhysiologicalLife());
             //cloudOValue = 0;
             cloudOValue = cloudAmount();
             //cloudPValue = 0;
@@ -54,20 +55,25 @@ void Organ::integration() {
             //std::cout << "cloudP: " << cloudPValue << std::endl;
             //std::cout << "cloudO: " << cloudOValue << std::endl;
             //std::cout << "healthAreaProportion " << healthAreaProportion << " getProportionFromTotalArea " << getProportionFromTotalArea() <<
-            //" newLesionsFromField " << newLesionsFromField << std::endl;
+            //std::cout << getOrganNumber() << " newLesionsFromField " << newLesionsFromField << " physiologicalLife " << physiologicalLife << " getProportionFromTotalArea() " << getProportionFromTotalArea() << std::endl;
             
-            if ((newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField) > 0 && physiologicalLife >= 5) {
-                newLesions = newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField;
+            newLesions = std::round(newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField);
+
+            if (newLesions > 0) { // && physiologicalLife >= 5) {
                 lesionCohorts.emplace_back(newLesions, cloudo);
                 totalLesions += newLesions;
+                std::cout<<"New Lesions: Organ: " << organNumber << " OrganTArea: " << totalArea << 
+                            " DArea: " << diseaseArea << " NewLesions: "<<totalLesions<< 
+                            " HAreaProp: " << healthAreaProportion << 
+                            " PropTotalArea: " << getProportionFromTotalArea() <<
+                            std::endl;
 
                 // Add Spores that will be removed because were used to infect the tissue
                 cloudo->addSporesToBeRemoved(newLesionsFromOrgan);
                 cloudo->getCloudP()->addSporesToBeRemoved(newLesionsFromPlant);
                 cloudo->getCloudP()->getCloudF()->addSporesToBeRemoved(newLesionsFromField);
-            } else {
-                newLesionsFromOrgan = newLesionsFromPlant = newLesionsFromField = 0;
             }
+            newLesionsFromOrgan = newLesionsFromPlant = newLesionsFromField = 0;
         }
     }
 
@@ -98,16 +104,16 @@ void Organ::integration() {
     dailyNecroticDiseaseArea = fmax(0,necroticDiseaseArea - dailyNecroticDiseaseArea);
     dailyTotalLesions = fmax(0,totalLesions - dailyTotalLesions);
     dailyVisibleLesions = fmax(0,visibleLesions - dailyVisibleLesions);
-    //    printf(" Daily: DiseaseArea (%f),"
-    //            "VisibleDiseaseArea (%f),"
-    //            "SenescenceArea (%f),"
-    //            "LatentDiseaseArea (%f),"
-    //            "InfectionDiseaseArea (%f),"
-    //            "NecroticDiseaseArea (%f)\n "
-    //            "TotalLesions (%i),"
-    //            "VisibleLesions (%i)\n", dailyDiseaseArea, dailyVisibleDiseaseArea,
-    //            dailySenescenceArea,dailyLatentDiseaseArea,dailyInfectionDiseaseArea,
-    //            dailyNecroticDiseaseArea,dailyTotalLesions,dailyVisibleLesions);
+    /*    printf(" Daily: DiseaseArea (%f),"
+                "VisibleDiseaseArea (%f),"
+                "SenescenceArea (%f),"
+                "LatentDiseaseArea (%f),"
+                "InfectionDiseaseArea (%f),"
+                "NecroticDiseaseArea (%f),"
+                "TotalLesions (%f),"
+                "VisibleLesions (%f)\n", dailyDiseaseArea, dailyVisibleDiseaseArea,
+                dailySenescenceArea,dailyLatentDiseaseArea,dailyInfectionDiseaseArea,
+                dailyNecroticDiseaseArea,dailyTotalLesions,dailyVisibleLesions); */
     std::ostringstream convert;
     convert << organNumber << "," 
             << Basic::getWeather()->getYearDoy() << "," << totalArea << "," << senescenceArea << "," 

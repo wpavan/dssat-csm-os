@@ -6,6 +6,7 @@
 #include<iostream>
 #include<fstream>
 #include<string>
+#include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
 int Plant::qtd = 0;
 int Plant::firstOutputCall = 0;
@@ -25,7 +26,10 @@ void Plant::integration() {
     totalArea = diseaseArea = latentDiseaseArea = infectionDiseaseArea = necroticDiseaseArea = visibleDiseaseArea = invisibleDiseaseArea = totalLesions = visibleLesions = senescenceArea = 0;
     int newOrgan = 0;
     double cloudOValue = 0, cloudPValue = 0, cloudFvalue = 0;
+    int YRDOY = FlexibleIO::getInstance()->getReal("PEST", "YRDOY");
+
     Organ *o;
+    
     for (unsigned int i = 0; i < organs.size(); i++) {
         o = &organs[i];
         if(o->getSenescenceArea() < o->getTotalArea()) {
@@ -45,7 +49,10 @@ void Plant::integration() {
         totalArea += o->getTotalArea();
         senescenceArea += o->getSenescenceArea();
         cloudOValue += o->cloudAmount();
+
     }
+
+    //std::cout << "Total Area: " << totalArea << " Disease Area: " << diseaseArea << " Latent Disease Area: " << latentDiseaseArea << " Infection Disease Area: " << infectionDiseaseArea << " Necrotic Disease Area: " << necroticDiseaseArea << " Visible Disease Area: " << visibleDiseaseArea << " Invisible Disease Area: " << invisibleDiseaseArea << " Total Lesions: " << totalLesions << " Visible Lesions: " << visibleLesions << " Senescence Area: " << senescenceArea << std::endl;
 
     CloudP *cloud;
     for (unsigned int i = 0; i < cloudsP.size(); i++) {
@@ -101,13 +108,19 @@ void Plant::output() {
 
 void Plant::rate() {
     Organ *o;
+    totalArea = 0;
     for (unsigned int i = 0; i < organs.size(); i++) {
         o = &organs[i];
+        totalArea += o->getTotalArea();
+    }
+    for (unsigned int i = 0; i < organs.size(); i++) {
+        o = &organs[i];
+        //printf("Organ: %d %f %f\n",o->getOrganNumber(),o->getTotalArea(),totalArea);
         if(o->getSenescenceArea() < o->getTotalArea()) {
             o->setProportionFromTotalArea(o->getTotalArea()/totalArea);
             o->rate();
         } else {
-            //printf("## Organ: %d died - rate!!!\n",o->getOrganNumber());
+            printf("## Organ: %d died - rate!!!\n",o->getOrganNumber());
         }
     }
 }

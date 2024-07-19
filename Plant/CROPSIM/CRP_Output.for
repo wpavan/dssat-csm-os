@@ -14,6 +14,12 @@
 
       USE ModuleDefs
       USE CRP_First_Trans_m
+
+!------ Generic Disease Purpose -----!      
+      USE flexibleio
+      USE, intrinsic :: iso_c_binding
+!----------------END-----------------! 
+
   
       IMPLICIT NONE
       EXTERNAL YR_DOY, GETLUN, SUMVALS, HEADER, TVILENT, TVICOLNM, 
@@ -401,6 +407,8 @@
      I      2F6.2,
      J      2F6.2)
             ! End Plantgro writes
+
+            call fio%set("PEST","ZSTAGE",GSTAGEC) 
             
             ! PlantGroReductionFactors
             IF (YEARDOY.GT.PLYEARDOY) THEN

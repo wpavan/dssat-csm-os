@@ -34,7 +34,7 @@ public:
     }
 
     void addSporesCreated(double sporesCreated) {
-        this->sporesCreated = sporesCreated + Cloud::getValue();
+        this->sporesCreated += sporesCreated;
     }
 
     void setFirstSporeCloud(double firstSporeCloud) {

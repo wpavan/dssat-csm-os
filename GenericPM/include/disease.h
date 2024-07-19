@@ -50,7 +50,7 @@ public:
         return listDiseases;
     }
     double getSporulationCrowdingFactor(double proportionDiseaseArea);
-    int newLesions(double cloudDensity, double healthyAreaProportion);
+    double newLesions(double cloudDensity, double healthyAreaProportion);
 
     double getProportionFromOrganToPlantCloud() {
         return proportionFromOrganToPlantCloud;

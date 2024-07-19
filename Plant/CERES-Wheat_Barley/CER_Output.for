@@ -15,6 +15,12 @@
         USE ModuleDefs
         USE CSVOUTPUT  ! VSH
         USE CER_First_Trans_m
+        
+!------ Generic Disease Purpose -----!      
+        USE flexibleio
+        USE, intrinsic :: iso_c_binding
+!----------------END-----------------! 
+
 
         IMPLICIT NONE
         EXTERNAL YR_DOY, GETLUN, SUMVALS, HEADER, TVILENT, TVICOLNM, 
@@ -311,6 +317,8 @@
      &        1.0-NFT,1.0-NFP,1.0-NFG,AMIN1(2.0,NUPR),
      &        1.0-TFP,1.0-TFG,
      &        1.0-VF,1.0-DF 
+
+      call fio%set("PEST","ZSTAGE",ZSTAGE) 
 
 !     VSH CSV output corresponding to PlantGro.OUT
       IF (FMOPT == 'C') THEN 

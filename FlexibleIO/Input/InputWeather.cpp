@@ -61,7 +61,7 @@ int readWeatherH(std::string file)
         while (getline (myfile, line) )
         {
             test =  Util::ignore_line3(line);
-            if (test > 2 && test < 5)
+            if (test == 3)
             {
                 type++;
                 line.erase(0, 1);
