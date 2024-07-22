@@ -39,13 +39,13 @@ double Disease::newLesions(double cloudDensity, double healthyAreaProportion) {
         // ******* Host Factor???
         // ******* Infection efficiency???
         
-        std::cout <<YRDOY<< " " << id << " cloudDensity "<< cloudDensity << 
+        /*std::cout <<YRDOY<< " " << id << " cloudDensity "<< cloudDensity << 
                     " rI " << rI << 
                     " TF " << tempFavorability <<
                     " IE " << getInfectionEfficiency() <<
                     " HF " << getHostFactor() <<
                     " Rain " << Basic::getWeather()->getRain() << 
-                    " newLesions "<<newLesions<<std::endl;
+                    " newLesions "<<newLesions<<std::endl; */
     /*std::cout << " 1: " << newLesions << " 2: " << cloudDensity << " 3: " << healthyAreaProportion << " 4: " << getInfectionEfficiency() <<
         " 5: " << util.temperatureFavorability(Basic::getWeather()->getTMean(),getTemperatureFavorabilitySet()) << " 6: " <<
         util.wetnessFavorability(Basic::getWeather()->getWetDur()) << " 7: " << Basic::getWeather()->getWetDur()<< std::endl; */

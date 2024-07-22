@@ -96,7 +96,7 @@ int couplingRate(int *YRDOY,
             CloudField = (0.0000005 * exp(0.21 * SW));
             //printf("SDWT3 %f SDWTp %f *SDWT-SDWTp %f\n", *SDWT, SDWTp, *SDWT-SDWTp);
             
-            std::cout << *YRDOY<<" CloudField2: "<<CloudField<<" SW:"<<SW<<" SL1:"<<SL1<<" SLL1: "<<SLL1<<" SSAT1: " << SSAT1 <<std::endl;
+            //std::cout << *YRDOY<<" CloudField2: "<<CloudField<<" SW:"<<SW<<" SL1:"<<SL1<<" SLL1: "<<SLL1<<" SSAT1: " << SSAT1 <<std::endl;
                     
             s->getPlants()[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
             

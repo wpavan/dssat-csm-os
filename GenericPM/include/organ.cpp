@@ -62,11 +62,11 @@ void Organ::integration() {
             if (newLesions > 0) { // && physiologicalLife >= 5) {
                 lesionCohorts.emplace_back(newLesions, cloudo);
                 totalLesions += newLesions;
-                std::cout<<"New Lesions: Organ: " << organNumber << " OrganTArea: " << totalArea << 
+                /*std::cout<<"New Lesions: Organ: " << organNumber << " OrganTArea: " << totalArea << 
                             " DArea: " << diseaseArea << " NewLesions: "<<totalLesions<< 
                             " HAreaProp: " << healthAreaProportion << 
                             " PropTotalArea: " << getProportionFromTotalArea() <<
-                            std::endl;
+                            std::endl;*/
 
                 // Add Spores that will be removed because were used to infect the tissue
                 cloudo->addSporesToBeRemoved(newLesionsFromOrgan);
