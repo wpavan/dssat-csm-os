@@ -79,7 +79,6 @@ C-----------------------------------------------------------------------
 !         P1 = P1T + 25.0
          P1 = P1T + 25.0 * (P_AGE/185.)   !US
       ENDIF
-
       !Save value of CUMDTT and SUMDTT for use by TRANSPL_GROSUB
       CDTT_TP = CUMDTT
       SDTT_TP = SUMDTT

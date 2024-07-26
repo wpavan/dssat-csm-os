@@ -114,7 +114,9 @@ C-----------------------------------------------------------------------
 !     Added for K model   
       REAL KUptake(NL), SKi_AVAIL(NL), KSTRES
 
-
+! For Perenial Rice control   ! WP 5/18/2011
+      REAL RHzWT, RHzDTT
+! End definitions for Perenial Rice control
  
 C-----------------------------------------------------------------------
 C     Initialize
@@ -181,6 +183,11 @@ C-----------------------------------------------------------------------
 !     CHP 5/18/2011
       MDATE      = -99      
 
+! For Perenial Rice control         ! WP 5/18/2011
+      RHzWT = 0.0
+      RHzDTT = 0.0
+! End initialization for Perenial Rice control
+
 !     Temporary -- until P is integrated with this crop module  US 4/2/08
 !     PConc_Shut = 0.0
 !      PConc_Root = 0.0
@@ -196,9 +203,9 @@ C-----------------------------------------------------------------------
       !Initialize phenology
       CALL RI_PHENOL (CONTROL, ISWITCH, 
      &    AGEFAC, BIOMAS, DAYL, LEAFNO, NSTRES, PHEFAC,   !Input
-     &    PHINT, SDEPTH, SOILPROP, SRAD, SW, SWFAC,       !Input
+     &    PHINT, SDEPTH, SOILPROP, SRAD, SW, DUL, SWFAC,  !Input
      &    TGROGRN, TILNO, TMAX, TMIN, TWILEN, TURFAC,     !Input
-     &    YRPLT,FLOODWAT, LAI,                            !Input
+     &    YRPLT,FLOODWAT, LAI, RHzWT, RHzDTT,             !Input
      &    CUMDTT, EMAT, ISDATE, PLANTS, RTDEP, YRSOW,     !I/O
      &    CDTT_TP, DTT, FERTILE, FIELD, ISTAGE,           !Output
      &    ITRANS, LTRANS, MDATE, NDAT, NEW_PHASE, P1, P1T,!Output
@@ -235,7 +242,8 @@ C-----------------------------------------------------------------------
      &    RWUMX, SEEDNI, SEEDRV, SENESCE,                 !Output
      &    SKERWT, STMWT, STMWTO,                          !Output
      &    STOVER, STOVN, TANC, TGROGRN, TILNO, TOTNUP,    !Output
-     &    CumNUptake, UNH4, UNO3, WTLF, XGNP)             !Output
+     &    CumNUptake, UNH4, UNO3, WTLF, XGNP,             !Output
+     &    MDATE, RHzWT, RHzDTT)                           !Output       ! WP - Added MDATE, RHzWT, RHzDTT
      
       CALL RI_OPGROW (CONTROL, ISWITCH, SOILPROP,
      &    BIOMAS, GPP, GPSM, GRAINN, GRNWT, ISTAGE, LAI,  
@@ -323,9 +331,9 @@ C-----------------------------------------------------------------------
         IF (YRDOY .EQ. YRPLT .OR. ISTAGE .NE. 7) THEN
           CALL RI_PHENOL (CONTROL, ISWITCH, 
      &    AGEFAC, BIOMAS, DAYL, LEAFNO, NSTRES, PHEFAC,   !Input
-     &    PHINT, SDEPTH, SOILPROP, SRAD, SW, SWFAC,       !Input
+     &    PHINT, SDEPTH, SOILPROP, SRAD, SW, DUL, SWFAC,  !Input  ! WP - Added DUL after SW
      &    TGROGRN, TILNO, TMAX, TMIN, TWILEN, TURFAC,     !Input
-     &    YRPLT,FLOODWAT, LAI,                            !Input
+     &    YRPLT,FLOODWAT, LAI, RHzWT, RHzDTT,             !Input  ! WP - Added RHzWT, RHzDTT
      &    CUMDTT, EMAT, ISDATE, PLANTS, RTDEP, YRSOW,     !I/O
      &    CDTT_TP, DTT, FERTILE, FIELD, ISTAGE,           !Output
      &    ITRANS, LTRANS, MDATE, NDAT, NEW_PHASE, P1, P1T,!Output
@@ -362,7 +370,8 @@ C--------------------------------------------------------------
      &    RWUMX, SEEDNI, SEEDRV, SENESCE,                 !Output
      &    SKERWT, STMWT, STMWTO,                          !Output
      &    STOVER, STOVN, TANC, TGROGRN, TILNO, TOTNUP,    !Output
-     &    CumNUptake, UNH4, UNO3, WTLF, XGNP)             !Output
+     &    CumNUptake, UNH4, UNO3, WTLF, XGNP,             !Output
+     &    MDATE, RHzWT, RHzDTT)                           !Output       ! WP - Added MDATE, RHzWT, RHzDTT
 
 
       FLOODN % NDAT   = NDAT
@@ -394,7 +403,8 @@ C-----------------------------------------------------------------------
      &    RWUMX, SEEDNI, SEEDRV, SENESCE,                 !Output
      &    SKERWT, STMWT, STMWTO,                          !Output
      &    STOVER, STOVN, TANC, TGROGRN, TILNO, TOTNUP,    !Output
-     &    CumNUptake, UNH4, UNO3, WTLF, XGNP)             !Output
+     &    CumNUptake, UNH4, UNO3, WTLF, XGNP,             !Output
+     &    MDATE, RHzWT, RHzDTT)                           !Output       ! WP - Added MDATE, RHzWT, RHzDTT
 
       CALL RI_OPGROW (CONTROL, ISWITCH, SOILPROP,
      &    BIOMAS, GPP, GPSM, GRAINN, GRNWT, ISTAGE, LAI,  

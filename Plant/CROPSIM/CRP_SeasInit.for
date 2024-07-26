@@ -2130,7 +2130,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
         ! Other CSM codes are:
         !  C Canopy photosynthesis curve.
         !  L Leaf photosynthesis response curve
-        IF (IHARI.NE.'M') THEN
+        IF (IHARI.NE.'M' .AND. IHARI .NE. 'P') THEN ! P for perenial crops
           IF (hnumber.LE.0) THEN 
             WRITE(MESSAGE(1),'(A37,A13,A1)')
      &        'No harvest date set although planting',

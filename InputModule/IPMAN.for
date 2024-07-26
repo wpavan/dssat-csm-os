@@ -764,7 +764,7 @@ C  FO - 05/07/2020 Add new Y4K subroutine call to convert YRDOY
       ENDIF
 
       NHAR = MAX (0,NHAR-1)
-      IF (LNHAR .EQ. 0 .AND. IHARI .NE. 'M' .AND. IHARI .NE. 'A') THEN
+      IF (LNHAR .EQ. 0 .AND. IHARI .NE. 'M' .AND. IHARI .NE. 'P' .AND. IHARI .NE. 'A') THEN  ! P for perennial crops
          CALL ERROR (ERRKEY,1,FILEX,LINEXP)
       ENDIF
       IF (IHARI .EQ. 'G' .AND. HSTG(1) .EQ. '     ') THEN

@@ -40,7 +40,8 @@ C=======================================================================
      &    RWUMX, SEEDNI, SEEDRV, SENESCE,                 !Output
      &    SKERWT, STMWT, STMWTO,                          !Output
      &    STOVER, STOVN, TANC, TGROGRN, TILNO, TOTNUP,    !Output
-     &    CumNUptake, UNH4, UNO3, WTLF, XGNP)             !Output
+     &    CumNUptake, UNH4, UNO3, WTLF, XGNP,             !Output
+     &    MDATE, RHzWT, RHzDTT)                           !Output    ! Added MDATE, RHzWT, RHzDTT for Perennial Rice control
 
 !-----------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
@@ -55,7 +56,7 @@ C=======================================================================
      &  P_Ceres, PlantInit, TRNSPL_GROSUB, MZ_KUPTAK
       SAVE
 
-      CHARACTER*1 ISWWAT, ISWNIT, ISWPHO, ISWPOT
+      CHARACTER*1 ISWWAT, ISWNIT, ISWPHO, ISWPOT, IHARI     ! WP IHARI added for Perennial Rice control
       CHARACTER*2 CROP
       CHARACTER*12 FILEC      
 	CHARACTER*92 FILECC
@@ -122,6 +123,10 @@ C=======================================================================
 
       LOGICAL FIELD, LTRANS, NEW_PHASE, TF_GRO, FIRST
 
+! For Perenial Rice control   ! WP
+      INTEGER REGROW, MAXREGROW
+      REAL RHzWT, RHzDTT, RHz_RATE_RT, RHz_RATE_STM
+! End definitions for Perenial Rice control
 !     The variable "CONTROL" is of type "ControlType".
       TYPE (ControlType) CONTROL
  
@@ -143,6 +148,10 @@ C=======================================================================
       ISWNIT = ISWITCH % ISWNIT
       ISWPHO = ISWITCH % ISWPHO
       ISWPOT = ISWITCH % ISWPOT
+
+! Added for Perenial Rice control   ! WP
+      IHARI  = ISWITCH % IHARI 
+! End of Perenial Rice control
 
       DLAYR = SOILPROP % DLAYR
       NLAYR = SOILPROP % NLAYR
@@ -262,12 +271,18 @@ C=======================================================================
          TMFAC1(I) = 0.931+0.114*I-0.0703*I**2+0.0053*I**3
       END DO
 
-      CALL CALCSHK (DYNAMIC, 
-     &    DTT, ISTAGE, ISWWAT, ITRANS, LTRANS,            !Input
-     &    MODELVER, P1, P1T, SHOCKFAC, TAGE, TMAX,        !Input
-     &    TMIN, YRDOY, YRSOW,                             !Input
-     &    CARBO, CUMDTT,                                  !I/O
-     &    TSHOCK)                                         !Output
+!*********************************************************************** WP
+      IF(REGROW .EQ. 0) THEN                                ! For Perennial Rice control  
+         CALL CALCSHK (DYNAMIC, 
+     &      DTT, ISTAGE, ISWWAT, ITRANS, LTRANS,            !Input
+     &      MODELVER, P1, P1T, SHOCKFAC, TAGE, TMAX,        !Input
+     &      TMIN, YRDOY, YRSOW,                             !Input
+     &      CARBO, CUMDTT,                                  !I/O
+     &      TSHOCK)                                         !Output
+      ELSE
+         TSHOCK = 1.0
+      ENDIF
+!*********************************************************************** WP     
       CALL RI_TILLSUB (DYNAMIC,
      &    AGEFAC, DTT, FLOOD, G2, G3, GPP, GRNWT, ISTAGE, !Input
      &    LAI, MGPP, MGROLF, MPLAG, NSTRES, P3, P4, P5,   !Input
@@ -298,6 +313,14 @@ C=======================================================================
 
 
       FIRST = .TRUE.
+
+! For Perenial Rice control   ! WP
+      REGROW = 0
+      MAXREGROW = 4
+      RHzDTT = 0.0
+      RHz_RATE_RT = 0.8
+      RHz_RATE_STM = 0.2
+! End initialization for Perenial Rice control
 
 !***********************************************************************
 !***********************************************************************
@@ -572,6 +595,123 @@ CCCCC-PW
          APTNUP = STOVN*10.0*PLANTS    
       ENDIF
 
+!*********************************************************************** WP - Initialization for Perenial Rice control
+      IF(ISTAGE .EQ. 20 .AND. REGROW .LT. MAXREGROW .AND. IHARI .EQ. 'P') THEN
+          REGROW = REGROW + 1
+          ISTAGE = 0      !Before End of Juvenile stage
+          CUMDTT = 402.5
+          SUMDTT = 150.0
+         
+!         Check later         
+          P1 = P1T
+                    
+          TF_GRO = .TRUE.
+
+          RHzDTT = 0.0
+          RHzWT = RHz_RATE_RT * RTWT + RHz_RATE_STM * STMWT
+
+          MDATE  = -99
+
+          WRITE(*,*) 'Maturity - Regrow:',"YRDOY:",YRDOY,"ISTAGE:",ISTAGE,"REGROW: ",REGROW
+          WRITE(*,*) 'P1 = ', P1, 'P1T = ', P1T
+
+! Paste
+      FSLFP    = 0.050  
+	! FRACTION OF LEAF SENESECED DUE TO 100% P STRESS /DAY
+      FSLFK    = 0.050   
+	! FRACTION OF LEAF SENESECED DUE TO 100% K STRESS /DAY
+
+      STMWT    = 0.001
+      LEAFNO   = 0
+      SEEDRV   = RHzWT
+      RANC     = 0.022
+      SEEDNI   = 0.0
+      GPP    = 1.0
+      GRNWT  = 0.0
+      GSIZE  = 1.0
+
+!      LAI      = 0.01
+      LAI      = 0.0  !chp 8/12/2003 - prevents early N stress
+      MAXLAI   = 0.0
+      PTF      = 0.0
+      PLA      = 0.5 
+      MPLA     = 0.5
+      MPLAG    = 0.0
+      TPLAG    = 0.0
+      SLAN     = 0.0    
+      SNLFWT   = 0.0    
+      LFWT     = 0.001  
+      MLFWT    = 0.001  
+      TLFWT    = 0.0    
+      RTWT     = 0.001  
+      STMWT    = 0.001  
+      MSTMWT   = 0.001  
+      TSTMWT   = 0.001  
+      PANWT    = 0.0    
+      PANIWT   = 0.0    
+      TGRNWT   = 0.0
+      STOVWT   = LFWT + STMWT + PANWT 
+      BIOMAS   = STOVWT 
+      MGROSTM  = 0.0 
+      TGROSTM  = 0.0 
+      TGROLF   = 0.0 
+      MGROLF   = 0.0 
+      SENLA    = 0.0 
+      GRORT    = 0.0 
+      TGROGRN  = 0.0     
+      TCARBO   = 0.0     
+      CUMPH    = 0.514   
+      GRAINN   = 0.0 
+
+      DYIELD   = 0.0 
+      STOVER   = 0.0 
+      SEEDNI   = 0.0 
+      CANNAA   = 0.0 
+      CANWAA   = 0.0 
+      TOTNUP   = 0.0 
+      GNUP     = 0.0 
+      APTNUP   = 0.0 
+      XGNP     = 0.0 
+
+      GPSM     = 0.0
+      TCNP     = 0.0
+      NSINKT   = 0.0
+
+      WTLF = LFWT * PLTPOP      !Leaf weight, g/m2
+      STMWTO = STMWT * PLTPOP   !Stem weight, g/m2
+      RTWTO = RTWT * PLTPOP     !Root weight, g/m2
+
+      !** Initialize variables
+
+      CALL SenLig_Ceres(PLIGLF=PLIGLF, PLIGRT=PLIGRT)
+ 
+      CumLeafSenes = 0.0
+      CumLeafSenesY = 0.0
+      CumLfNSenes = 0.0
+      SENESCE % ResWt  = 0.0
+      SENESCE % ResLig = 0.0
+      SENESCE % ResE   = 0.0
+
+
+      CALL RI_NFACTO(DYNAMIC, FIELD, XSTAGE, 
+     &    AGEFAC, NDEF3, NFAC, NSTRES, RCNP, TANC, TCNP, TMNC)  !Output
+
+      IF (ISWNIT .EQ. 'Y') THEN
+        TANC  = 0.044
+        ROOTN = RANC * RTWT
+        STOVN = STOVWT * TANC
+      ELSE
+        TANC  = 0.0
+        STOVN = 0.0
+        ROOTN = 0.0
+        XANC  = 0.0
+      ENDIF
+
+! END Paste
+         RETURN
+      ENDIF
+!*********************************************************************** WP - End Initialization for Perenial Rice control
+
       IF (PLANTS .LE. 0.0 .OR. ISTAGE .GE. 6 .OR. .NOT. TF_GRO) THEN
         AGEFAC = 1.0
         NSTRES = 1.0
@@ -612,13 +752,18 @@ CCCCC-PW
       !
       ! Calculate Transplanting Shock
       !
-      CALL CALCSHK (DYNAMIC, 
-     &    DTT, ISTAGE, ISWWAT, ITRANS, LTRANS,            !Input
-     &    MODELVER, P1, P1T, SHOCKFAC, TAGE, TMAX,        !Input
-     &    TMIN, YRDOY, YRSOW,                             !Input
-     &    CARBO, CUMDTT,                                  !I/O
-     &    TSHOCK)                                         !Output
-
+!*********************************************************************** WP      
+      IF(REGROW .EQ. 0) THEN                                ! For Perennial Rice control  
+         CALL CALCSHK (DYNAMIC, 
+     &      DTT, ISTAGE, ISWWAT, ITRANS, LTRANS,            !Input
+     &      MODELVER, P1, P1T, SHOCKFAC, TAGE, TMAX,        !Input
+     &      TMIN, YRDOY, YRSOW,                             !Input
+     &      CARBO, CUMDTT,                                  !I/O
+     &      TSHOCK)                                         !Output
+      ELSE
+         TSHOCK = 1.0
+      ENDIF
+!*********************************************************************** WP
       CARBO = PCARB*AMIN1(PRFT,SWFAC,NSTRES,TSHOCK,PStres1,KSTRES)
      &       * SLPF
 
@@ -697,6 +842,8 @@ CCCCC-PW
           MGROLF = MPLAG*0.0055
           GRORT  = CARBO - MGROLF
           GRORT  = AMAX1 (GRORT,CARBO*0.35)
+          WRITE(*,*) 'YRDOY',YRDOY,'SEEDRV:',SEEDRV,'CARBO:',CARBO,     ! WP
+     &               'MGROLF:',MGROLF,'GRORT:',GRORT
           IF (SEEDRV .GT. 0.0) THEN
              SEEDRV = SEEDRV + CARBO - MGROLF - GRORT
           ENDIF
@@ -715,19 +862,31 @@ CCCCC-PW
              STMWT = MSTMWT
           ENDIF
           IF (CUMPH .GT. 5.0/G3 .AND. TSHOCK .GE. 1.0) THEN
-             IF (MGROLF .GT. 0.60*CARBO) THEN
-                MGROLF = 0.60*CARBO
-                MPLAG  = MGROLF/0.0060*
+!*********************************************************************** WP          
+             IF(REGROW .EQ. 0) THEN                ! WP - Code changed and mixed with original code
+                TCARBO = CARBO - MGROLF - GRORT    
+               IF (MGROLF .GT. 0.60*CARBO) THEN
+                  MGROLF = 0.60*CARBO
+                  MPLAG  = MGROLF/0.0060*
      &			       AMIN1 (TURFAC,TEMF,AGEFAC,PSTRES2,KSTRES)
-             END IF
-             GRORT = 0.25*CARBO
-             IF (MGROLF .LT. (0.30*CARBO*TSHOCK)) THEN
-                MGROLF = 0.35*TSHOCK*CARBO
-                MPLAG  = MGROLF/0.0060*
+               END IF
+               GRORT = 0.25*CARBO
+               IF (MGROLF .LT. (0.30*CARBO*TSHOCK)) THEN
+                  MGROLF = 0.35*TSHOCK*CARBO
+                  MPLAG  = MGROLF/0.0060*
      &			       AMIN1 (TURFAC,TEMF,AGEFAC,PSTRES2,KSTRES)
+               ENDIF
              ENDIF
              MGROSTM = MGROLF*0.85   !0.15
-             TCARBO  = CARBO - MGROLF - GRORT - MGROSTM
+             
+             IF(REGROW .EQ. 0) THEN
+                TCARBO  = CARBO - MGROLF - GRORT - MGROSTM
+             ELSE
+                TCARBO  = SEEDRV + CARBO - MGROLF - GRORT - MGROSTM
+             ENDIF
+
+             WRITE(*,*) 'YRDOY:',YRDOY,'SEEDRV:',SEEDRV,'TCARBO:',TCARBO
+!*********************************************************************** WP
              IF (TCARBO .GT. 0.0) THEN
                 GRORT  = GRORT + TCARBO*(1.0-TSHOCK)
                 TCARBO = TCARBO*TSHOCK
@@ -757,13 +916,20 @@ CCCCC-PW
           XPLAG1 = MPLAG
           MGROLF = MPLAG*0.0060
           IF (CUMPH .LE. 6.0) THEN
-             IF (MGROLF .GT. CARBO*0.60) THEN
-                MGROLF = CARBO*0.60
-                MPLAG  = MGROLF/0.0060*TSHOCK*
+!*********************************************************************** WP
+!            IF(REGROW .EQ. 0) THEN
+               IF (MGROLF .GT. CARBO*0.60) THEN
+                  MGROLF = CARBO*0.60
+                  MPLAG  = MGROLF/0.0060*TSHOCK*
      &		           AMIN1(TURFAC,TEMF,AGEFAC,PSTRES2,KSTRES)
-             ENDIF
-             MGROSTM = MGROLF * 0.15
-             GRORT   = CARBO  - MGROLF - MGROSTM
+               ENDIF
+               MGROSTM = MGROLF * 0.15
+               GRORT   = CARBO  - MGROLF - MGROSTM
+!            ELSE
+!               GRORT = MGROLF * 0.15 
+!            ENDIF
+!*********************************************************************** WP
+
              MPLA    = MPLA   + MPLAG
              MLFWT   = MLFWT  + MGROLF
              MSTMWT  = MSTMWT + MGROSTM
@@ -1194,7 +1360,7 @@ C
       ENDIF
 
        
-	WTLF = LFWT * PLTPOP      !Leaf weight, g/m2
+	   WTLF = LFWT * PLTPOP      !Leaf weight, g/m2
       STMWTO = STMWT * PLTPOP   !Stem weight, g/m2
       RTWTO = RTWT * PLTPOP     !Root weight, g/m2
       PODWT = PANWT * PLTPOP    !Panicle weight, g/m2

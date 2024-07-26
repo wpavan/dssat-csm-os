@@ -1116,7 +1116,8 @@
      &     IHARI.EQ.'D'.AND.YEARDOYHARF.EQ.DAP .OR.
      &     IHARI.EQ.'G'.AND.YEARDOYHARF.LE.RSTAGE .OR.
      &     IHARI.EQ.'A'.AND.YEARDOYHARF.EQ.YEARDOY .OR.
-     &     IHARI.EQ.'M'.AND.CUMDU.GE.PSTART(MSTG)) THEN
+     &     IHARI.EQ.'M'.AND.CUMDU.GE.PSTART(MSTG) .OR.
+     &     IHARI.EQ.'P'.AND.CUMDU.GE.PSTART(MSTG)) THEN   ! P for perennial crops
             CFLHAR = 'Y'
           ENDIF    
 

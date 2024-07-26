@@ -1193,7 +1193,7 @@ C=======================================================================
         CropStatus = 39
       ENDIF
 C-----------------------------------------------------------------------
-      IF (IHARI == 'M') THEN
+      IF (IHARI == 'M' .OR. IHARI == 'P') THEN  ! P for perennial crops
         DAP   = MAX(0,TIMDIF(YRPLT,YRDOY))
 
         !Message to WARNING.OUT
@@ -1672,7 +1672,7 @@ C=======================================================================
 ! SDLIP    Maximum lipid composition in seed (fraction)
 ! SDNPL    Seed N (g[N] / m2)
 ! SDPDOT   Daily seed puncture damage (not yet implemented) 
-! SDPRO    Seed protein fraction at 25ºC (g[protein] / g[seed])
+! SDPRO    Seed protein fraction at 25ï¿½C (g[protein] / g[seed])
 ! SDPROR   Ratio to adjust lipid and carbohydrate proportions when seed 
 !            protein differs from protein composition of standard cultivar 
 !            (SDPROS) 

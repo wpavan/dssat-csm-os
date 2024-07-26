@@ -123,7 +123,7 @@
         ! Other CSM codes are:
         !  C Canopy photosynthesis curve.
         !  L Leaf photosynthesis response curve
-        IF (IHARI /= 'M') THEN
+        IF (IHARI /= 'M' .AND. IHARI /= 'P') THEN
             IF (hnumber <= 0) THEN 
                 WRITE(MESSAGE(1),'(A37,A13,A1)')'No harvest date set although planting','flag set to: ',IHARI
                 MESSAGE(2)='Flag reset to M.'

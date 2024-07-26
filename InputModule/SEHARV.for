@@ -113,6 +113,8 @@ C          YFHRV = 1900 + YFHRV
             HARMAN = 'ON REPORTED DATE(S)      '
           ELSE IF (IHARI .EQ. 'D') THEN
             HARMAN = 'ON REPORTED DAP          '
+          ELSE IF (IHARI .EQ. 'P') THEN   ! P for Perenial crop
+            HARMAN = 'AT HARVEST MATURITY      '  
          ENDIF
 
          IF (NHAR .EQ. 0) THEN
@@ -287,6 +289,8 @@ C
           IHARI  = 'G'
       ELSE IF (MENU .EQ. 5) THEN
           IHARI  = 'A'
+      ELSE IF (MENU .EQ. 6) THEN ! For Perenial crop
+          IHARI  = 'P'    
       ENDIF
 
       RETURN

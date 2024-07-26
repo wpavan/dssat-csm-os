@@ -121,6 +121,8 @@ C=======================================================================
          HARMAN = 'ON REPORTED DATE(S)      '
        ELSEIF (IHARI .EQ. 'D') THEN
          HARMAN = 'ON REPORTED DAP          '
+       ELSEIF (IHARI .EQ. 'P') THEN    ! For Perenial crops
+         HARMAN = 'AT HARVEST MATURITY      '
       ENDIF
 
       IF (ISWWAT .EQ. 'N') THEN

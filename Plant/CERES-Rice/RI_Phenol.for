@@ -17,9 +17,9 @@ C=======================================================================
 
       SUBROUTINE RI_PHENOL (CONTROL, ISWITCH, 
      &    AGEFAC, BIOMAS, DAYL, LEAFNO, NSTRES, PHEFAC,   !Input
-     &    PHINT, SDEPTH, SOILPROP, SRAD, SW, SWFAC,       !Input
+     &    PHINT, SDEPTH, SOILPROP, SRAD, SW, DUL, SWFAC,  !Input  WP - Added DUL
      &    TGROGRN, TILNO, TMAX, TMIN, TWILEN, TURFAC,     !Input
-     &    YRPLT,FLOODWAT, LAI,                            !Input
+     &    YRPLT,FLOODWAT, LAI, RHzWT, RHzDTT,             !Input  WP - Added RHzWT, RHzDTT
      &    CUMDTT, EMAT, ISDATE, PLANTS, RTDEP, YRSOW,     !I/O
      &    CDTT_TP, DTT, FERTILE, FIELD, ISTAGE,           !Output
      &    ITRANS, LTRANS, MDATE, NDAT, NEW_PHASE, P1, P1T,!Output
@@ -67,7 +67,7 @@ C=======================================================================
       REAL TURFAC, WSTRES, XNTI, XSTAGE, XST_TP
 
       REAL SI1(6), SI2(6), SI3(6), SI4(6)
-      REAL DLAYR(NL), LL(NL), SW(NL)
+      REAL DLAYR(NL), LL(NL), SW(NL), DUL(NL)      ! WP - Added DUL
 
       LOGICAL FIELD, LTRANS, PI_TF, PRESOW, TF_GRO, NEW_PHASE, BUNDED
 
@@ -78,6 +78,10 @@ C=======================================================================
       REAL TMSOIL,ACOEF,DAYL,TH,SUMHDTT
 
       REAL LAIX   !LOCAL VARIABLE
+
+! For Perenial Rice control   ! WP
+      REAL RHzDTT, RHzDORM, RHzWT, SW_RATE
+! End definitions for Perenial Rice control
 
 !     CHP/US added for P model
       REAL SeedFrac, VegFrac
@@ -176,6 +180,12 @@ C=======================================================================
       ENDIF
 
       NEW_PHASE = .FALSE.
+
+! For Perenial Rice control   ! WP
+      RHzDTT = 0.0
+      RHzDORM = 50
+      SW_RATE = 0.8
+! End Initialization for Perenial Rice control
 
 !***********************************************************************
 !***********************************************************************
@@ -460,6 +470,19 @@ C=======================================================================
           RETURN
 
 !-----------------------------------------------------------------------
+        CASE (0)      !Regrowth - Rhizome period      ! WP
+
+            IF(TEMPM .GT. 5.0) THEN
+               RHzDTT = RHzDTT + DTT
+            ENDIF
+            WRITE(*,*) 'RHzDTT=',RHzDTT,'RHzDORM=',RHzDORM,'RHzWT=',RHzWT
+            IF(RHzDTT .GE. RHzDORM .AND. SW(1) .GE. (SW_RATE * DUL(1))) THEN
+               ISTAGE = 1
+            ELSE
+               RETURN
+            ENDIF
+!-----------------------------------------------------------------------
+
         CASE (1)      !END JUV
           ! Determine end of juvenile stage
           IF (LTRANS .AND. TF_GRO) THEN
@@ -471,7 +494,7 @@ C=======================================================================
 		!VegFrac = SUMDTT / (P1 + 7. * (TOPT - TBASE) + P3)
           VegFrac = xstage/4.5
    !   write(98,*) 'day',yrdoy,'xst=',xstage/10,'new',xstage/4.5
-          IF (SUMDTT .LT. P1) THEN
+         IF (SUMDTT .LT. P1) THEN
              RETURN
           ENDIF
           STGDOY(ISTAGE) = YRDOY
@@ -485,7 +508,6 @@ C=======================================================================
           SIND   = 0.0
           PI_TF  = .FALSE.
           !END OF PHASEI STUFF
-
 !-----------------------------------------------------------------------
         CASE (2)      !PAN INIT
           ! Determine date of panicle initiation
@@ -820,6 +842,7 @@ C=======================================================================
           ISTAGE = 20      !HARVEST
           CUMDTT = 0.0
           DTT    = 0.0
+          NDAT   = 0          ! WP - NDAT initialized to 0 for Perennial crop
           !END OF PHASEI STUFF
           STGDOY(ISTAGE) = YRDOY
 

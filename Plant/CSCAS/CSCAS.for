@@ -3696,7 +3696,7 @@ C-GH As per Tony Hunt 2017 for GenCalc
         ! Other CSM codes are:
         !  C Canopy photosynthesis curve.
         !  L Leaf photosynthesis response curve
-        IF (IHARI.NE.'M') THEN
+        IF (IHARI.NE.'M' .AND. IHARI.NE.'P') THEN   ! P for perenial crops
           IF (hnumber.LE.0) THEN 
             WRITE(MESSAGE(1),'(A37,A13,A1)')
      &        'No harvest date set although planting',
@@ -6303,7 +6303,8 @@ C-GH As per Tony Hunt 2017 for GenCalc
      &     IHARI.EQ.'D'.AND.YEARDOYHARF.EQ.DAP .OR.
      &     IHARI.EQ.'G'.AND.YEARDOYHARF.LE.BRSTAGE .OR.
      &     IHARI.EQ.'A'.AND.YEARDOYHARF.EQ.YEARDOY .OR.
-     &     IHARI.EQ.'M'.AND.CUMDU.GE.PSTART(MSTG)) THEN
+     &     IHARI.EQ.'M'.AND.CUMDU.GE.PSTART(MSTG) .OR.
+     &     IHARI.EQ.'P'.AND.CUMDU.GE.PSTART(MSTG)) THEN   ! P for perenial crops
             CFLHAR = 'Y'
           ENDIF    
 

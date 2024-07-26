@@ -149,7 +149,7 @@ C***********************************************************************
 C-----------------------------------------------------------------------
 C Harvest at maturity, NR8
 C-----------------------------------------------------------------------
-      IF (IHARI .EQ. 'M') THEN
+      IF (IHARI .EQ. 'M' .OR. IHARI .EQ. 'P') THEN   ! For perennial crops
         YREND     = MDATE
         CONTROL % CropStatus = 1    !harvest at maturity
 
