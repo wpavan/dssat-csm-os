@@ -28,12 +28,6 @@ C  Calls:     None
 ! 2023-01-17 chp removed unused variables from argument list:
 !  PODNO, RSTAGE, VSTAGE, 
 !----------------------------------------------------------------------
-
-!------ Generic Disease Purpose -----!      
-      USE flexibleio
-      USE, intrinsic :: iso_c_binding
-!----------------END-----------------! 
-
       USE ModuleDefs 
       USE ModuleData
       IMPLICIT NONE
@@ -220,8 +214,6 @@ C  Calls:     None
             ENDIF
 
             VWAD = NINT((WTLF + STMWTO + PODWT) * 10) 
-            
-            call fio%set("PEST","ZSTAGE",nwheats_dc_code) 
       
             WRITE(NOUTDG,400,ADVANCE='NO')
             !'@YEAR DOY  DAS  DAP            DCCD   GSTD LAID 

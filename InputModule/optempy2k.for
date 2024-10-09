@@ -285,8 +285,12 @@ C-----------------------------------------------------------------------
       LINIO = LINIO + 1
       WRITE (LUNIO,40)'*FIELDS             '
       LINIO = LINIO + 1
+!     2023-07-14 chp changed order of PMALB and PMWD variables to allow 
+!                    1D and 2D models to use the same file format.
       WRITE (LUNIO,59,IOSTAT=ERRNUM) FLDNAM,FILEW(1:8),SLOPE,FLOB,DFDRN,
-     &       FLDD,SFDRN,FLST,SLTX,SLDP,SLNO,PMWD,PMALB
+     &       FLDD,SFDRN,FLST,SLTX,SLDP,SLNO,PMALB,PMWD
+   59 FORMAT (3X,A8,1X,A8,1X,F5.1,1X,F5.0,1X,A5,1X,F5.0,1X,F5.1,
+     &        2(1X,A5),1X,F5.0,1X,A10,F6.2,2F6.1)
       IF (ERRNUM .NE. 0) CALL ERROR (ERRKEY,ERRNUM,FILEIO,LINIO)
       WRITE (LUNIO,60,IOSTAT=ERRNUM) XCRD,YCRD,ELEV,AREA,SLEN,FLWR,SLAS
      &            , FldHist, FHDur
@@ -645,10 +649,20 @@ C-----------------------------------------------------------------------
      &           LFMAX,SLAVAR,SIZELF,XFRUIT,WTPSD,SFDUR,SDPDVR,PODUR,
      &           THRESH, SDPRO, SDLIP
 
-!       Ceres wheat, barley
-!       CropSim - wheat, barley, cassava
-        CASE('WHCER', 'BACER', 'CSCRP','CSCAS','CSYCA')
+!       CropSim - cassava
+        CASE('CSCAS','CSYCA')
 !       Do nothing - these models read the INH file written by OPTEMPXY2K
+
+!  TF Created CASE for CropSim - wheat, barley (required for PEST module)
+        CASE('CSCRP')
+                WRITE (LUNIO,1955,IOSTAT=ERRNUM) VARNO,VRNAME,ECONO, 
+     &      P1, P2, P3, P4, P5, P6, P7, P8, VREQ, VBASE, VEFF,
+     &      PPS1, PPS2, PHINT, LA1S, LAFV, LAFR, SHWTS, GNOWT, GWTS
+
+!  TF Created CASE for Ceres - wheat, barley (required for PEST module)
+        CASE('CSCER')
+            WRITE (LUNIO,1800,IOSTAT=ERRNUM) VARNO,VRNAME,ECONO, 
+     &      P1V, P1D, P5, G1, G2, G3, PHINT
 
 !       APSIM Wheat (NWheat)
 !  JG moved CUL parameters to ECO file for WHAPS and TFAPS 01/21/2020
@@ -767,8 +781,6 @@ C-----------------------------------------------------------------------
    50 FORMAT (I3,A8,1X,A2,1X,A60)
    55 FORMAT (I3,I2,2(1X,I1),1X,A25)
    56 FORMAT (3X,A2,1X,A6,1X,A16)
-   59 FORMAT (3X,A8,1X,A8,1X,F5.1,1X,F5.0,1X,A5,1X,F5.0,1X,F5.1,
-     &        2(1X,A5),1X,F5.0,1X,A10,1X,F5.1,F6.2)
    60 FORMAT (3X,2(F15.10,1X),F9.3,1X,F17.1,1X,F5.0,2(1X,F5.1),1X,A5,I6)
    70 FORMAT (3X,I7,1X,I7,2F6.1,2(5X,A1),2(1X,F5.0),1X,F5.1,
      &        2(1X,F5.0),3(1X,F5.1),I6,F6.1,2I6)
@@ -839,6 +851,7 @@ C-----------------------------------------------------------------------
 C-GH 1900 FORMAT (A6,1X,A16,1X,A6,1X,F6.1,F6.2,4(F6.1),F6.2,2(F6.1))
  1901 FORMAT (2F6.2)
  1950 FORMAT (A6,1X,A16,1X,A6,1X,F6.1,F6.2,2(F6.1),3(F6.2),2(F6.0))
+ 1955 FORMAT (A6,1X,A16,7X,A6,20F6.0,A)
 c1960 FORMAT (A6,1X,A16,1X,A6,1X,F6.2,F8.4,F7.2,F8.2,F7.3,F4.0)
  1960 FORMAT (A6,1X,A16,1X,A6,1X,F5.1,1X,F5.2,1X,F5.1,1X,F5.0,1X,F5.2,
      &        1X,F5.0)

@@ -23,6 +23,7 @@ double Disease::newLesions(double cloudDensity, double healthyAreaProportion) {
     int YRDOY = FlexibleIO::getInstance()->getReal("PEST", "YRDOY");
     
     //std::cout<<"FSEED "<<FSEED<< " YRDOY "<<YRDOY << " " <<YRDOY - FSEED <<std::endl;
+    //std::cout<<"WetDur "<<Basic::getWeather()->getWetDur()<< " Threshold "<<fitWetnessThreshold <<std::endl;
     day = YRDOY - FSEED;
     if (healthyAreaProportion > 0 && Basic::getWeather()->getWetDur() >= fitWetnessThreshold) {
         
