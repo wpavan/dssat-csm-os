@@ -649,10 +649,20 @@ C-----------------------------------------------------------------------
      &           LFMAX,SLAVAR,SIZELF,XFRUIT,WTPSD,SFDUR,SDPDVR,PODUR,
      &           THRESH, SDPRO, SDLIP
 
-!       Ceres wheat, barley
-!       CropSim - wheat, barley, cassava
-        CASE('WHCER', 'BACER', 'CSCRP','CSCAS','CSYCA')
+!       CropSim - cassava
+        CASE('CSCAS','CSYCA')
 !       Do nothing - these models read the INH file written by OPTEMPXY2K
+
+!  TF Created CASE for CropSim - wheat, barley (required for PEST module)
+        CASE('CSCRP')
+                WRITE (LUNIO,1955,IOSTAT=ERRNUM) VARNO,VRNAME,ECONO, 
+     &      P1, P2, P3, P4, P5, P6, P7, P8, VREQ, VBASE, VEFF,
+     &      PPS1, PPS2, PHINT, LA1S, LAFV, LAFR, SHWTS, GNOWT, GWTS
+
+!  TF Created CASE for Ceres - wheat, barley (required for PEST module)
+        CASE('CSCER')
+            WRITE (LUNIO,1800,IOSTAT=ERRNUM) VARNO,VRNAME,ECONO, 
+     &      P1V, P1D, P5, G1, G2, G3, PHINT
 
 !       APSIM Wheat (NWheat)
 !  JG moved CUL parameters to ECO file for WHAPS and TFAPS 01/21/2020
@@ -841,6 +851,7 @@ C-----------------------------------------------------------------------
 C-GH 1900 FORMAT (A6,1X,A16,1X,A6,1X,F6.1,F6.2,4(F6.1),F6.2,2(F6.1))
  1901 FORMAT (2F6.2)
  1950 FORMAT (A6,1X,A16,1X,A6,1X,F6.1,F6.2,2(F6.1),3(F6.2),2(F6.0))
+ 1955 FORMAT (A6,1X,A16,7X,A6,20F6.0,A)
 c1960 FORMAT (A6,1X,A16,1X,A6,1X,F6.2,F8.4,F7.2,F8.2,F7.3,F4.0)
  1960 FORMAT (A6,1X,A16,1X,A6,1X,F5.1,1X,F5.2,1X,F5.1,1X,F5.0,1X,F5.2,
      &        1X,F5.0)

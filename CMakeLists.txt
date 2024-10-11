@@ -13,7 +13,7 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
    						"CMakeCache.txt and CMakeFiles\n")
 endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
-PROJECT(DSSAT-CSM Fortran)
+PROJECT(DSSAT-CSM Fortran C CXX)
 
 ##########################################################################################
 # DSSAT_VERSION
@@ -76,6 +76,7 @@ ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 # RELEASE, and TESTING.  You should  review this file and make sure the flags
 # are to your liking.
 INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake)
+INCLUDE(${CMAKE_MODULE_PATH}/SetCXXFlags.cmake)
 
 # There is an error in CMAKE with this flag for pgf90.  Unset it
 GET_FILENAME_COMPONENT(FCNAME ${CMAKE_Fortran_COMPILER} NAME)
@@ -113,6 +114,42 @@ ENDIF(WIN32)
 set(
     source_list
     	"${OSDefinitions}"
+        "GenericPM/cinterface.cpp"
+        "GenericPM/TinyExpr/tinyexpr.c"
+        "GenericPM/include/cloud.cpp"
+        "GenericPM/include/cloudf.cpp"
+        "GenericPM/include/cloudo.cpp"
+        "GenericPM/include/cloudp.cpp"
+        "GenericPM/include/cropinterface.cpp"
+        "GenericPM/include/disease.cpp"
+        "GenericPM/include/initialcondition.cpp"
+        "GenericPM/include/lesioncohort.cpp"
+        "GenericPM/include/organ.cpp"
+        "GenericPM/include/plant.cpp"
+        "GenericPM/include/simulator.cpp"
+        "GenericPM/include/utilities.cpp"
+        "GenericPM/include/weather.cpp"
+        "GenericPM-Spores/cinterfaceS.cpp"
+        "GenericPM-Spores/TinyExpr/tinyexprS.c"
+        "GenericPM-Spores/include/cloudS.cpp"
+        "GenericPM-Spores/include/cloudfS.cpp"
+        "GenericPM-Spores/include/cloudoS.cpp"
+        "GenericPM-Spores/include/cloudpS.cpp"
+        "GenericPM-Spores/include/cropinterfaceS.cpp"
+        "GenericPM-Spores/include/diseaseS.cpp"
+        "GenericPM-Spores/include/initialconditionS.cpp"
+        "GenericPM-Spores/include/lesioncohortS.cpp"
+        "GenericPM-Spores/include/organS.cpp"
+        "GenericPM-Spores/include/plantS.cpp"
+        "GenericPM-Spores/include/simulatorS.cpp"
+        "GenericPM-Spores/include/utilitiesS.cpp"
+        "GenericPM-Spores/include/weatherS.cpp"
+        "FlexibleIO/Interface/FInterface.f90"
+        "FlexibleIO/Interface/CInterface.cpp"
+        "FlexibleIO/Data/FlexibleIO.cpp"
+        "FlexibleIO/Input/InputWeather.cpp" 
+        "FlexibleIO/Input/InputGenPest.cpp"
+        "FlexibleIO/Util/Util.cpp"
         "Utilities/CSMVersion.for"
         "Utilities/ModuleDefs.for"
         "Utilities/DATES.for"
