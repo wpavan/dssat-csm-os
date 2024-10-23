@@ -14,18 +14,18 @@ using namespace std;
 vector<double> areaslf;
 vector<double> outSpore;
 
-double AREALF = UtilitiesS::runExpressionFunctionS(1,"50000");
+double AREALF = UtilitiesS::runExpressionFunctionS(1,"500000");
 
 extern "C"
 {
     // Coupling Functionsa
     int couplingInitSpore(int *YRDOY, int *YRPLT);
-    int couplingRateSpore(int *YRDOY, float *SL1);
+    int couplingRateSpore(int *YRDOY, double *SL1);
     double couplingIntegrationSpore(int *YRDOY, int *YRPLT);
     int couplingOutputSpore(int *doy);
 }
 
-float CLWpS, SLApS;
+double CLWpS, SLApS;
 
 // Coupling Functions Implementation
 
@@ -37,25 +37,26 @@ int couplingInitSpore(int *YRDOY, int *YRPLT)
     // Set the start day for Disease Model
     sS->setCurrentYearDoy(*YRDOY);
     // Set the sowing/planting date
+    //printf("YRPLT: %i\n", *YRPLT);
     sS->getCropInterface()->setPlantingDate(*YRPLT);
     sS->getCropInterface()->setOrganAreaS(1, AREALF);
-    //printf("YRDOY: %i YRPLT: %i\n", *YRDOY, *YRPLT);
+    //printf("INIT YRDOY: %i YRPLT: %i\n", *YRDOY, *YRPLT);
 
     CLWpS=0; SLApS=0;
     return (1);
 }
 
-int couplingRateSpore(int *YRDOY, float *SL1)
+int couplingRateSpore(int *YRDOY, double *SL1)
 {
     // Temporary variable used for computations 
-    float temp = 0, newOrgan = 0;
+    double temp = 0, newOrgan = 0;
     double CloudField = 0;
     // Get an instance of Simulator
     SimulatorS *sS = SimulatorS::getInstanceS();
-    newOrgan = sS->getCropInterface()->getOrgansQtd()+1;
+    //newOrgan = sS->getCropInterface()->getOrgansQtd()+1;
     //std::cout<<"newOrgan "<<newOrgan<<" sS->getCropInterface()->getOrganArea(newOrgan) "
     //<<sS->getCropInterface()->getOrganArea(newOrgan-1)<<std::endl;
-    sS->getCropInterface()->setOrganAreaS(1, AREALF);
+    //sS->getCropInterface()->setOrganAreaS(1, AREALF);
     sS->getCropInterface()->setSoilMoisture(*SL1);
     // Set the current YearDOY for next Disease step computation
     sS->updateCurrentYearDoyS(*YRDOY);
@@ -64,9 +65,9 @@ int couplingRateSpore(int *YRDOY, float *SL1)
     //spores.couplingIntegrationSpore(*YRDOY);
     //CloudField = spores.getcouplingCloudSpore();
 
-    sS->getCropInterface()->setOrganAreaS(newOrgan, AREALF);
+    //sS->getCropInterface()->setOrganAreaS(newOrgan, AREALF);
 
-    
+    //printf("Rate - YRDOY: %i Neworgan: %f \n", *YRDOY, newOrgan);    
     // Feed the Disease Model with weather information
     WeatherS::getInstance()->updateS();
     // Disease Simulator Rate
@@ -81,7 +82,7 @@ int couplingRateSpore(int *YRDOY, float *SL1)
 double couplingIntegrationSpore(int *YRDOY,  int *YRPLT)
 {
     // Temporary variable used for computations
-    float dArea = 0, tArea = 0, pDArea = 0, sArea = 0, pclaCalc = 0;
+    double dArea = 0, tArea = 0, pDArea = 0, sArea = 0, pclaCalc = 0;
     double CloudField = 0;
 
     // Get an instance of SimulatorS
@@ -90,11 +91,13 @@ double couplingIntegrationSpore(int *YRDOY,  int *YRPLT)
     // Call the DiseaseS Model Integration function
     sS->integrationS();
     //std::cout<<*YRDOY<<" sS->getPlants().size() "<<sS->getPlants().size()<<std::endl;
-    if (sS->getPlants().size() > 0 && sS->getPlants()[0].getOrgans().size() > 0)
+    if (sS->getPlants().size() > 0 && sS->getPlants()[0].getOrgans().size() > 0 &&
+        sS->getPlants()[0].getTotalArea() > 0)
     {
         dArea = sS->getPlants()[0].getDiseaseArea();
         tArea = sS->getPlants()[0].getTotalArea();
         sArea = sS->getPlants()[0].getSenescenceArea();
+        //printf("INT YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f\n", *YRDOY, tArea, dArea, sArea);
         pDArea = (dArea / (tArea - sArea) * 100);
         //printf("YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f  pDArea: %f\n", YRDOY, tArea,dArea,sArea,pDArea);
         if (pDArea > 99.9)

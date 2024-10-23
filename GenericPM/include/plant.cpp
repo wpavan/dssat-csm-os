@@ -104,7 +104,11 @@ void Plant::rate() {
     for (unsigned int i = 0; i < organs.size(); i++) {
         o = &organs[i];
         if(o->getSenescenceArea() < o->getTotalArea()) {
-            o->setProportionFromTotalArea(o->getTotalArea()/totalArea);
+            if(totalArea > 0) {
+                o->setProportionFromTotalArea(o->getTotalArea()/totalArea);
+            } else {
+                o->setProportionFromTotalArea(0);
+            }
             o->rate();
         } else {
             //printf("## Organ: %d died - rate!!!\n",o->getOrganNumber());

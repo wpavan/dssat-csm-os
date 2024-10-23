@@ -159,6 +159,8 @@ void SimulatorS::rateS() {
     InitialConditionS *ic;
     PlantS *p;
 
+    //printf("RateS - PlantingDate: %i CurrentYearDoy: %i Plants: %i \n",CropInterfaceS::getInstance()->getPlantingDate(),
+    //        getCurrentYearDoy(),plants.size());
     /** If Planting Date is the current day, instantiate the Plant */
     if (CropInterfaceS::getInstance()->getPlantingDate() == getCurrentYearDoy()) {
         //printf("NEW Plant: PlantingDate: %i - CurrentYearDoy: %i \n",CropInterfaceS::getInstance()->getPlantingDate(), getCurrentYearDoy());

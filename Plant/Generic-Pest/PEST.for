@@ -101,7 +101,8 @@ C=======================================================================
      &      SDWT,
      &      WSDD,
      &      PSDD,
-     &      DAS         ! Input - Days After Simulation
+     &      DAS,         ! Input - Days After Simulation
+     &      YRPLT       ! Input - Planting date (YYDDD)
      &  ) bind(C, name = 'couplingRate') 
             INTEGER :: YRDOY
             REAL :: AREALF
@@ -138,6 +139,7 @@ C=======================================================================
             REAL :: WSDD
             REAL :: PSDD
             INTEGER :: DAS
+            INTEGER :: YRPLT
         end subroutine couplingRate
         subroutine couplingIntegration(
      &      YRDOY,      ! Input - Current day of simulation (YYDDD)
@@ -456,15 +458,16 @@ C     Generic Disease Purpose - DMI
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
       IF (ISDYNAMICDIS .EQ. 'Y') THEN  ! Dynamic Disease Model 
-        
+!        write(*,*) "Dynamic Disease Model"
         call couplingRate(YRDOY, 
      &    AREALF, CLW, CSW, PCLMT, PCSTMD, PDLA, PLFAD,   
      &    PLFMD, PSTMD, PVSTGD, SLA, SLDOT, SSDOT,        
      &    STMWT, TDLA, VSTGD, WLFDOT, WSTMD, WTLF,        
      &    TLFAD, TLFMD, VSTAGE, WLIDOT,                   
      &    CLAI, CLFM, CSTEM, DISLA, DISLAP,               
-     &    LAIDOT, WSIDOT, SDWT, WSDD, PSDD, DAS)
-
+     &    LAIDOT, WSIDOT, SDWT, WSDD, PSDD, DAS, YRPLT)
+!          WRITE(*,*) "Pest YRDOY: ", YRDOY,"WSIDOT",WSIDOT,"SDWT:",SDWT,
+!     &               "WSDD:",WSDD,"PSDD", PSDD, "DAS", DAS
         call couplingIntegration(YRDOY, 
      &    AREALF, CLW, CSW, PCLMT, PCSTMD, PDLA, PLFAD,   
      &    PLFMD, PSTMD, PVSTGD, SLA, SLDOT, SSDOT,        

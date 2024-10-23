@@ -45,6 +45,7 @@ void PlantS::integrationS() {
         totalArea += o->getTotalArea();
         senescenceArea += o->getSenescenceArea();
         cloudOValue += o->cloudAmountS();
+        //printf("%i Organ %d - TArea: %f - DArea: %f - SArea: %f - LatDArea: %f - InfDArea: %f - NecDArea: %f - VisDArea: %f - InvDArea: %f - TLesions: %f - VisLesions: %f\n",BasicS::getWeather()->getYearDoy(), o->getOrganNumber(), o->getTotalArea(), o->getDiseaseArea(), o->getSenescenceArea(), o->getLatentDiseaseArea(), o->getInfectionDiseaseArea(), o->getNecroticDiseaseArea(), o->getVisibleDiseaseArea(), o->getInvisibleDiseaseArea(), o->getTotalLesions(), o->getVisibleLesionsS());
     }
 
     CloudPS *cloud;
@@ -110,7 +111,11 @@ void PlantS::rateS() {
     for (unsigned int i = 0; i < organs.size(); i++) {
         o = &organs[i];
         if(o->getSenescenceArea() < o->getTotalArea()) {
-            o->setProportionFromTotalArea(o->getTotalArea()/totalArea);
+            if(totalArea > 0) {
+                o->setProportionFromTotalArea(o->getTotalArea()/totalArea);
+            } else {
+                o->setProportionFromTotalArea(0);
+            }
             o->rateS();
         } else {
             //printf("## OrganS: %d died - rate!!!\n",o->getOrganNumber());
