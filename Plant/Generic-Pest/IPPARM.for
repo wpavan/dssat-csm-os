@@ -131,7 +131,7 @@ C----------------------------------------------------------------------
 !      WRITE(ModelVerTxt,'(I2.2,I1)') Version%Major, Version%Minor
 
       FILEP(1:12) = IPESTID(1:2)//'GEN'//ModelVerTxt//'.PST'
-      WRITE(*,*) "FILEP ", FILEP
+      !WRITE(*,*) "FILEP ", FILEP
       !WRITE(*,*) "IPPARM", FILEP, IPESTID, ISECT
       INQUIRE (FILE = FILEP,EXIST = FEXIST)
       IF (FEXIST) THEN
