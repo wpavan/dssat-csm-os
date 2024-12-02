@@ -88,7 +88,10 @@ void LesionCohortS::rateS() {
     {
         newSpores = (lesionsInThisCohort * disease->getDailySporeProductionPerLesion() * 
                      util.trapezoidalFunctionS(getAge(), disease->getCohortAgeSet()) *
-                     disease->getSporulationCrowdingFactorS(getOrganDiseasedAreaProportion()));
+                     disease->getSporulationCrowdingFactorS(getOrganDiseasedAreaProportion()) *
+                     util.temperatureFavorabilityS(
+                            BasicS::getWeather()->getTMean(),
+                            disease->getTemperatureFavorabilitySet()));
     }
     if(organHealthAreaProportion < 0.7) {
         dailyVisibleAreaGrow = dailyInvisibleAreaGrow = 0; // newSpores = 0;
