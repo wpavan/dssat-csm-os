@@ -21,7 +21,9 @@ void Cloud::integration()
     }
     //std::cout<<"Rain: "<< Basic::getWeather()->getRain()<<std::endl;
     //std::cout<<"New function: "<< Utilities::dispersalRainFunction(Basic::getWeather()->getRain(),disease->getDispersionFreequency())<<std::endl;
-    values.push_back(Utilities::dispersalRainFunction(Basic::getWeather()->getRain(), disease->getDispersionFreequency()) * sporesCreated);
+    values.push_back(sporesCreated);
+    //values.push_back(Utilities::dispersalRainFunction(Basic::getWeather()->getRain(), disease->getDispersionFreequency()) * sporesCreated);
+    //printf("Spores created: %d\n", sporesCreated);
     //std::cout << disease->getDispersionFreequency() * sporesCreated << std::endl;
     sporesCreated = sporesToBeRemoved = 0;
 }
@@ -29,9 +31,10 @@ void Cloud::integration()
 double Cloud::getValue()
 {
     double sum = 0;
-    for (unsigned int i = 0; i < values.size(); i++)
+    for (unsigned int i = 0; i < values.size(); i++) {
+        //printf("i: %d, values[i]: %f\n", i, values[i]);
         sum += values[i];
-
+    }
     return sum;
 }
 

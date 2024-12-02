@@ -28,7 +28,7 @@ bool WeatherS::updateS() {
         tMin = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "TMIN");
         rain = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RAIN");
         hRH90 = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RH90");
-        //rh = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RH");
+        rh = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RH");
         tMean = (tMax + tMin) / 2;
         par = 0;
         wetDur = 0;

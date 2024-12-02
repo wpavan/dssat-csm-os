@@ -2,9 +2,9 @@
 
 #include<iostream>
 #include<sstream>
-//#include "../../FlexibleIO/Data/FlexibleIO.hpp"
+#include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
-//FlexibleIO *flexibleioS = FlexibleIO::getInstance();
+FlexibleIO *flexibleioS = FlexibleIO::getInstance();
 int CloudPS::qtdS = 0;
 int CloudPS::firstOutputCallS = 0;
 
@@ -20,7 +20,7 @@ void CloudPS::integrationS() {
     if (getValueS() > disease->getMaxSporeCloudsDensity()) {
         CloudS::removeSporesCloudS(getValueS() - disease->getMaxSporeCloudsDensity());
     }
-    if (BasicS::getWeather()->getRain() >= 20) {
+    if (BasicS::getWeather()->getRain() >= flexibleioS->getInteger("PST", "MRRS")) {
         CloudS::removeSporesCloudByRainS(0.5);
     }
 
