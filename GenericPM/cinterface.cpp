@@ -28,7 +28,7 @@ extern "C" {
 
 }
 
-double CLWp, SLAp, SDWTp;
+double CLWp, SLAp, SDWTp, cloudFp;
 
 // Coupling Functions Implementation 
 
@@ -43,7 +43,7 @@ int couplingInit(int *YRDOY, int *YRPLT) {
 
     //printf("Init - YRDOY: %i YRPLT: %i\n",
     //        *YRDOY, *YRPLT);
-    CLWp=0; SLAp=0; SDWTp=0;
+    CLWp=0; SLAp=0; SDWTp=0; cloudFp=0;
     return (1);
 }
 
@@ -73,8 +73,12 @@ int couplingRate(int *YRDOY,
     // Set the current YearDOY for next Disease step computation
     s->updateCurrentYearDoy(*YRDOY);
     
-    CloudField = sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS();
-    
+    CloudField = (sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS() - cloudFp);
+    if(CloudField < 0) {
+        CloudField = 0;
+    }
+    cloudFp = sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS();
+
     //std::cout<<"sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS(); "<<sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS()<<std::endl;
 
     //CinterfaceSpore spores;
@@ -87,9 +91,11 @@ int couplingRate(int *YRDOY,
     if(*SDWT-SDWTp > 0){ //&& CloudField > 0){
         s->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));        
         if(s->getPlants().size()>0) {
-        //std::cout <<"Spores antes: "<<s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue()<<std::endl;
-        //std::cout << *YRDOY<< " Adicionado SPORES para CloudF: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " em: " << CloudField <<std::endl;
-        s->getPlants()[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
+            //std::cout <<"Spores antes: "<<s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue()<<std::endl;
+            std::cout << *YRDOY<< " Adicionado SPORES para CloudF: corrente: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " mais: " << CloudField <<std::endl;
+            s->getPlants()[0].getCloudsP()[0].getCloudF()->setSporesCreated(CloudField);
+            s->getPlants()[0].getCloudsP()[0].getCloudF()->integration();
+            
         }
     }
 
@@ -140,7 +146,7 @@ int couplingIntegration(int *YRDOY,
         sArea = s->getPlants()[0].getSenescenceArea();
         seedAge = s->getPlants()[0].getOrgans().size();
         //pDArea = (dArea/(tArea-sArea)*100);
-        //printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
+        printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
         //*PSDD = (dArea/tArea*5);
         if(tArea > 0) {
             *PSDD = ((dArea/tArea)*15);

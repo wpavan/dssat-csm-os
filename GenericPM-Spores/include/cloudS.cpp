@@ -82,8 +82,8 @@ void CloudS::removeSporesCloudOByAgeS(void)
 /*void CloudS::removeSporesCloudFByAgeUvS(void)
 {
     int yearDoy = SimulatorS::getInstanceS()->getCurrentYearDoy();
-    float tMax = 0;
-    float tMin = 0;
+    double tMax = 0;
+    double tMin = 0;
     tMax = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "TMAX");
     tMin = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "TMIN");
    

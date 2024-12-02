@@ -45,7 +45,7 @@ void SimulatorS::inputPSTS() {
       FlexibleIO *flexibleio = FlexibleIO::getInstance();
       
       std::string str;
-      float f; 
+      double f; 
       double arraysize3[3], arraysize4[4];
       
       str = flexibleio->getChar("PST", "PESTID#");

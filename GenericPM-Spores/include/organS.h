@@ -57,11 +57,11 @@ public:
 
     void integrationS();
     void cloudIntegrationS();
-    float cloudAmountS();
+    double cloudAmountS();
     void outputS();
     void rateS();
 
-    float getAreaIfSeverity(int porcent) {
+    double getAreaIfSeverity(int porcent) {
         if(diseaseArea>(totalArea*(porcent/100.0))) {
             return totalArea;
         }

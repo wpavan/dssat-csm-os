@@ -31,26 +31,26 @@ public:
 
     void readInputFile(std::string GROUP) {}
 
-    float getReal(std::string GROUP, std::string VARNAME);
+    double getReal(std::string GROUP, std::string VARNAME);
     int getInteger(std::string GROUP, std::string VARNAME);
     std::string getChar(std::string GROUP, std::string VARNAME);
-    float getRealIndex(std::string GROUP, std::string VARNAME, int INDEX);
+    double getRealIndex(std::string GROUP, std::string VARNAME, int INDEX);
     int getIntegerIndex(std::string GROUP, std::string VARNAME, int INDEX);
     std::string getCharIndex(std::string GROUP, std::string VARNAME, int INDEX);
-    float* getRealArray(std::string GROUP, std::string VARNAME, std::string SIZE);
+    double* getRealArray(std::string GROUP, std::string VARNAME, std::string SIZE);
     int* getIntegerArray(std::string GROUP, std::string VARNAME, std::string SIZE);
     std::string getCharArray(std::string GROUP, std::string VARNAME, std::string SIZE);
-    float getRealYrdoy(std::string GROUP, std::string YRDOY, std::string VARNAME);
+    double getRealYrdoy(std::string GROUP, std::string YRDOY, std::string VARNAME);
     int getIntegerYrdoy(std::string GROUP, std::string YRDOY, std::string VARNAME);
     std::string getCharYrdoy(std::string GROUP, std::string YRDOY, std::string VARNAME);
 
-    void setRealMemory(std::string GROUP, std::string VARNAME, float VALUE);
+    void setRealMemory(std::string GROUP, std::string VARNAME, double VALUE);
     void setIntegerMemory(std::string GROUP, std::string VARNAME, int VALUE);
     void setCharMemory(std::string GROUP, std::string VARNAME, std::string VALUE);
-    void setRealIndexMemory(std::string GROUP, std::string VARNAME, float VALUE, int INDEX);
+    void setRealIndexMemory(std::string GROUP, std::string VARNAME, double VALUE, int INDEX);
     void setIntegerIndexMemory(std::string GROUP, std::string VARNAME, int VALUE, int INDEX);
     void setCharIndexMemory(std::string GROUP, std::string VARNAME, std::string VALUE, int INDEX);
-    void setRealYrdoyMemory(std::string GROUP, std::string YRDOY, std::string VARNAME, float VALUE);
+    void setRealYrdoyMemory(std::string GROUP, std::string YRDOY, std::string VARNAME, double VALUE);
     void setIntegerYrdoyMemory(std::string GROUP, std::string YRDOY, std::string VARNAME, int VALUE);
     void setCharYrdoyMemory(std::string GROUP, std::string YRDOY, std::string VARNAME, std::string VALUE);
 

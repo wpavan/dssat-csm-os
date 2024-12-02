@@ -21,7 +21,7 @@ void Organ::integration() {
     CloudO *cloudo;
     LesionCohort *lc;
 
-    float cloudDensity = 0;
+    double cloudDensity = 0;
     double cloudOValue = 0, cloudPValue = 0, cloudFvalue = 0;
     dailyDiseaseArea = diseaseArea;
     dailyVisibleDiseaseArea = visibleDiseaseArea;
@@ -128,8 +128,8 @@ void Organ::cloudIntegration() {
         (&cloudsO[i])->integration();
     }
 }
-float Organ::cloudAmount() {
-    float cloudOValue=0;
+double Organ::cloudAmount() {
+    double cloudOValue=0;
     for (unsigned int i = 0; i < cloudsO.size(); i++) {
         cloudOValue += (&cloudsO[i])->getValue();
     }
@@ -163,7 +163,7 @@ void Organ::output() {
 
 void Organ::rate() {
     // Calculate the ratio due senescence based on previews day
-    float actualDisease=0, ratioSenescence = this->senescenceArea / this->totalArea;
+    double actualDisease=0, ratioSenescence = this->senescenceArea / this->totalArea;
     // Update the senescence area for the current day
     this->senescenceArea = Simulator::getInstance()->getCropInterface()->getSenescenceOrganArea(organNumber);
     // Recalculate the ratio due senescence and take the difference from previews ratio
