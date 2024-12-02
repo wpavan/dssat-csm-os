@@ -85,14 +85,14 @@ void LesionCohort::rate() {
     }
     
     newSpores = 0;
-    if (getOrganHealthAreaProportion() > 0.01 && isInfectionPeriod() &&
+/*    if (getOrganHealthAreaProportion() > 0.01 && isInfectionPeriod() &&
             Basic::getWeather()->getWetDur() >= disease->getWetnessThreshold()) // && Basic::getWeather()->getTMean() > 20
     {
         newSpores = (lesionsInThisCohort * disease->getDailySporeProductionPerLesion() * 
                      util.trapezoidalFunction(getAge(), disease->getCohortAgeSet()) *
                      disease->getSporulationCrowdingFactor(getOrganDiseasedAreaProportion()));
     }
-    if(organHealthAreaProportion < 0.7) {
+*/    if(organHealthAreaProportion < 0.7) {
         dailyVisibleAreaGrow = dailyInvisibleAreaGrow = 0; // newSpores = 0;
     }
 }
