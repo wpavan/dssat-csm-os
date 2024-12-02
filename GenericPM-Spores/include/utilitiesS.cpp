@@ -25,6 +25,10 @@ double UtilitiesS::temperatureFavorabilityS(double temp, double cardinalTemperat
 
     b = ((tempMax - tempOpt) / (tempOpt - tempMin));
     a = (1 / ((tempOpt - tempMin) * pow(tempMax - tempOpt, b)));
+//    printf("a: %f b: %f temp: %f tempOpt: %f tempMin: %f tempMax: %f dif: %f\n",a,b,temp,tempOpt,tempMin,tempMax,tempMax - temp);
+    // Protection against values out of the range
+    if(temp > tempMax) temp = tempMax;
+    if(temp < tempMin) temp = tempMin;
     tf = (a * (temp - tempMin) * pow(tempMax - temp, b));
     return (fmax(0,tf));
 }
@@ -43,6 +47,9 @@ double UtilitiesS::wetnessFavorabilityS(double wetDuration, std::string wetnessF
 
 double UtilitiesS::dispersalRainFunctionS(double rain, std::string dispersionFreequency) {
     double dre;
+    // We need to revisit this function *********
+    if(rain < 0) rain = 0;
+    //printf("rain: %f dispersionFreequency: %s\n",rain,dispersionFreequency.c_str());
     dre = UtilitiesS::growthFunction(dispersionFreequency, rain);
     //std::cout<<"DRE: "<<dre<<" Rain: "<<rain<<" DisperifonF: "<<dispersionFreequency<<std::endl;
     return dre;

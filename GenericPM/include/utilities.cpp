@@ -26,6 +26,8 @@ double Utilities::temperatureFavorability(double temp, double cardinalTemperatur
 
     b = ((tempMax - tempOpt) / (tempOpt - tempMin));
     a = (1 / ((tempOpt - tempMin) * pow(tempMax - tempOpt, b)));
+    if(temp > tempMax) temp = tempMax;
+    if(temp < tempMin) temp = tempMin;
     tf = (a * (temp - tempMin) * pow(tempMax - temp, b));
     return (fmax(0,tf));
 }
