@@ -85,6 +85,8 @@ void SimulatorS::inputPSTS() {
       
       disease->setVectorSizeCloudO(flexibleio->getIntegerIndex("PST", "CCFPO", 3));
       
+      disease->setMRRS(flexibleio->getInteger("PST", "MRRS"));
+      
       disease->setInitialInoculum((double) flexibleio->getReal("PST", "II"));
       
       disease->setAcumulateFavorability((double) flexibleio->getReal("PST", "AFII"));    
@@ -180,7 +182,7 @@ void SimulatorS::rateS() {
 
 void SimulatorS::updateCurrentYearDoyS(int yearDoy) {
     while(util.addOneDayS(getCurrentYearDoy()) < yearDoy) { // Need to be synchronized. There is a gap.
-//        printf("Synchronizing: YearDoy: %i - CurrentYearDoy: %i \n",yearDoy, getCurrentYearDoy());
+        printf("Synchronizing: YearDoy: %i - CurrentYearDoy: %i \n",yearDoy, getCurrentYearDoy());
         setCurrentYearDoy(util.addOneDayS(getCurrentYearDoy()));
         WeatherS::getInstance()->updateS();
         rateS();

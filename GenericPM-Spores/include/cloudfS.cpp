@@ -1,9 +1,8 @@
 #include "cloudfS.h"
 #include<iostream>
 #include<sstream>
-//#include "../../FlexibleIO/Data/FlexibleIO.hpp"
-
-FlexibleIO *flexibleioS = FlexibleIO::getInstance();
+#include "../../FlexibleIO/Data/FlexibleIO.hpp"
+#include <cmath>
 
 int CloudFS::qtdS = 0;
 int CloudFS::firstOutputCallS = 0;
@@ -18,13 +17,8 @@ void CloudFS::integrationS() {
     if (getValueS() > disease->getMaxSporeCloudsDensity()) {
         CloudS::removeSporesCloudS(getValueS() - disease->getMaxSporeCloudsDensity());
     }
-    if (BasicS::getWeather()->getRain() >= flexibleioS->getIntegerS("PST", "MRRS")) {
-        porcent = BasicS::getWeather()->getRain() / 80;
-        porcent = porcent>1?1:porcent;
-        //std::cout<< "porcent : "<<porcent << std::endl;
-        CloudS::removeSporesCloudByRainS(porcent);
-
-        
+    if (BasicS::getWeather()->getRain() >= disease->getMRRS()) {
+        CloudS::removeSporesCloudByRainS(1-exp(-0.035*BasicS::getWeather()->getRain()));
     }
 
     std::ostringstream convert;

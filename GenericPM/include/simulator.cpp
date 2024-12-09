@@ -85,6 +85,8 @@ void Simulator::inputPST() {
       
       disease->setVectorSizeCloudO(flexibleio->getIntegerIndex("PST", "CCFPO", 3));
       
+      disease->setMRRS(flexibleio->getInteger("PST", "MRRS"));
+      
       disease->setInitialInoculum((double) flexibleio->getReal("PST", "II"));
       
       disease->setAcumulateFavorability((double) flexibleio->getReal("PST", "AFII"));    

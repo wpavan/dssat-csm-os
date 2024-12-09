@@ -20,8 +20,8 @@ void CloudP::integration() {
     if (getValue() > disease->getMaxSporeCloudsDensity()) {
         Cloud::removeSporesCloud(getValue() - disease->getMaxSporeCloudsDensity());
     }
-    if (Basic::getWeather()->getRain() >= 20) {
-        Cloud::removeSporesCloudByRain(0.5);
+    if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
+        Cloud::removeSporesCloudByRain(1-exp(-0.035*Basic::getWeather()->getRain()));
     }
 
     std::ostringstream convert;

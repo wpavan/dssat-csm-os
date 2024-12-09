@@ -1,6 +1,7 @@
 #include "cloudf.h"
 #include<iostream>
 #include<sstream>
+#include <cmath>
 
 int CloudF::qtd = 0;
 int CloudF::firstOutputCall = 0;
@@ -14,10 +15,8 @@ void CloudF::integration() {
     if (getValue() > disease->getMaxSporeCloudsDensity()) {
         Cloud::removeSporesCloud(getValue() - disease->getMaxSporeCloudsDensity());
     }
-    if (Basic::getWeather()->getRain() >= 20) {
-        porcent = Basic::getWeather()->getRain() / 80;
-        porcent = porcent>1?1:porcent;
-        Cloud::removeSporesCloudByRain(porcent);
+    if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
+        Cloud::removeSporesCloudByRain(1-exp(-0.035*Basic::getWeather()->getRain()));
     }
         
 

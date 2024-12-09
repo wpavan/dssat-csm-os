@@ -28,6 +28,7 @@ protected:
     double temperatureFavorabilitySet[3] = {29,10,22.5};
     int latentPeriod = 7;
     int infectionPeriod = 21;
+    int MRRS = 2000;
     std::string visibleGrowthFunction = "0.4*exp(-10*exp(-0.4*x))";
     std::string wetnessFunction = "1/(1+exp(4.948-0.348*x))";
     std::string depositionFrequency = "0.367753*(x+0.001)^0.129605*exp(-0.085252*(x+0.001))";
@@ -126,6 +127,14 @@ public:
 
     void setInfectionPeriod(int infectionPeriod) {
         this->infectionPeriod = infectionPeriod;
+    }
+
+    void setMRRS(int MRRS) {
+        this->MRRS = MRRS;
+    }
+
+    double getMRRS() {
+        return MRRS;
     }
 
     double getInfectionEfficiency() {
