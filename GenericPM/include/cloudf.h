@@ -26,7 +26,7 @@ public:
 
     double getValue() {
         //printf("CloudF getValue - start\n");
-        double total = Cloud::getValue() + firstSporeCloud;
+        double total = Cloud::getValue(); // + firstSporeCloud;
         //printf("CloudF getValue - end\n");
         return total;
     }
@@ -37,11 +37,12 @@ public:
     }
 
     void addSporesCreated(double sporesCreated) {
-        this->sporesCreated = sporesCreated + Cloud::getValue();
+        this->sporesCreated += sporesCreated;
     }
     void setSporesCreated(double sporesCreated) {
         //printf("Recebido Spores created: %f\n", sporesCreated);
-        this->sporesCreated = sporesCreated;
+        values.clear();
+        values.push_back(sporesCreated);
     }
 
     void setFirstSporeCloud(double firstSporeCloud) {

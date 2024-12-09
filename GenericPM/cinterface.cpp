@@ -73,7 +73,7 @@ int couplingRate(int *YRDOY,
     // Set the current YearDOY for next Disease step computation
     s->updateCurrentYearDoy(*YRDOY);
     
-    CloudField = (sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS() - cloudFp);
+    CloudField = (sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS()); // - cloudFp);
     if(CloudField < 0) {
         CloudField = 0;
     }
@@ -89,14 +89,14 @@ int couplingRate(int *YRDOY,
     //printf("WSIDOT %f SDWT: %f WSDD %f PSDD %f DAS %i YRPLT %i SDWTp %f *SDWT-SDWTp %f \n", 
     //                    *WSIDOT, *SDWT, *WSDD, *PSDD, *DAS, *YRPLT, SDWTp, *SDWT-SDWTp);
     if(*SDWT-SDWTp > 0){ //&& CloudField > 0){
-        s->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));        
-        if(s->getPlants().size()>0) {
-            //std::cout <<"Spores antes: "<<s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue()<<std::endl;
-            std::cout << *YRDOY<< " Adicionado SPORES para CloudF: corrente: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " mais: " << CloudField <<std::endl;
-            s->getPlants()[0].getCloudsP()[0].getCloudF()->setSporesCreated(CloudField);
-            s->getPlants()[0].getCloudsP()[0].getCloudF()->integration();
-            
-        }
+        s->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));            
+    }
+    if(s->getPlants().size()>0) {
+        //std::cout <<"Spores antes: "<<s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue()<<std::endl;
+        std::cout << *YRDOY<< " Adicionado SPORES para CloudF: corrente: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " set to: " << CloudField <<std::endl;
+        s->getPlants()[0].getCloudsP()[0].getCloudF()->setSporesCreated(CloudField);
+        //s->getPlants()[0].getCloudsP()[0].getCloudF()->integration();
+        std::cout << *YRDOY<< " Atual: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << std::endl;
     }
 
 
