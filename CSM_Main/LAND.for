@@ -250,14 +250,6 @@ C-----------------------------------------------------------------------
       CALL OPSUM (CONTROL, ISWITCH, YRPLT)
 
 C*********************************************************************** 
-
-      IF(ISWDIS.EQ.'Y') THEN
-          YRPLT = YRDOY
-          CALL READPEST(FILEP, 'WH001', 0)
-          call couplingInitSpore(YRDOY, YRPLT)
-      ENDIF
-
-C*********************************************************************** 
 C     SEASONAL INITIALIZATION
 C*********************************************************************** 
       ELSEIF (DYNAMIC .EQ. SEASINIT) THEN
@@ -329,6 +321,14 @@ C     various modules.
 C-----------------------------------------------------------------------
       IF (IDETS .EQ. 'Y' .OR. IDETS .EQ. 'A') THEN
         CALL OPSUM (CONTROL, ISWITCH, YRPLT)
+      ENDIF
+
+C*********************************************************************** 
+
+      IF(ISWDIS.EQ.'Y') THEN
+          YRPLT = YRDOY
+          CALL READPEST(FILEP, 'WH001', 0)
+          call couplingInitSpore(YRDOY, YRPLT)
       ENDIF
 
 C***********************************************************************
