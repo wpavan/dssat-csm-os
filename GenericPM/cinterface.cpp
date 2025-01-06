@@ -93,10 +93,10 @@ int couplingRate(int *YRDOY,
     }
     if(s->getPlants().size()>0) {
         //std::cout <<"Spores antes: "<<s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue()<<std::endl;
-        std::cout << *YRDOY<< " Adicionado SPORES para CloudF: corrente: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " set to: " << CloudField <<std::endl;
+        //std::cout << *YRDOY<< " Adicionado SPORES para CloudF: corrente: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " set to: " << CloudField <<std::endl;
         s->getPlants()[0].getCloudsP()[0].getCloudF()->setSporesCreated(CloudField);
         //s->getPlants()[0].getCloudsP()[0].getCloudF()->integration();
-        std::cout << *YRDOY<< " Atual: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << std::endl;
+        //std::cout << *YRDOY<< " Atual: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << std::endl;
     }
 
 
@@ -146,7 +146,7 @@ int couplingIntegration(int *YRDOY,
         sArea = s->getPlants()[0].getSenescenceArea();
         seedAge = s->getPlants()[0].getOrgans().size();
         //pDArea = (dArea/(tArea-sArea)*100);
-        printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
+        //printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
         //*PSDD = (dArea/tArea*5);
         if(tArea > 0) {
             *PSDD = ((dArea/tArea)*15);

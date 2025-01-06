@@ -21,9 +21,9 @@ void Cloud::integration()
     }
     //std::cout<<"Rain: "<< Basic::getWeather()->getRain()<<std::endl;
     //std::cout<<"New function: "<< Utilities::dispersalRainFunction(Basic::getWeather()->getRain(),disease->getDispersionFreequency())<<std::endl;
+    //printf("Spores: Atual %f created: %d\n", getValue(), sporesCreated);
     values.push_back(sporesCreated);
     //values.push_back(Utilities::dispersalRainFunction(Basic::getWeather()->getRain(), disease->getDispersionFreequency()) * sporesCreated);
-    //printf("Spores created: %d\n", sporesCreated);
     //std::cout << disease->getDispersionFreequency() * sporesCreated << std::endl;
     sporesCreated = sporesToBeRemoved = 0;
 }
