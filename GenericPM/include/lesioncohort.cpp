@@ -11,26 +11,28 @@ void LesionCohort::integration() {
     Disease *disease = cloudo->getDisease();
 
     if (getOrganHealthAreaProportion() > 0.01) {      
-        if(dailyVisibleAreaGrow>0) {
-            visibleArea = dailyVisibleAreaGrow * lesionsInThisCohort;
-        }
         if(dailyInvisibleAreaGrow>0) {
-            invisibleArea = (dailyInvisibleAreaGrow-dailyVisibleAreaGrow) * lesionsInThisCohort;
+            invisibleArea += dailyInvisibleAreaGrow; //(dailyInvisibleAreaGrow-dailyVisibleAreaGrow) * lesionsInThisCohort;
         }
-        totalArea = visibleArea + invisibleArea;
+        
+        totalArea = invisibleArea;
 
+        // Se tonar infec 10% da area inv passa a ser visivel e continua crescendo ambas. Visivel nunca será maior que invisivel
         if (isLatentPeriod()) {
-            latentArea = totalArea;
-            infectionArea = necroticArea = 0;
+            latentArea = invisibleArea;
+            visibleArea = infectionArea = necroticArea = 0;
         } else if (isInfectionPeriod()) {
-            infectionArea = totalArea;
+            visibleArea = invisibleArea * 1/2.5;  // virtualRatio
+            infectionArea = visibleArea; // totalArea;
             latentArea = necroticArea = 0;
         } else {
-            necroticArea = totalArea;
+            necroticArea = visibleArea;
             infectionArea = latentArea = 0;
         }
 
-        cloudo->addSporesCreated(newSpores);
+        if(newSpores > 0) {
+            cloudo->addSporesCreated(newSpores);
+        }        
 
         physiologicalDaysAcumm += physiologicalDay;
 
@@ -71,30 +73,38 @@ void LesionCohort::rate() {
     dailyInvisibleAreaGrow  = util.growthFunction(disease->getInvisibleGrowthFunction(), 
                                                   getPhysiologicalDaysAcumm()) 
                               * disease->getHostFactor() 
-                              * totalArea 
+                              //* totalArea 
                               * getOrganHealthAreaProportion();
-    dailyVisibleAreaGrow    = util.growthFunction(disease->getVisibleGrowthFunction(), 
+    dailyInvisibleAreaGrow *= lesionsInThisCohort;
+
+    /*std::cout << "growthFunction: " << util.growthFunction(disease->getInvisibleGrowthFunction(), getPhysiologicalDaysAcumm()) << 
+              " lesionsInThisCohort: " << lesionsInThisCohort <<
+              " dailyInvisibleAreaGrow: " << dailyInvisibleAreaGrow <<
+              " HostFactor: " << disease->getHostFactor() << 
+              " totalArea: " << totalArea << " HealthAreaProportion: " << 
+              getOrganHealthAreaProportion() << std::endl; */
+    /*dailyVisibleAreaGrow    = util.growthFunction(disease->getVisibleGrowthFunction(), 
                                                   getPhysiologicalDaysAcumm()) 
                               * disease->getHostFactor()
-                              * totalArea
+                              // * totalArea
                               * getOrganHealthAreaProportion();
     if (isLatentPeriod()) { 
         dailyVisibleAreaGrow = 0;
-    } else if (isNecroticPeriod()) { 
+    } else */ if (isNecroticPeriod()) { 
         dailyVisibleAreaGrow = dailyInvisibleAreaGrow = 0;
     }
     
     newSpores = 0;
-/*    if (getOrganHealthAreaProportion() > 0.01 && isInfectionPeriod() &&
+    if (getOrganHealthAreaProportion() > 0.01 && isInfectionPeriod() &&
             Basic::getWeather()->getWetDur() >= disease->getWetnessThreshold()) // && Basic::getWeather()->getTMean() > 20
     {
-        newSpores = (lesionsInThisCohort * disease->getDailySporeProductionPerLesion() * 
-                     util.trapezoidalFunction(getAge(), disease->getCohortAgeSet()) *
-                     disease->getSporulationCrowdingFactor(getOrganDiseasedAreaProportion()));
+        //newSpores = (lesionsInThisCohort * disease->getDailySporeProductionPerLesion() * 
+        //             util.trapezoidalFunction(getAge(), disease->getCohortAgeSet()) *
+        //             disease->getSporulationCrowdingFactor(getOrganDiseasedAreaProportion()));
     }
-*/    if(organHealthAreaProportion < 0.7) {
-        dailyVisibleAreaGrow = dailyInvisibleAreaGrow = 0; // newSpores = 0;
-    }
+    //if(organHealthAreaProportion < 0.7) {   // check this
+    //    dailyVisibleAreaGrow = dailyInvisibleAreaGrow = 0; // newSpores = 0;
+    //}
 }
 
 bool LesionCohort::isLatentPeriod() {

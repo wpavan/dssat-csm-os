@@ -47,9 +47,11 @@ void Organ::integration() {
             cloudFvalue = cloudo->getCloudP()->getCloudF()->getValue();
 
             newLesionsFromOrgan = cloudo->getDisease()->newLesions(cloudOValue,healthAreaProportion);
-            newLesionsFromPlant = cloudo->getDisease()->newLesions(cloudPValue,healthAreaProportion)*getProportionFromTotalArea();
+            newLesionsFromPlant = cloudo->getDisease()->newLesions(cloudPValue,healthAreaProportion)* 
+                                  getProportionFromTotalArea();
             //std::cout << "cloudF Antes: " << cloudFvalue << std::endl;
-            newLesionsFromField = cloudo->getDisease()->newLesions(cloudFvalue,healthAreaProportion)*getProportionFromTotalArea();
+            newLesionsFromField = cloudo->getDisease()->newLesions(cloudFvalue,healthAreaProportion)*
+                                  getProportionFromTotalArea();
             //std::cout << "cloudF: " << cloudFvalue << std::endl;
             //std::cout << "cloudP: " << cloudPValue << std::endl;
             //std::cout << "cloudO: " << cloudOValue << std::endl;
@@ -65,9 +67,8 @@ void Organ::integration() {
                 cloudo->addSporesToBeRemoved(newLesionsFromOrgan);
                 cloudo->getCloudP()->addSporesToBeRemoved(newLesionsFromPlant);
                 cloudo->getCloudP()->getCloudF()->addSporesToBeRemoved(newLesionsFromField);
-            } else {
-                newLesionsFromOrgan = newLesionsFromPlant = newLesionsFromField = 0;
-            }
+            } 
+            newLesionsFromOrgan = newLesionsFromPlant = newLesionsFromField = 0;            
         }
     }
 

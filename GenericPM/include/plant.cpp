@@ -101,6 +101,12 @@ void Plant::output() {
 
 void Plant::rate() {
     Organ *o;
+    totalArea = 0;
+    for (unsigned int i = 0; i < organs.size(); i++) {
+        o = &organs[i];
+        totalArea += o->getTotalArea();
+    }
+    
     for (unsigned int i = 0; i < organs.size(); i++) {
         o = &organs[i];
         if(o->getSenescenceArea() < o->getTotalArea()) {
