@@ -7,15 +7,15 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #include "disease.h"
-#include<cmath>
-#include<iostream>
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 #include "./utilities.h"
 
+#include <cmath>
+#include <iostream>
+
 std::vector<Disease*> Disease::listDiseases;
-
-
 
 double Disease::getSporulationCrowdingFactor(double proportionDiseaseArea) {
     double a = (1 / (sporulationCrowdingFactorsSet[0] + sporulationCrowdingFactorsSet[1] * pow(proportionDiseaseArea, sporulationCrowdingFactorsSet[2])));
@@ -26,7 +26,6 @@ int Disease::newLesions(double cloudDensity, double healthyAreaProportion) {
     Utilities util;
     double newLesions = 0;
     double fitWetnessThreshold = getWetnessThreshold();
-    //std::cout<<"fitWetnessThreshold: " <<fitWetnessThreshold<<"WebDur: "<<Basic::getWeather()->getWetDur()<<std::endl;
     if (healthyAreaProportion > 0 && Basic::getWeather()->getWetDur() >= fitWetnessThreshold) {
         newLesions = fmax(0.0, (cloudDensity * healthyAreaProportion * getInfectionEfficiency() *
                 util.temperatureFavorability(Basic::getWeather()->getTMean(),
@@ -47,7 +46,7 @@ int Disease::newLesions(double cloudDensity, double healthyAreaProportion) {
     //newLesions = newLesions * Utilities::runExpressionFunction(Basic::getWeather()->getRh(),getRhFactor());
     //newLesions= newLesions *  Utilities::runExpressionFunction(Basic::getWeather()->getRh(),getRhFactor());
     //std::cout<<"newLesions: "<<newLesions<<" getRH: "<<Basic::getWeather()->getRh() <<" getRhFactor()): "<< getRhFactor()<<" exp: "<<newLesions *  Utilities::runExpressionFunction(Basic::getWeather()->getRh(),getRhFactor()) <<std::endl; 
-   // std::cout<<"rhfacetor "<<getRhFactor()<<" RH : "<<Basic::getWeather()->getRh()<<std::endl;
+    //std::cout<<"rhfacetor "<<getRhFactor()<<" RH : "<<Basic::getWeather()->getRh()<<std::endl;
     }
     return newLesions;
 }

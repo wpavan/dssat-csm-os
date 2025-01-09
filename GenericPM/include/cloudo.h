@@ -7,6 +7,7 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #ifndef CLOUDO_H
 #define CLOUDO_H
 
@@ -24,7 +25,6 @@ protected:
     static int firstOutputCall;
 
 public:
-
     CloudO(Disease *disease, CloudP *cloudP) {
         this->disease = disease;
         this->cloudP = cloudP;
@@ -42,11 +42,10 @@ public:
     CloudP* getCloudP() {
         return cloudP;
     }
+    
     void integration();
     void output();
     void addSporesCreated(double sporesCreated);
-
-
 };
 
 #endif // CLOUDO_H

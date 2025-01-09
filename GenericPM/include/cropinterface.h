@@ -7,13 +7,13 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #ifndef RINTERFACE_H
 #define RINTERFACE_H
 
-#include<vector>
+#include <vector>
 #include <cmath>
 #include <iostream>
-
 
 class CropInterface {
 protected:
@@ -66,11 +66,9 @@ public:
 
     double getRatioDueDefoliation(int organ) const {
         return data[organ - 1][4];
-        ;
     }
 
     void setOrganArea(int organ, double area) {
-        //std::cout<<"DANO organ "<<organ<<" area "<<area<<std::endl;
         if (organ > data.size()) {
             std::vector<double> vetLine;
             vetLine.push_back(area); // Organ Area
@@ -112,7 +110,6 @@ public:
         double diff=0;
         for (unsigned int i = 0; i < data.size(); i++) {
             // set the senescence area to each organ and just call organ rate if it has area to be affected 
-            //printf("A. Organ: %d TotalArea: %f SenescenceArea: %f DailySenesc: %f\n",i,data[i][0],data[i][1],newDailySenescenceArea);
             if(data[i][1] < data[i][0]) { // senescence < Organ Area
                 if(newDailySenescenceArea>0) { // we need to set senescence area to organ
                     diff = fmin(data[i][0] - data[i][1],newDailySenescenceArea);
@@ -120,7 +117,6 @@ public:
                     data[i][1] = data[i][1]+diff;
                 }
             }
-            //printf("B. Organ: %d TotalArea: %f SenescenceArea: %f DailySenesc: %f diff: %f\n",i,data[i][0],data[i][1],newDailySenescenceArea,diff);
         }
         /*
         for (unsigned int i = 0; i < organs.size(); i++) {
@@ -140,6 +136,7 @@ public:
     }
         */
     }
+
     /* Return the senescence area (cm2/m2) set (DSSAT - PEST - SLDOT)
        This represents the area that need to be removed (organs - older first)
     */
@@ -169,10 +166,6 @@ public:
     int getPlantingDate() const {
         return plantingDate;
     }
-
-
-
-
 };
 
 #endif // RINTERFACE_H

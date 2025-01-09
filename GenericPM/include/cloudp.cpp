@@ -7,20 +7,21 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #include "cloudp.h"
-#include<iostream>
-#include<sstream>
-//#include "../Coupling-Interface/CPP/coupling_IO_cpp.h"
 //#include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
+#include <iostream>
+#include <sstream>
+#include <cmath>
+
 //extern FlexibleIO *flexibleio;
+
 int CloudP::qtd = 0;
 int CloudP::firstOutputCall = 0;
 
 void CloudP::integration() {
     Cloud::integration();
-
-    //std::cout << values.size()<<std::endl;
     if (values.size() > (unsigned) disease->getVectorSizeCloudP()) {
         values.erase(values.begin());
     }

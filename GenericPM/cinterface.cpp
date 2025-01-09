@@ -7,9 +7,12 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #include "include/simulator.h"
-#include<cmath>
 #include "../GenericPM-Spores/cinterfaceS.h"
+
+#include <cmath>
+
 using namespace std;
 
 extern "C" {
@@ -34,7 +37,6 @@ extern "C" {
             double *LAIDOT, double *WSIDOT, double *SDWT, double *WSDD, 
             double *PSDD, int *DAS);
     int couplingOutput(int *doy);
-
 }
 
 double CLWp, SLAp, SDWTp, cloudFp;
@@ -65,15 +67,19 @@ int couplingRate(int *YRDOY,
         double *CLAI, double *CLFM, double *CSTEM, double *DISLA, double *DISLAP,
         double *LAIDOT, double *WSIDOT, double *SDWT, 
         double *WSDD, double *PSDD, int *DAS, int *YRPLT) {
+
     // Temporary variable used for computations 
     double temp = 0, newOrgan = 0;
     double CloudField = 0;
+
     // Get an instance of Simulator
     //printf("Rate - \n");
     Simulator *s = Simulator::getInstance();
     SimulatorS *sS = SimulatorS::getInstanceS();
+
     newOrgan = s->getCropInterface()->getOrgansQtd()+1;
     //printf("YRDOY: %i ", *YRDOY);
+
     // Set the sowing/planting date
     if(s->getCropInterface()->getPlantingDate() < 0) {
         s->getCropInterface()->setPlantingDate(*YRPLT);
@@ -108,14 +114,12 @@ int couplingRate(int *YRDOY,
         //std::cout << *YRDOY<< " Atual: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << std::endl;
     }
 
-
     SDWTp = *SDWT;
 
     // Feed the Disease Model with weather information
     Weather::getInstance()->update();
     // Disease Simulator Rate
     s->rate();
-    //printf("Returning rate\n");
     return (1);
 }
 
@@ -168,16 +172,12 @@ int couplingIntegration(int *YRDOY,
 
 
     }
-    
-    //printf("YRDOY: %i PCLMT: %f\n", *YRDOY,*PCLMT);
-    //printf("Returning integration\n");
     return (1);
 }
+
 int couplingOutput(int *doy) {
     // Get an instance of Simulator
     Simulator *s = Simulator::getInstance();
     // Request disease outputs to be written in files
-    //s->output();
-    
     return (1);
 }

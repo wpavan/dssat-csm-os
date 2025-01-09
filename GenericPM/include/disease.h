@@ -7,6 +7,7 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #ifndef DISEASE_H
 #define DISEASE_H
 
@@ -15,7 +16,7 @@
 
 #include <string>
 #include <vector>
-#include<algorithm>
+#include <algorithm>
 
 class Disease : public Basic {
 protected:
@@ -23,7 +24,6 @@ protected:
     std::string cropModel = "CRGRO";
     std::string description = "Soybean Leaf Rust";
     double infectionEfficiency = 0.17;
-    //double depositionFrequency = 0.15;
     double initialInoculum = 50;
     int vectorSizeCloudF = 5;
     int vectorSizeCloudP = 7;
@@ -51,7 +51,6 @@ protected:
     std::string rhFactor = "1*x";
 
 public:
-
     Disease() {
         listDiseases.push_back(this);
     }

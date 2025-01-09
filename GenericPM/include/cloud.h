@@ -7,13 +7,15 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #ifndef CLOUD_H
 #define CLOUD_H
 
 #include "basic.h"
 #include "basicinterface.h"
 #include "disease.h"
-#include<vector>
+
+#include <vector>
 
 class Cloud : public Basic, virtual public BasicInterface {
 protected:
@@ -38,11 +40,9 @@ public:
     double getValue();
     void removeSporesCloud(double toBeRemove);
     void removeSporesCloudByRain(double percent);
-    void removeSporesCloudFByAge(void);
+
     void removeSporesCloudPByAge(void);
     void removeSporesCloudOByAge(void);
-
-
 
     int getSporesToBeRemoved() {
         return sporesToBeRemoved;

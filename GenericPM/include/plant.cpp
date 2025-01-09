@@ -7,14 +7,15 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #include "plant.h"
 #include "simulator.h"
 
-#include<sstream>
-#include<vector>
-#include<iostream>
-#include<fstream>
-#include<string>
+#include <sstream>
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <string>
 
 int Plant::qtd = 0;
 int Plant::firstOutputCall = 0;
@@ -27,11 +28,11 @@ Plant::Plant() {
         ic = &vectIC[i];
         cloudsP.emplace_back(ic->getCloud()->getDisease(), ic->getCloud());
     }
-    //Basic::output.push_back("Day, PlantArea, DiseaseArea, Density, Severity, LatentDArea, InfectionDArea, NecroticDArea,SenescenceArea");
 }
 
 void Plant::integration() {
-    totalArea = diseaseArea = latentDiseaseArea = infectionDiseaseArea = necroticDiseaseArea = visibleDiseaseArea = invisibleDiseaseArea = totalLesions = visibleLesions = senescenceArea = 0;
+    totalArea = diseaseArea = latentDiseaseArea = infectionDiseaseArea = necroticDiseaseArea = visibleDiseaseArea = invisibleDiseaseArea = senescenceArea = 0;
+    totalLesions = visibleLesions = 0;
     int newOrgan = 0;
     double cloudOValue = 0, cloudPValue = 0, cloudFvalue = 0;
     Organ *o;
@@ -47,9 +48,6 @@ void Plant::integration() {
             invisibleDiseaseArea += o->getInvisibleDiseaseArea();
             visibleLesions += o->getVisibleLesions();
             totalLesions += o->getTotalLesions();
-        } else {
-            //o->cloudIntegration();
-            //printf("## Organ: %d died - integration!!!\n",o->getOrganNumber());
         }
         totalArea += o->getTotalArea();
         senescenceArea += o->getSenescenceArea();
@@ -64,7 +62,6 @@ void Plant::integration() {
 
     newOrgan = Simulator::getInstance()->getCropInterface()->hasNewOrgan();
     if (newOrgan > 0) {
-        //printf("Creating new organ: %i\n",newOrgan);
         organs.emplace_back(cloudsP, newOrgan, Simulator::getInstance()->getCropInterface()->getOrganArea(newOrgan));
     }
 
@@ -84,7 +81,6 @@ void Plant::integration() {
 
 void Plant::output() {
     std::ostringstream convert;
-    //convert << "Cpp_Plant_" << getID() << ".txt";
     Basic::getOutput("Cpp_Plant.txt", this->firstOutputCall);
     this->firstOutputCall++;
 
@@ -125,8 +121,6 @@ void Plant::rate() {
                 o->setProportionFromTotalArea(0);
             }
             o->rate();
-        } else {
-            //printf("## Organ: %d died - rate!!!\n",o->getOrganNumber());
         }
     }
 }

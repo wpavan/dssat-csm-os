@@ -7,12 +7,14 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #include "cloudo.h"
-#include<iostream>
-#include<sstream>
-#include<string>
-//#include "../Coupling-Interface/CPP/coupling_IO_cpp.h"
 //#include "../../FlexibleIO/Data/FlexibleIO.hpp"
+
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cmath>
 
 //extern FlexibleIO *flexibleio;
 
@@ -32,6 +34,7 @@ void CloudO::integration() {
         Cloud::removeSporesCloud(getValue() - disease->getMaxSporeCloudsDensity()); 
     }
     if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
+        // Here we should parameterize the rain effect on the spores cloud
         Cloud::removeSporesCloudByRain(1-exp(-0.035*Basic::getWeather()->getRain()));
     }
 

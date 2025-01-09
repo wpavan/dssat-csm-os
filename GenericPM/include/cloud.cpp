@@ -7,13 +7,14 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #include "cloud.h"
 #include "disease.h"
+#include "simulator.h"
+//#include "../../FlexibleIO/Data/FlexibleIO.hpp"
+
 #include <cmath>
 #include <iostream>
-#include "simulator.h"
-//#include "../Coupling-Interface/CPP/coupling_IO_cpp.h"
-//#include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
 //extern FlexibleIO *flexibleio;
 void Cloud::integration()
@@ -22,18 +23,8 @@ void Cloud::integration()
     if (sporesToBeRemoved > 0)
     { // Remove from cloud spores used to infect tissue
         removeSporesCloud(sporesToBeRemoved);
-        /*        for (unsigned int i = 0; i < values.size() && sporesToBeRemoved>0; i++) {
-            qtd = fmin(values[i],sporesToBeRemoved);
-            sporesToBeRemoved -= qtd;
-            values[i] = values[i] - qtd;
-        }*/
     }
-    //std::cout<<"Rain: "<< Basic::getWeather()->getRain()<<std::endl;
-    //std::cout<<"New function: "<< Utilities::dispersalRainFunction(Basic::getWeather()->getRain(),disease->getDispersionFreequency())<<std::endl;
-    //printf("Spores: Atual %f created: %d\n", getValue(), sporesCreated);
     values.push_back(sporesCreated);
-    //values.push_back(Utilities::dispersalRainFunction(Basic::getWeather()->getRain(), disease->getDispersionFreequency()) * sporesCreated);
-    //std::cout << disease->getDispersionFreequency() * sporesCreated << std::endl;
     sporesCreated = sporesToBeRemoved = 0;
 }
 
@@ -41,7 +32,6 @@ double Cloud::getValue()
 {
     double sum = 0;
     for (unsigned int i = 0; i < values.size(); i++) {
-        //printf("i: %d, values[i]: %f\n", i, values[i]);
         sum += values[i];
     }
     return sum;
@@ -66,15 +56,6 @@ void Cloud::removeSporesCloudByRain(double percent)
     }
 }
 
-void Cloud::removeSporesCloudFByAge(void)
-{
-    int yearDoy = Simulator::getInstance()->getCurrentYearDoy();
-
-    for (int i = values.size(); i > 0; i--)
-    {
-        values[values.size() - i] = values[values.size() - i] * (1.61 * exp(-0.369 * (values.size() - i + 1))) > 0 ? values[values.size() - i] * (1.61 * exp(-0.369 * (values.size() - i + 1))) : 0;
-    }
-}
 void Cloud::removeSporesCloudPByAge(void)
 {
 
@@ -83,6 +64,7 @@ void Cloud::removeSporesCloudPByAge(void)
         values[values.size() - i] = values[values.size() - i] * (1.40 * exp(-0.2030 * (values.size() - i + 1))) > 0 ? values[values.size() - i] * (1.40 * exp(-0.2030 * (values.size() - i + 1))) : 0;
     }
 }
+
 void Cloud::removeSporesCloudOByAge(void)
 {
 

@@ -7,6 +7,7 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #include "simulator.h"
 #include "disease.h"
 #include "cropinterface.h"
@@ -14,14 +15,13 @@
 #include "weather.h"
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
-#include<sstream>
-#include<vector>
-#include<iostream>
-#include<string>
-
+#include <sstream>
+#include <vector>
+#include <iostream>
+#include <string>
 
 Simulator::Simulator() {
-    inicialization();
+    initialization();
 }
 
 Simulator* Simulator::instance = nullptr;
@@ -37,7 +37,7 @@ Simulator* Simulator::newInstance() {
     return getInstance();
 }
 
-void Simulator::inicialization() {
+void Simulator::initialization() {
     cropinterface = CropInterface::newInstance();
     cropinterface->start();
     inputPST();
@@ -48,7 +48,6 @@ void Simulator::inicialization() {
 }
 
 void Simulator::inputPST() {
-  
   if (Disease::getDisease().size() == 0) {
       Disease *disease = new Disease();
       FlexibleIO *flexibleio = FlexibleIO::getInstance();
@@ -125,17 +124,13 @@ void Simulator::inputPST() {
       disease->setInvisibleGrowthFunction(flexibleio->getChar("PST", "IGF"));
       
       disease->setVisibleGrowthFunction(flexibleio->getChar("PST", "VGF"));
-      //printf("Lido VGF: %s",flexibleio->getChar("PST", "VGF"));
 
       disease->setWetnessFunction(flexibleio->getChar("PST", "WF"));
-      //printf("Lido WF: %s",flexibleio->getChar("PST", "WF"));
 
       disease->setDispersionFreequency(flexibleio->getChar("PST", "DRE"));
 
       disease->setRhFactor(flexibleio->getChar("PST", "RHFac"));
-
   }
-  
 }
 
 void Simulator::integration() {
@@ -163,6 +158,7 @@ void Simulator::output() {
         p->output();
     }
 }
+
 /**
  * Function Rate: Responsible call, recursively, the rates for each part of the plant
  */
@@ -189,7 +185,6 @@ void Simulator::rate() {
 
 void Simulator::updateCurrentYearDoy(int yearDoy) {
     while(util.addOneDay(getCurrentYearDoy()) < yearDoy) { // Need to be synchronized. There is a gap.
-//        printf("Synchronizing: YearDoy: %i - CurrentYearDoy: %i \n",yearDoy, getCurrentYearDoy());
         setCurrentYearDoy(util.addOneDay(getCurrentYearDoy()));
         Weather::getInstance()->update();
         rate();
@@ -208,6 +203,3 @@ bool Simulator::allPlantsSenesced() {
     }
     return true;
 }
-
-
-

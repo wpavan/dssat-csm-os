@@ -8,16 +8,17 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #include "lesioncohort.h"
 #include "cropinterface.h"
-#include<string>
-#include<sstream>
-#include<iostream>
+
+#include <string>
+#include <sstream>
+#include <iostream>
 
 int LesionCohort::qtd = 0;
 
 void LesionCohort::integration() {
-
     Disease *disease = cloudo->getDisease();
 
     if (getOrganHealthAreaProportion() > 0.01) {      
@@ -72,9 +73,7 @@ void LesionCohort::output() {
 }
 
 void LesionCohort::rate() {
-    //double dailyVisibleGrowRate = 0, dailyInvisibleGrowRate = 0;
     Disease *disease = cloudo->getDisease();
-//    std::cout<<"getHostFactor: "<<disease->getHostFactor()<<std::endl;
 
     physiologicalDay = util.temperatureFavorability(
                             Basic::getWeather()->getTMean(),
@@ -100,7 +99,8 @@ void LesionCohort::rate() {
                               * getOrganHealthAreaProportion();
     if (isLatentPeriod()) { 
         dailyVisibleAreaGrow = 0;
-    } else */ if (isNecroticPeriod()) { 
+    } else */ 
+    if (isNecroticPeriod()) { 
         dailyVisibleAreaGrow = dailyInvisibleAreaGrow = 0;
     }
     
@@ -115,9 +115,6 @@ void LesionCohort::rate() {
                             Basic::getWeather()->getTMean(),
                             disease->getTemperatureFavorabilitySet()));
     }
-    //if(organHealthAreaProportion < 0.7) {   // check this
-    //    dailyVisibleAreaGrow = dailyInvisibleAreaGrow = 0; // newSpores = 0;
-    //}
 }
 
 bool LesionCohort::isLatentPeriod() {

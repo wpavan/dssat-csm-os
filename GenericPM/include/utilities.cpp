@@ -7,14 +7,15 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
-#include "utilities.h"
-#include<cmath>
-#include<string>
-#include<sstream>
-#include<iomanip>
-#include "disease.h"
-#include<iostream>
 
+#include "utilities.h"
+#include "disease.h"
+
+#include <cmath>
+#include <string>
+#include <sstream>
+#include <iomanip>
+#include <iostream>
 
 double Utilities::trapezoidalFunction(double value, double v[]) {
     if (value >= v[1] && value <= v[2])
@@ -42,32 +43,24 @@ double Utilities::temperatureFavorability(double temp, double cardinalTemperatur
 }
 
 double Utilities::wetnessFavorability(double wetDuration, std::string wetnessFunction) {
-//    double wf;
-    double wf, k = 0.99374, b = 350.81064, r = 0.88591;
-    //wf = (k / (1 + b * exp(-r * wetDuration)));
-    wf = Utilities::growthFunction(wetnessFunction, wetDuration);
-    //std::cout<<"WF: "<<wf<<std::endl;
-    //std::cout<<"WF: "<<wf<<" wetnessFunction: "<<wetnessFunction<<" wetDuration: "<<wetDuration<<std::endl;
-
-    //printf("WF: %f Wetness Function: %s WetDuration: %f",wetnessFunction, wf,wetDuration);  
+    double wf;
+    wf = Utilities::growthFunction(wetnessFunction, wetDuration); 
     return wf;
 }
 
 double Utilities::dispersalRainFunction(double rain, std::string dispersionFreequency) {
     double dre;
     dre = Utilities::growthFunction(dispersionFreequency, rain);
-    //std::cout<<"DRE: "<<dre<<" Rain: "<<rain<<" DisperifonF: "<<dispersionFreequency<<std::endl;
     return dre;
 }
+
 double Utilities::runExpressionFunction(double value, std::string expressionString) {
     return Utilities::runExpression(expressionString, value);
 }
 
 double Utilities::getHealthAreaProportion(double diseaseArea, double totalArea, double senescedArea) {
-        double hap = 1 - ((diseaseArea+senescedArea) / totalArea);
-        return (hap > 0 ? hap : 0);
-    //double hap = (1 - (diseaseArea / totalArea));
-    //return (hap > 0 ? hap : 0);
+    double hap = 1 - ((diseaseArea+senescedArea) / totalArea);
+    return (hap > 0 ? hap : 0);
 }
 
 std::string Utilities::formatDouble(double value) {

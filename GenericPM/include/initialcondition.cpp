@@ -7,11 +7,12 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #include "initialcondition.h"
 
-#include<sstream>
-#include<iostream>
-#include<fstream>
+#include <sstream>
+#include <iostream>
+#include <fstream>
 
 int InitialCondition::qtd = 0;
 
@@ -38,10 +39,8 @@ void InitialCondition::integration() {
         std::ostringstream convert;
         convert << Basic::getWeather()->getYearDoy() << "," << acumulateFavorability;
         Basic::output.push_back(convert.str());
-
     }
     cloudf.integration();
-
 }
 
 void InitialCondition::output() {

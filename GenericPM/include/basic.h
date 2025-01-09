@@ -7,14 +7,15 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #ifndef BASIC_H 
 #define BASIC_H
 
 #include "weather.h"
 
-#include<vector>
-#include<string>
-#include<fstream>
+#include <vector>
+#include <string>
+#include <fstream>
 
 class Basic {
 protected:
@@ -26,13 +27,7 @@ public:
 
     void getOutput(std::string fileName) {
         std::ofstream out;
-//        if(firstCall) {
-//            out.open(fileName);    
-//            firstCall = 0;
-//        } else {
             out.open(fileName, std::ofstream::out | std::ofstream::app);
-//        }
-        //out << fileName << std::endl;
         for (unsigned int i = 0; i < output.size(); i++)
             out << output[i] << std::endl;
         out.close();
@@ -46,7 +41,6 @@ public:
         } else {
             out.open(fileName);    
         }
-        //out << fileName << std::endl;
         for (unsigned int i = 0; i < output.size(); i++)
             out << output[i] << std::endl;
         out.close();

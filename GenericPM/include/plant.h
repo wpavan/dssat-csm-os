@@ -7,6 +7,7 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #ifndef PLANT_H
 #define PLANT_H
 
@@ -28,15 +29,17 @@ protected:
             necroticDiseaseArea = 0, visibleDiseaseArea = 0, invisibleDiseaseArea = 0, visibleLesions = 0,
             totalLesions = 0, senescenceArea = 0;
     static int firstOutputCall;
+
 public:
     Plant();
 
     int getID() {
         return ID;
     }
+
+    void rate();
     void integration();
     void output();
-    void rate();
 
     double getTotalArea() {
         return totalArea;

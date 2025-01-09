@@ -7,6 +7,7 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #ifndef CLOUDP_H
 #define CLOUDP_H
 
@@ -24,7 +25,6 @@ protected:
     static int firstOutputCall;
 
 public:
-
     CloudP(Disease *disease, CloudF *cloudF) {
         this->disease = disease;
         this->cloudF = cloudF;
@@ -42,6 +42,7 @@ public:
         Cloud::rate();
         cloudF->rate();
     }
+    
     void integration();
     void output();
     void addSporesCreated(double sporesCreated);

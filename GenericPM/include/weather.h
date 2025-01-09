@@ -7,6 +7,7 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #ifndef WEATHER_H
 #define WEATHER_H
 
@@ -40,6 +41,7 @@ public:
         else
             return wetDur;
     }
+
     bool update();
 
     void setRain(double rain) {
@@ -77,7 +79,5 @@ public:
     double getRh() const {
         return rh;
     }
-
-
 };
 #endif // WEATHER_H

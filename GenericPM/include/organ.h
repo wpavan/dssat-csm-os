@@ -7,6 +7,7 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #ifndef ORGAN_H
 #define ORGAN_H
 
@@ -70,8 +71,8 @@ public:
     void output();
     void rate();
 
-    double getAreaIfSeverity(int porcent) {
-        if(diseaseArea>(totalArea*(porcent/100.0))) {
+    double getAreaIfSeverity(int percent) {
+        if(diseaseArea>(totalArea*(percent/100.0))) {
             return totalArea;
         }
         return 0.0;

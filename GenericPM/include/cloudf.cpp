@@ -7,9 +7,11 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #include "cloudf.h"
-#include<iostream>
-#include<sstream>
+
+#include <iostream>
+#include <sstream>
 #include <cmath>
 
 int CloudF::qtd = 0;
@@ -17,7 +19,6 @@ int CloudF::firstOutputCall = 0;
 
 void CloudF::integration() {
     Cloud::integration();
-    double porcent=0;
     if (values.size() > (unsigned) disease->getVectorSizeCloudF()) {
         values.erase(values.begin());
     }
@@ -25,9 +26,9 @@ void CloudF::integration() {
         Cloud::removeSporesCloud(getValue() - disease->getMaxSporeCloudsDensity());
     }
     if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
+        // Here we should parameterize the rain effect on the spores cloud
         Cloud::removeSporesCloudByRain(1-exp(-0.035*Basic::getWeather()->getRain()));
     }
-        
 
     std::ostringstream convert;
     convert << Basic::getWeather()->getYearDoy() << "," << getValue();

@@ -7,15 +7,16 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
-#include<string>
 #include "../TinyExpr/tinyexpr.h"
+
+#include <string>
 
 class Utilities {
 public:
-
     static double trapezoidalFunction(double value, double v[]);
     static double temperatureFavorability(double temp, double cardinalTemperatures[]);
     static double wetnessFavorability(double wetDuration, std::string wetnessFunction);

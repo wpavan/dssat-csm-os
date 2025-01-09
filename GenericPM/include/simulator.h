@@ -7,6 +7,7 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
+
 #ifndef SIMULATOR_H
 #define SIMULATOR_H
 
@@ -15,8 +16,7 @@
 #include "initialcondition.h"
 #include "plant.h"
 
-
-#include<vector>
+#include <vector>
 
 class Simulator : virtual public BasicInterface {
 private:
@@ -34,7 +34,7 @@ public:
     static Simulator* getInstance();
     static Simulator* newInstance();
     void inputPST();
-    void inicialization();
+    void initialization();
     void integration();
     void output();
     void rate();
