@@ -50,9 +50,8 @@ void Organ::integration() {
         for (unsigned int i = 0; i < cloudsO.size(); i++) {
             cloudo = &cloudsO[i];
             physiologicalLife += Utilities::trapezoidalFunction(Basic::getWeather()->getTMean(), cloudo->getDisease()->getCardinalTempPhysiologicalLife());
-            //cloudOValue = 0;
+
             cloudOValue = cloudAmount();
-            //cloudPValue = 0;
             cloudPValue = cloudo->getCloudP()->getValue();
             cloudFvalue = cloudo->getCloudP()->getCloudF()->getValue();
 
@@ -95,9 +94,7 @@ void Organ::integration() {
     }
 
     cloudIntegration();
-    //cloudOValue = 0;
     cloudOValue = cloudAmount();
-    //cloudPValue = 0;
     cloudPValue = cloudo->getCloudP()->getValue();
     cloudFvalue = cloudo->getCloudP()->getCloudF()->getValue();
     
@@ -119,6 +116,7 @@ void Organ::integration() {
     //            "VisibleLesions (%i)\n", dailyDiseaseArea, dailyVisibleDiseaseArea,
     //            dailySenescenceArea,dailyLatentDiseaseArea,dailyInfectionDiseaseArea,
     //            dailyNecroticDiseaseArea,dailyTotalLesions,dailyVisibleLesions);
+
     std::ostringstream convert;
     convert << organNumber << "," 
             << Basic::getWeather()->getYearDoy() << "," << totalArea << "," << senescenceArea << "," 
@@ -134,11 +132,13 @@ void Organ::integration() {
             << newLesionsFromOrgan << "," << newLesionsFromPlant << "," << newLesionsFromField;
     Basic::output.push_back(convert.str());
 }
+
 void Organ::cloudIntegration() {
     for (unsigned int i = 0; i < cloudsO.size(); i++) {
         (&cloudsO[i])->integration();
     }
 }
+
 double Organ::cloudAmount() {
     double cloudOValue=0;
     for (unsigned int i = 0; i < cloudsO.size(); i++) {
@@ -146,9 +146,10 @@ double Organ::cloudAmount() {
     }
     return cloudOValue;
 }
+
 void Organ::output() {
     std::ostringstream convert;
-    //convert << "Cpp_Organ_" << getOrganNumber() << ".txt";
+
     Basic::getOutput("Cpp_Organ.txt",this->firstOutputCall);
     this->firstOutputCall++;
     // Speedup the model removing outputs

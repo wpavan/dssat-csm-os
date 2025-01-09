@@ -45,6 +45,15 @@ public:
     
     void integration();
     void output();
+
+    /**
+     * Increase number of spores in the plant cloud.
+     * 
+     * The number of spores created is partitioned into the CloudP and parent CloudF objects 
+     * according to the proportion defined in the Disease object.
+     * 
+     * @param sporesCreated Number of spores created.
+     */
     void addSporesCreated(double sporesCreated);
 };
 

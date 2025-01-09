@@ -88,7 +88,7 @@ int couplingRate(int *YRDOY,
     // Set the current YearDOY for next Disease step computation
     s->updateCurrentYearDoy(*YRDOY);
     
-    CloudField = (sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS()); // - cloudFp);
+    CloudField = (sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS());
     if(CloudField < 0) {
         CloudField = 0;
     }
@@ -133,12 +133,11 @@ int couplingIntegration(int *YRDOY,
         double *LAIDOT, double *WSIDOT, double *SDWT, 
         double *WSDD, double *PSDD, int *DAS) {
     // Temporary variable used for computations 
-    double dArea = 0,tArea=0,sArea=0; //,pclaCalc=0,pDArea=0;
-     int seedAge = 0;
+    double dArea = 0, tArea=0, sArea=0;
+    int seedAge = 0;
     
     // Get an instance of Simulator
     Simulator *s = Simulator::getInstance();
-
 
     // Call the Disease Model Integration function
     s->integration();
@@ -169,8 +168,6 @@ int couplingIntegration(int *YRDOY,
         //printf("ORIGINAL YRDOY: %i CloudF: %f PSDD %f\n",*YRDOY, s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue(), PSDD);
         //printf("YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f AREALF: %f PDLA: %f PLFAD: %f\n", *YRDOY, tArea,dArea,sArea,*AREALF,*PDLA,*PLFAD);
         //printf("YRDOY: %i SDWT: %f PSDD: %f\n", *YRDOY, *SDWT, *PSDD);
-
-
     }
     return (1);
 }

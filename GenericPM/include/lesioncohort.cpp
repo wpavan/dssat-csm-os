@@ -79,8 +79,8 @@ void LesionCohort::rate() {
                             Basic::getWeather()->getTMean(),
                             disease->getTemperatureFavorabilitySet());
     // Thinking on: cumsum(runif(25, min = 0.01, max = 0.1))
-    dailyInvisibleAreaGrow  = util.growthFunction(disease->getInvisibleGrowthFunction(), 
-                                                  getPhysiologicalDaysAcumm()) 
+    dailyInvisibleAreaGrow  = util.growthFunction(getPhysiologicalDaysAcumm(),
+                                                  disease->getInvisibleGrowthFunction()) 
                               * disease->getHostFactor() 
                               //* totalArea 
                               * getOrganHealthAreaProportion();

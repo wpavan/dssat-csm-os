@@ -24,7 +24,6 @@ protected:
     int firstCall = 1;
 
 public:
-
     void getOutput(std::string fileName) {
         std::ofstream out;
             out.open(fileName, std::ofstream::out | std::ofstream::app);
@@ -50,7 +49,6 @@ public:
     Weather* getWeather() {
         return weather = Weather::getInstance();
     }
-
 };
 
 #endif // BASIC_H

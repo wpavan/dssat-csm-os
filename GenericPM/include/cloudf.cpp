@@ -51,4 +51,3 @@ void CloudF::output() {
     //for(unsigned int i=0; i<Basic::output.size(); i++)
     //    std::cout << Basic::output[i] << std::endl;
 }
-

@@ -80,4 +80,5 @@ public:
         return rh;
     }
 };
+
 #endif // WEATHER_H

@@ -16,7 +16,6 @@
 
 int InitialCondition::qtd = 0;
 
-/** Calculate the daily favorability based on temp * wetness favorability*/
 void InitialCondition::rate() {
     if (!stop) {
         dailyFavorability = Utilities::temperatureFavorability(Basic::getWeather()->getTMean(),
@@ -27,10 +26,10 @@ void InitialCondition::rate() {
     cloudf.rate();
 }
 
-/** Accumulate the daily favorability. If the this value hits the pre-determinated value, stop the process */
 void InitialCondition::integration() {
     if (!stop) {
         acumulateFavorability += dailyFavorability;
+        // If we have one simulator for each disease, should the line below be getting the disease from a disease object?
         if (acumulateFavorability >= cloudf.getDisease()->getAcumulateFavorability()) {
             cloudf.setFirstSporeCloud(cloudf.getDisease()->getInitialInoculum());
             stop = true;

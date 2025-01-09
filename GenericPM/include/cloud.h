@@ -33,6 +33,7 @@ public:
 
     void rate() {
     }
+    
     void integration();
 
     void output() {

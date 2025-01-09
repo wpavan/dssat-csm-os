@@ -14,8 +14,13 @@
 #include "cloud.h"
 #include "basicinterface.h"
 #include "disease.h"
-#include "cloud.h"
 
+/**
+ * Field cloud
+ * 
+ * This class is responsible for the field spore cloud. It is a subclass of the Cloud class.
+ * This cloud is accessible by all of the plants in the simulation.
+ */
 class CloudF : public Cloud, virtual public BasicInterface {
 protected:
     static int qtd;
@@ -31,18 +36,46 @@ public:
     int getID() {
         return ID;
     }
-    void integration();
 
+    /**
+     * Value of the field cloud
+     * 
+     * This method is responsible for calculating the total value of the field spore cloud.
+     * This method is an extension of the Cloud class getValue method.
+     * 
+     * @return The total value of the field spore cloud.
+     */
     double getValue() {
         double total = Cloud::getValue();
         return total;
     }
 
-    void output();
-
+    /**
+     * Rate of the field cloud
+     * 
+     * This method is responsible for calculating rates of change pertaining to the field cloud.
+     * This method is an extension of the Cloud class rate method.
+     */
     void rate() {
         Cloud::rate();
     }
+
+    /**
+     * Integration of the field cloud
+     * 
+     * This method is responsible for integrating changes in the field spore cloud. More
+     * specifically, it is responsible for removing spores from the cloud, based on the 
+     * maximum spore density and the rain effect. Then, it sends the data to a queue to be
+     * outputted.
+     */
+    void integration();
+
+    /**
+     * Output of the field cloud
+     * 
+     * This method is responsible for outputting the data of the field spore cloud to a file.
+     */
+    void output();
 
     void addSporesCreated(double sporesCreated) {
         this->sporesCreated += sporesCreated;

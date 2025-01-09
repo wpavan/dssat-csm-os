@@ -43,10 +43,25 @@ public:
     int getDoc() {
         return doc;
     }
-    void rate();
-    void integration();
-    void output();
 
+    /**
+     * Rate calculation for initial conditions
+     * 
+     * Calculate the daily favorability based on the product of temperature and wetness 
+     * favorability.
+     */
+    void rate();
+
+    /** 
+     * Integrate initial conditions
+     * 
+     * Calculate the cumulative sum of daily favorabilities to find the 'tipping point' where disease begins. 
+     * This threshold for favorability is determined from the Disease class. If the this value hits the 
+     * pre-determinated value, stop the process.
+     */
+    void integration();
+
+    void output();
 };
 
 #endif // INITIALCONDITION_H

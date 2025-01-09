@@ -43,15 +43,11 @@ double Utilities::temperatureFavorability(double temp, double cardinalTemperatur
 }
 
 double Utilities::wetnessFavorability(double wetDuration, std::string wetnessFunction) {
-    double wf;
-    wf = Utilities::growthFunction(wetnessFunction, wetDuration); 
-    return wf;
+    return Utilities::runExpression(wetnessFunction, wetDuration); 
 }
 
-double Utilities::dispersalRainFunction(double rain, std::string dispersionFreequency) {
-    double dre;
-    dre = Utilities::growthFunction(dispersionFreequency, rain);
-    return dre;
+double Utilities::growthFunction(double value, std::string expressionString) {
+    return Utilities::runExpression(expressionString, value);
 }
 
 double Utilities::runExpressionFunction(double value, std::string expressionString) {
