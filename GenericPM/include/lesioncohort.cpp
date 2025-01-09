@@ -1,3 +1,13 @@
+/**
+ * @file lesioncohort.cpp
+ * @brief LesionCohort class source file
+ * 
+ * @author Willingthon Pavan (wpavan.us@gmail.com)
+ * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * 
+ * @copyright Copyright (c) 2017–2025, DSSAT Foundation
+ * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ */
 #include "lesioncohort.h"
 #include "cropinterface.h"
 #include<string>
@@ -100,7 +110,10 @@ void LesionCohort::rate() {
     {
         newSpores = (lesionsInThisCohort * disease->getDailySporeProductionPerLesion() * 
                      util.trapezoidalFunction(getAge(), disease->getCohortAgeSet()) *
-                     disease->getSporulationCrowdingFactor(getOrganDiseasedAreaProportion()));
+                     disease->getSporulationCrowdingFactor(getOrganDiseasedAreaProportion()) *
+                     util.temperatureFavorability(
+                            Basic::getWeather()->getTMean(),
+                            disease->getTemperatureFavorabilitySet()));
     }
     //if(organHealthAreaProportion < 0.7) {   // check this
     //    dailyVisibleAreaGrow = dailyInvisibleAreaGrow = 0; // newSpores = 0;
