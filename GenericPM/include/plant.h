@@ -58,12 +58,15 @@ public:
     }
 
     bool isAlive() {
-        if (organs.size() == 0)
+        if (organs.size() == 0) {
             return true;
-        for (int i = organs.size() - 1; i >= 0; i--) {
-            Organ *o = &organs[i];
-            if (o->isAlive())
-                return true;
+        } else {
+            for (int i = organs.size() - 1; i >= 0; i--) {
+                Organ *o = &organs[i];
+                if (o->isAlive()) {
+                    return true;
+                }
+            }
         }
         return false;
     }

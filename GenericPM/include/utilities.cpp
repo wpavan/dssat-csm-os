@@ -18,16 +18,20 @@
 #include <iostream>
 
 double Utilities::trapezoidalFunction(double value, double v[]) {
-    if (value >= v[1] && value <= v[2])
+    if (value >= v[1] && value <= v[2]) {
         return 1;
-    else if (value >= v[0] && value < v[1])
+    } else if (value >= v[0] && value < v[1]) {
         return ((value - v[0]) / (v[1] - v[0]));
-    else if (value > v[2] && value <= v[3])
+    } else if (value > v[2] && value <= v[3]) {
         return 1 - ((value - v[2]) / (v[3] - v[2]));
-    else
+    } else {
         return 0;
+    }
 }
 
+// NOTE: This implementation of temperature favorability can be abstracted to the .json file. 
+//       If the function for temperature favorability is always the same, then it could be set to a 
+//       default and this implementation be used in case of .json omission.
 double Utilities::temperatureFavorability(double temp, double cardinalTemperatures[]) {
     double tempMax = cardinalTemperatures[0], 
            tempMin = cardinalTemperatures[1], 

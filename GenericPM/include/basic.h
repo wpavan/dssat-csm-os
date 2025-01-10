@@ -40,8 +40,10 @@ public:
         } else {
             out.open(fileName);    
         }
-        for (unsigned int i = 0; i < output.size(); i++)
+        
+        for (unsigned int i = 0; i < output.size(); i++) {
             out << output[i] << std::endl;
+        }
         out.close();
         output.clear();
     }

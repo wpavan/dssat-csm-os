@@ -46,6 +46,7 @@ protected:
     double organLastSize = 0;
     double healthAreaProportion = 0;
     double proportionFromTotalArea = 0;
+    // NOTE: can we clarify this name a bit or add documentation for hovering over it?
     int doc = Basic::getWeather()->getDoy();
     double physiologicalLife = 0;
     std::vector<LesionCohort> lesionCohorts;
@@ -53,7 +54,6 @@ protected:
     static int firstOutputCall;
 
 public:
-
     Organ(std::vector<CloudP>& cloudsP, int organNumber, double totalArea) {
         //Basic::output.push_back("Organ, YearDoy, TotalArea, Senesced, Diseased, VisibleArea, InvisibleArea, LesionDensity, Age, NewLesions, TotalLesions, CloudO, CloudP, CloudF, HealthAreaProportion");
         this->organNumber = organNumber;
@@ -71,17 +71,19 @@ public:
     void output();
     void rate();
 
+    // NOTE: This function is not used in the code. Should it be removed? Also, is there a 
+    //       particular reason that the percentage that is being passed is an int?
     double getAreaIfSeverity(int percent) {
         if(diseaseArea>(totalArea*(percent/100.0))) {
             return totalArea;
         }
         return 0.0;
     }
+
     bool isAlive() {
-        if (this->totalArea > 0) {//this->senescenceArea) 
+        if (this->totalArea > 0) {
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -333,7 +335,6 @@ public:
     void setNewLesionsFromField(int newLesionsFromField) {
         this->newLesionsFromField = newLesionsFromField;
     }
-
 };
 
 #endif // ORGAN_H

@@ -17,19 +17,17 @@
 #include <iostream>
 
 //extern FlexibleIO *flexibleio;
-void Cloud::integration()
-{
+void Cloud::integration() {
     int qtd = 0;
-    if (sporesToBeRemoved > 0)
-    { // Remove from cloud spores used to infect tissue
+    if (sporesToBeRemoved > 0) {
+        // Remove from cloud spores used to infect tissue
         removeSporesCloud(sporesToBeRemoved);
     }
     values.push_back(sporesCreated);
     sporesCreated = sporesToBeRemoved = 0;
 }
 
-double Cloud::getValue()
-{
+double Cloud::getValue() {
     double sum = 0;
     for (unsigned int i = 0; i < values.size(); i++) {
         sum += values[i];
@@ -37,39 +35,43 @@ double Cloud::getValue()
     return sum;
 }
 
-void Cloud::removeSporesCloud(double toBeRemoved)
-{
+void Cloud::removeSporesCloud(double toBeRemoved) {
     double total = getValue();
-    for (unsigned int i = 0; i < values.size() && total > 0; i++)
-    {
+    for (unsigned int i = 0; i < values.size() && total > 0; i++) {
         values[i] -= (toBeRemoved * (values[i] / total));
     }
 }
 
-void Cloud::removeSporesCloudByRain(double percent)
-{
+void Cloud::removeSporesCloudByRain(double percent) {
     double oldValue = 0;
-    for (unsigned int i = 0; i < values.size(); i++)
-    {
+    for (unsigned int i = 0; i < values.size(); i++) {
         oldValue = values[i];
         values[i] = (oldValue * percent);
     }
 }
 
-void Cloud::removeSporesCloudPByAge(void)
-{
+/* NOTE: The functions for removing spores by age could be implemented as one function
+ *       here and then defined in the subclasses differently in each subclass. Something like:
+ *
+ * cloud.h: 
+ * void removeSporesCloudByAge(void) = 0;
+ * 
+ * cloudp.h:
+ * void removeSporesCloudByAge(void) override {
+ *    for (int i = values.size(); i > 0; i--){
+ *        implement the logic for age-based spore removal here.
+ *    }
+ * }
+ */
 
-    for (int i = values.size(); i > 0; i--)
-    {
+void Cloud::removeSporesCloudPByAge(void) {
+    for (int i = values.size(); i > 0; i--) {
         values[values.size() - i] = values[values.size() - i] * (1.40 * exp(-0.2030 * (values.size() - i + 1))) > 0 ? values[values.size() - i] * (1.40 * exp(-0.2030 * (values.size() - i + 1))) : 0;
     }
 }
 
-void Cloud::removeSporesCloudOByAge(void)
-{
-
-    for (int i = values.size(); i > 0; i--)
-    {
+void Cloud::removeSporesCloudOByAge(void) {
+    for (int i = values.size(); i > 0; i--) {
         values[values.size() - i] = values[values.size() - i] * (1.4268 * exp(-0.2184 * (values.size() - i + 1))) > 0 ? values[values.size() - i] * (1.4268 * exp(-0.2184 * (values.size() - i + 1))) : 0;
     }
 }

@@ -75,10 +75,11 @@ int couplingRate(int *YRDOY,
     // Get an instance of Simulator
     //printf("Rate - \n");
     Simulator *s = Simulator::getInstance();
+
+    // NOTE: Do we plan to remove the GenericPM-Spores module from the project? 
     SimulatorS *sS = SimulatorS::getInstanceS();
 
     newOrgan = s->getCropInterface()->getOrgansQtd()+1;
-    //printf("YRDOY: %i ", *YRDOY);
 
     // Set the sowing/planting date
     if(s->getCropInterface()->getPlantingDate() < 0) {
@@ -176,5 +177,6 @@ int couplingOutput(int *doy) {
     // Get an instance of Simulator
     Simulator *s = Simulator::getInstance();
     // Request disease outputs to be written in files
+    // NOTE: Is this actually done here?
     return (1);
 }

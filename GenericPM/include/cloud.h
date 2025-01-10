@@ -25,7 +25,6 @@ protected:
     int sporesToBeRemoved = 0;
     
 public:
-
     Disease* getDisease() {
         return disease;
     }
@@ -38,7 +37,9 @@ public:
 
     void output() {
     }
+
     double getValue();
+    
     void removeSporesCloud(double toBeRemove);
     void removeSporesCloudByRain(double percent);
 

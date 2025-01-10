@@ -36,10 +36,11 @@ public:
     static Weather* getInstance();
 
     double getWetDur() {
-        if (wetDur == 0)
+        if (wetDur == 0) {
             return hRH90;
-        else
+        } else {
             return wetDur;
+        }
     }
 
     bool update();

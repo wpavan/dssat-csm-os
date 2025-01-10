@@ -60,10 +60,11 @@ void LesionCohort::integration() {
 }
 
 int LesionCohort::getVisibleLesions() {
-    if (isInfectionPeriod() || isNecroticPeriod())
+    if (isInfectionPeriod() || isNecroticPeriod()){
         return this->lesionsInThisCohort;
-    else
+    } else {
         return 0;
+    }
 }
 
 void LesionCohort::output() {
@@ -75,15 +76,15 @@ void LesionCohort::output() {
 void LesionCohort::rate() {
     Disease *disease = cloudo->getDisease();
 
-    physiologicalDay = util.temperatureFavorability(
-                            Basic::getWeather()->getTMean(),
-                            disease->getTemperatureFavorabilitySet());
+    physiologicalDay = util.temperatureFavorability(Basic::getWeather()->getTMean(),
+                                                    disease->getTemperatureFavorabilitySet());
     // Thinking on: cumsum(runif(25, min = 0.01, max = 0.1))
     dailyInvisibleAreaGrow  = util.growthFunction(getPhysiologicalDaysAcumm(),
-                                                  disease->getInvisibleGrowthFunction()) 
-                              * disease->getHostFactor() 
+                                                  disease->getInvisibleGrowthFunction()) *
+                              disease->getHostFactor() *
+                              getOrganHealthAreaProportion(); 
                               //* totalArea 
-                              * getOrganHealthAreaProportion();
+
     dailyInvisibleAreaGrow *= lesionsInThisCohort;
 
     /*std::cout << "growthFunction: " << util.growthFunction(disease->getInvisibleGrowthFunction(), getPhysiologicalDaysAcumm()) << 
@@ -106,14 +107,13 @@ void LesionCohort::rate() {
     
     newSpores = 0;
     if (getOrganHealthAreaProportion() > 0.01 && isInfectionPeriod() &&
-            Basic::getWeather()->getWetDur() >= disease->getWetnessThreshold()) // && Basic::getWeather()->getTMean() > 20
-    {
-        newSpores = (lesionsInThisCohort * disease->getDailySporeProductionPerLesion() * 
+            Basic::getWeather()->getWetDur() >= disease->getWetnessThreshold()) {
+        newSpores = (lesionsInThisCohort * 
+                     disease->getDailySporeProductionPerLesion() * 
                      util.trapezoidalFunction(getAge(), disease->getCohortAgeSet()) *
                      disease->getSporulationCrowdingFactor(getOrganDiseasedAreaProportion()) *
-                     util.temperatureFavorability(
-                            Basic::getWeather()->getTMean(),
-                            disease->getTemperatureFavorabilitySet()));
+                     util.temperatureFavorability(Basic::getWeather()->getTMean(),
+                                                  disease->getTemperatureFavorabilitySet()));
     }
 }
 

@@ -65,6 +65,7 @@ void Plant::integration() {
         organs.emplace_back(cloudsP, newOrgan, Simulator::getInstance()->getCropInterface()->getOrganArea(newOrgan));
     }
 
+    // These could be moved into the convert block below instead of adding to memory
     cloudPValue = cloud->getValue();
     cloudFvalue = cloud->getCloudF()->getValue();
 
@@ -76,7 +77,6 @@ void Plant::integration() {
             << Utilities::formatDouble(cloudOValue) << "," << Utilities::formatDouble(cloudPValue) << "," 
             << Utilities::formatDouble(cloudFvalue);
     Basic::output.push_back(convert.str());
-
 }
 
 void Plant::output() {

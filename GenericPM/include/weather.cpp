@@ -16,14 +16,14 @@
 #include <iostream>
 
 Weather::Weather() {
-    //update();
 }
 
 Weather* Weather::instance = nullptr;
 
 Weather* Weather::getInstance() {
-    if (instance == nullptr)
+    if (instance == nullptr) {
         instance = new Weather();
+    }
     return instance;
 }
 
