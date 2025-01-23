@@ -71,15 +71,6 @@ public:
     void output();
     void rate();
 
-    // NOTE: This function is not used in the code. Should it be removed? Also, is there a 
-    //       particular reason that the percentage that is being passed is an int?
-    double getAreaIfSeverity(int percent) {
-        if(diseaseArea>(totalArea*(percent/100.0))) {
-            return totalArea;
-        }
-        return 0.0;
-    }
-
     bool isAlive() {
         if (this->totalArea > 0) {
             return true;

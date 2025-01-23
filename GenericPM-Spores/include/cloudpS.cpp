@@ -2,6 +2,7 @@
 
 #include<iostream>
 #include<sstream>
+#include <cmath>
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
 int CloudPS::qtdS = 0;

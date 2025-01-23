@@ -25,7 +25,9 @@ void CloudP::integration() {
     if (values.size() > (unsigned) disease->getVectorSizeCloudP()) {
         values.erase(values.begin());
     }
-    Cloud::removeSporesCloudPByAge();
+
+    // NOTE: remove removeSporesCloudPByAge()
+    // Cloud::removeSporesCloudPByAge();
 
     if (getValue() > disease->getMaxSporeCloudsDensity()) {
         Cloud::removeSporesCloud(getValue() - disease->getMaxSporeCloudsDensity());

@@ -207,20 +207,3 @@ void Simulator::updateCurrentYearDoy(int yearDoy) {
     }
     setCurrentYearDoy(yearDoy);
 }
-
-bool Simulator::allPlantsSenesced() {
-    if (plants.size() == 0) {
-        return false;
-    } else {
-        for (unsigned int i = 0; i < plants.size(); i++) {
-            // NOTE: Does this create a pointer for each plant in the vector? If so, would it be 
-            // faster to initialize Plant *p; before the for loop and just assignt it inside of the 
-            // for loop? This could be a small optimization.
-            Plant *p = &plants[i];
-            if (p->isAlive()) {
-                return false;
-            }
-        }
-    }
-    return true;
-}

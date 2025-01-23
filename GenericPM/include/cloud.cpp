@@ -49,29 +49,3 @@ void Cloud::removeSporesCloudByRain(double percent) {
         values[i] = (oldValue * percent);
     }
 }
-
-/* NOTE: The functions for removing spores by age could be implemented as one function
- *       here and then defined in the subclasses differently in each subclass. Something like:
- *
- * cloud.h: 
- * void removeSporesCloudByAge(void) = 0;
- * 
- * cloudp.h:
- * void removeSporesCloudByAge(void) override {
- *    for (int i = values.size(); i > 0; i--){
- *        implement the logic for age-based spore removal here.
- *    }
- * }
- */
-
-void Cloud::removeSporesCloudPByAge(void) {
-    for (int i = values.size(); i > 0; i--) {
-        values[values.size() - i] = values[values.size() - i] * (1.40 * exp(-0.2030 * (values.size() - i + 1))) > 0 ? values[values.size() - i] * (1.40 * exp(-0.2030 * (values.size() - i + 1))) : 0;
-    }
-}
-
-void Cloud::removeSporesCloudOByAge(void) {
-    for (int i = values.size(); i > 0; i--) {
-        values[values.size() - i] = values[values.size() - i] * (1.4268 * exp(-0.2184 * (values.size() - i + 1))) > 0 ? values[values.size() - i] * (1.4268 * exp(-0.2184 * (values.size() - i + 1))) : 0;
-    }
-}

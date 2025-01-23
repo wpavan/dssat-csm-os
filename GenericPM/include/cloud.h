@@ -43,9 +43,6 @@ public:
     void removeSporesCloud(double toBeRemove);
     void removeSporesCloudByRain(double percent);
 
-    void removeSporesCloudPByAge(void);
-    void removeSporesCloudOByAge(void);
-
     int getSporesToBeRemoved() {
         return sporesToBeRemoved;
     }
