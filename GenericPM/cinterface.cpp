@@ -25,7 +25,7 @@ extern "C" {
             double *VSTGD, double *WLFDOT, double *WSTMD, double *WTLF,
             double *TLFAD, double *TLFMD, double *VSTAGE, double *WLIDOT,
             double *CLAI, double *CLFM, double *CSTEM, double *DISLA, double *DISLAP,
-            double *LAIDOT, double *WSIDOT, double *SDWT, double *WSDD, 
+            double *LAIDOT, double *WSIDOT, float *SDWT, double *WSDD, 
             double *PSDD, int *DAS, int *YRPLT);
     int couplingIntegration(int *YRDOY,
             double *AREALF, double *CLW, double *CSW, double *PCLMT, double *PCSTMD,
@@ -39,7 +39,7 @@ extern "C" {
     int couplingOutput(int *doy);
 }
 
-double CLWp, SLAp, SDWTp, cloudFp;
+float CLWp, SLAp, SDWTp, cloudFp;
 
 // Coupling Functions Implementation 
 
@@ -65,8 +65,10 @@ int couplingRate(int *YRDOY,
         double *VSTGD, double *WLFDOT, double *WSTMD, double *WTLF,
         double *TLFAD, double *TLFMD, double *VSTAGE, double *WLIDOT,
         double *CLAI, double *CLFM, double *CSTEM, double *DISLA, double *DISLAP,
-        double *LAIDOT, double *WSIDOT, double *SDWT, 
+        double *LAIDOT, double *WSIDOT, float *SDWT, 
         double *WSDD, double *PSDD, int *DAS, int *YRPLT) {
+
+    printf("SDWT that gets received: %e\n", *SDWT);
 
     // Temporary variable used for computations 
     double temp = 0, newOrgan = 0;
@@ -105,6 +107,7 @@ int couplingRate(int *YRDOY,
     //printf("WSIDOT %f SDWT: %f WSDD %f PSDD %f DAS %i YRPLT %i SDWTp %f *SDWT-SDWTp %f \n", 
     //                    *WSIDOT, *SDWT, *WSDD, *PSDD, *DAS, *YRPLT, SDWTp, *SDWT-SDWTp);
     if(*SDWT-SDWTp > 0){ //&& CloudField > 0){
+        printf("The new organ area is set with %e\n", (*SDWT-SDWTp));
         s->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));            
     }
     if(s->getPlants().size()>0) {

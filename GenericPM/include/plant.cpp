@@ -62,6 +62,7 @@ void Plant::integration() {
 
     newOrgan = Simulator::getInstance()->getCropInterface()->hasNewOrgan();
     if (newOrgan > 0) {
+        printf("New Organ is created with total area: %e\n", Simulator::getInstance()->getCropInterface()->getOrganArea(newOrgan));
         organs.emplace_back(cloudsP, newOrgan, Simulator::getInstance()->getCropInterface()->getOrganArea(newOrgan));
     }
 

@@ -85,7 +85,10 @@
         {
             "label": "dssat-csm: Build DEBUG",
             "windows": {
-                "command": "mingw32-make.exe"
+                "command": "mingw32-make.exe",
+                "args": [
+                    "-j4"
+                ]
             },
             "osx": {
                 "command": "make"
@@ -101,7 +104,8 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": []
         },
         {
             "label": "dssat-csm: Build RELEASE",

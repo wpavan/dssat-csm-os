@@ -459,6 +459,9 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
       IF (ISDYNAMICDIS .EQ. 'Y') THEN  ! Dynamic Disease Model 
 !        write(*,*) "Dynamic Disease Model"
+        IF (SDWT .GT. 0.0) THEN
+          WRITE(*,*) "PEST.for coupling rate called with SDWT: ", SDWT
+        ENDIF
         call couplingRate(YRDOY, 
      &    AREALF, CLW, CSW, PCLMT, PCSTMD, PDLA, PLFAD,   
      &    PLFMD, PSTMD, PVSTGD, SLA, SLDOT, SSDOT,        
