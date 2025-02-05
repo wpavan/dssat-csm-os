@@ -6,15 +6,15 @@
 
 std::vector<DiseaseS*> DiseaseS::listDiseasesS;
 
-double DiseaseS::getSporulationCrowdingFactorS(double proportionDiseaseArea) {
-    double a = (1 / (sporulationCrowdingFactorsSet[0] + sporulationCrowdingFactorsSet[1] * pow(proportionDiseaseArea, sporulationCrowdingFactorsSet[2])));
+float DiseaseS::getSporulationCrowdingFactorS(float proportionDiseaseArea) {
+    float a = (1 / (sporulationCrowdingFactorsSet[0] + sporulationCrowdingFactorsSet[1] * pow(proportionDiseaseArea, sporulationCrowdingFactorsSet[2])));
     return (fmin(a,1));
 }
 
-int DiseaseS::newLesionsS(double cloudDensity, double healthyAreaProportion) {
+int DiseaseS::newLesionsS(float cloudDensity, float healthyAreaProportion) {
     UtilitiesS util;
-    double newLesionsS = 0;
-    double fitWetnessThreshold = getWetnessThreshold();
+    float newLesionsS = 0;
+    float fitWetnessThreshold = getWetnessThreshold();
 
     if (healthyAreaProportion > 0 && BasicS::getWeather()->getWetDur() >= fitWetnessThreshold) {
         newLesionsS = (cloudDensity * healthyAreaProportion * getInfectionEfficiency() *

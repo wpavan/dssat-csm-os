@@ -35,7 +35,7 @@ public:
     }
     void integrationS();
     void outputS();
-    void addSporesCreatedS(double sporesCreated);
+    void addSporesCreatedS(float sporesCreated);
 };
 
 #endif // CLOUDP_H

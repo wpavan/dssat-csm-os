@@ -20,7 +20,7 @@ private:
     CloudF cloudf;
 
 protected:
-    double acumulateFavorability = 0, dailyFavorability = 0;
+    float acumulateFavorability = 0, dailyFavorability = 0;
     bool stop = false;
     int doc = Basic::getWeather()->getDoy();
     static int qtd;

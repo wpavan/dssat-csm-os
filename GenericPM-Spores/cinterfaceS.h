@@ -15,17 +15,17 @@ class CinterfaceSpore {
 
 private:
 int YRDOY;
-double CloudValue = 0;
+float CloudValue = 0;
 
 public:
-    double couplingIntegrationSpore(int YRDOY);
+    float couplingIntegrationSpore(int YRDOY);
 
-    void setcouplingCloudSpore(double CloudValue) {
+    void setcouplingCloudSpore(float CloudValue) {
         //std::cout<<"CloudValue H: "<<CloudValue<<std::endl;
         this->CloudValue = CloudValue;
     }
 
-    double getcouplingCloudSpore() {
+    float getcouplingCloudSpore() {
         return CloudValue;
     }
 

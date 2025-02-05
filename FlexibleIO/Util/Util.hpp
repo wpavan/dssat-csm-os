@@ -14,15 +14,16 @@
 class Util
 {
 public:
-    static std::string trim(std::string str);
-    static char* convert(const std::string & s);
-    static int ignore_line( std::string line);
-    static int ignore_line2(std::string line);
-    static int ignore_line3( std::string line);
-    static int Y2K_DOY(int YRDOY);
-    static bool isLeap(int year);
-    static bool formatDate(int &checkDateFormat, int &dateReadFormat, std::string &date);
-    static int checkDate(int dateReadFormat, std::vector<std::string> &dtidentfied, std::string &date);
-
+  // NOTE: Look into static vs. inline for speed improvements.
+  static std::string trim(std::string str);
+  static char* convert(const std::string & s);
+  static int ignore_line( std::string line);
+  static int ignore_line2(std::string line);
+  static int ignore_line3( std::string line);
+  static int Y2K_DOY(int YRDOY);
+  static bool isLeap(int year);
+  static bool formatDate(int &checkDateFormat, int &dateReadFormat, std::string &date);
+  static int checkDate(int dateReadFormat, std::vector<std::string> &dtidentfied, std::string &date);
+  static std::string base52Encode(size_t hashValue);
 };
 #endif // Util_H

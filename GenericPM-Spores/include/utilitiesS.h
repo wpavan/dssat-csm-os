@@ -7,32 +7,32 @@
 class UtilitiesS {
 public:
 
-    static double trapezoidalFunctionS(double value, double v[]);
-    static double temperatureFavorabilityS(double temp, double cardinalTemperatures[]);
-    static double wetnessFavorabilityS(double wetDuration, std::string wetnessFunction);
-    static double dispersalRainFunctionS(double rain, std::string dispersionFreequency);
-    static double runExpressionFunctionS(double value, std::string expressionString);
-    static double getHealthAreaProportionS(double diseaseArea, double totalArea, double senescedArea);
-    static std::string formatDoubleS(double value);
-    static std::string formatDoubleS(double value, int decimals);
+    static float trapezoidalFunctionS(float value, float v[]);
+    static float temperatureFavorabilityS(float temp, float cardinalTemperatures[]);
+    static float wetnessFavorabilityS(float wetDuration, std::string wetnessFunction);
+    static float dispersalRainFunctionS(float rain, std::string dispersionFreequency);
+    static float runExpressionFunctionS(float value, std::string expressionString);
+    static float getHealthAreaProportionS(float diseaseArea, float totalArea, float senescedArea);
+    static std::string formatfloatS(float value);
+    static std::string formatfloatS(float value, int decimals);
     static int addOneDayS(int yearDoy);
     static bool isLeapYearS(int year);
 
-    static double growthFunction(std::string expression_string, double value) {
+    static float growthFunction(std::string expression_string, float value) {
         te_variableS vars[] = {{"x", &value}};
         int err;
         te_exprS *expr = te_compileS(expression_string.c_str(), vars, 1, &err);
         return te_evalS(expr);
     }
 
-    static double dispersalRainFunctionS(std::string expression_string, double value) {
+    static float dispersalRainFunctionS(std::string expression_string, float value) {
         te_variableS vars[] = {{"x", &value}};
         int err;
         te_exprS *expr = te_compileS(expression_string.c_str(), vars, 1, &err);
         return te_evalS(expr);
     }
 
-       static double runExpression(std::string expression_string, double value) {
+       static float runExpression(std::string expression_string, float value) {
         te_variableS vars[] = {{"x", &value}};
         int err;
         te_exprS *expr = te_compileS(expression_string.c_str(), vars, 1, &err);

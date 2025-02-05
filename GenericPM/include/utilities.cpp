@@ -17,7 +17,7 @@
 #include <iomanip>
 #include <iostream>
 
-double Utilities::trapezoidalFunction(double value, double v[]) {
+float Utilities::trapezoidalFunction(float value, float v[]) {
     if (value >= v[1] && value <= v[2]) {
         return 1;
     } else if (value >= v[0] && value < v[1]) {
@@ -32,11 +32,11 @@ double Utilities::trapezoidalFunction(double value, double v[]) {
 // NOTE: This implementation of temperature favorability can be abstracted to the .json file. 
 //       If the function for temperature favorability is always the same, then it could be set to a 
 //       default and this implementation be used in case of .json omission.
-double Utilities::temperatureFavorability(double temp, double cardinalTemperatures[]) {
-    double tempMax = cardinalTemperatures[0], 
+float Utilities::temperatureFavorability(float temp, float cardinalTemperatures[]) {
+    float tempMax = cardinalTemperatures[0], 
            tempMin = cardinalTemperatures[1], 
            tempOpt = cardinalTemperatures[2];
-    double tf, a, b;
+    float tf, a, b;
 
     b = ((tempMax - tempOpt) / (tempOpt - tempMin));
     a = (1 / ((tempOpt - tempMin) * pow(tempMax - tempOpt, b)));
@@ -46,28 +46,28 @@ double Utilities::temperatureFavorability(double temp, double cardinalTemperatur
     return (fmax(0,tf));
 }
 
-double Utilities::wetnessFavorability(double wetDuration, std::string wetnessFunction) {
+float Utilities::wetnessFavorability(float wetDuration, std::string wetnessFunction) {
     return Utilities::runExpression(wetnessFunction, wetDuration); 
 }
 
-double Utilities::growthFunction(double value, std::string expressionString) {
+float Utilities::growthFunction(float value, std::string expressionString) {
     return Utilities::runExpression(expressionString, value);
 }
 
-double Utilities::runExpressionFunction(double value, std::string expressionString) {
+float Utilities::runExpressionFunction(float value, std::string expressionString) {
     return Utilities::runExpression(expressionString, value);
 }
 
-double Utilities::getHealthAreaProportion(double diseaseArea, double totalArea, double senescedArea) {
-    double hap = 1 - ((diseaseArea+senescedArea) / totalArea);
+float Utilities::getHealthAreaProportion(float diseaseArea, float totalArea, float senescedArea) {
+    float hap = 1 - ((diseaseArea+senescedArea) / totalArea);
     return (hap > 0 ? hap : 0);
 }
 
-std::string Utilities::formatDouble(double value) {
-    return formatDouble(value, 2);
+std::string Utilities::formatfloat(float value) {
+    return formatfloat(value, 2);
 }
 
-std::string Utilities::formatDouble(double value, int decimals) {
+std::string Utilities::formatfloat(float value, int decimals) {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(decimals) << value;
     return ss.str();

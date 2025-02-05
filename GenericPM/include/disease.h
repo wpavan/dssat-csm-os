@@ -30,26 +30,26 @@ protected:
     std::string description = "Soybean Leaf Rust";
 
     // NOTE: Units for all of these values would be great to include in the documentation.
-    double infectionEfficiency = 0.17;
-    double initialInoculum = 50;
+    float infectionEfficiency = 0.17;
+    float initialInoculum = 50;
     int vectorSizeCloudF = 5;
     int vectorSizeCloudP = 7;
     int vectorSizeCloudO = 10;
-    double dailySporeProductionPerLesion = 3000;
-    double maxSporeCloudsDensity = 12000;
-    double proportionFromOrganToPlantCloud = 0.20;
-    double proportionFromPlantToFieldCloud = 0.30;   
+    float dailySporeProductionPerLesion = 3000;
+    float maxSporeCloudsDensity = 12000;
+    float proportionFromOrganToPlantCloud = 0.20;
+    float proportionFromPlantToFieldCloud = 0.30;   
     int latentPeriod = 7;
     int infectionPeriod = 21;
     int MRRS = 2000;
     std::string visibleGrowthFunction = "0.4*exp(-10*exp(-0.4*x))";
     std::string wetnessFunction = "1/(1+exp(4.948-0.348*x))";
     std::string depositionFrequency = "0.367753*(x+0.001)^0.129605*exp(-0.085252*(x+0.001))";
-    double initialPustuleSize = 0.00001;
+    float initialPustuleSize = 0.00001;
     std::string invisibleGrowthFunction = "0.8*exp(-10*exp(-0.4*x))";
-    double wetnessThreshold = 6;
-    double acumulateFavorability = 35;
-    double hostFactor = 1;
+    float wetnessThreshold = 6;
+    float acumulateFavorability = 35;
+    float hostFactor = 1;
     static std::vector<Disease*> listDiseases;
     std::string rhFactor = "1*x";
 
@@ -60,7 +60,7 @@ protected:
      * used as an input to the trapezoidal function for the calculation of 
      * new spores created by lesions.
      */ 
-    double cohortAgeSet[4] = {4,20,22,30};
+    float cohortAgeSet[4] = {4,20,22,30};
 
     /**
      * @var sporulationCrowdingFactorsSet
@@ -69,7 +69,7 @@ protected:
      * crowding factor. This factor is used in the calculation of new 
      * spores created by lesions.
      */
-    double sporulationCrowdingFactorsSet[3] = {0.98669, 10.71894, 0.93374};
+    float sporulationCrowdingFactorsSet[3] = {0.98669, 10.71894, 0.93374};
 
     /**
      * @var temperatureFavorabilitySet
@@ -78,7 +78,7 @@ protected:
      * of the environment for the disease in terms of temperature. This is 
      * always used in Utilities::TemperatureFavorability.
      */
-    double temperatureFavorabilitySet[3] = {29,10,22.5};
+    float temperatureFavorabilitySet[3] = {29,10,22.5};
 
     /**
      * @var cardinalTempPhysiologicalLife
@@ -86,7 +86,7 @@ protected:
      * Set of temperatures in Celsius used to calculate the physiological life of an
      * organ (an analog of growing degree days). This is used by Utilities::TrapezoidalFunction.
      */
-    double cardinalTempPhysiologicalLife[4] = {0, 28, 30, 40};
+    float cardinalTempPhysiologicalLife[4] = {0, 28, 30, 40};
 
 public:
     Disease() {
@@ -97,15 +97,15 @@ public:
         return listDiseases;
     }
 
-    double getSporulationCrowdingFactor(double proportionDiseaseArea);
-    int newLesions(double cloudDensity, double healthyAreaProportion);
+    float getSporulationCrowdingFactor(float proportionDiseaseArea);
+    int newLesions(float cloudDensity, float healthyAreaProportion);
 
     /**
      * Get proportion of spores from organ to plant cloud.
      * 
      * @return Proportion of spores from organ to plant cloud.
      */
-    double getProportionFromOrganToPlantCloud() {
+    float getProportionFromOrganToPlantCloud() {
         return proportionFromOrganToPlantCloud;
     }
 
@@ -114,7 +114,7 @@ public:
      * 
      * @param proportionFromOrganToPlantCloud Proportion of spores from organ to plant cloud.
      */
-    void setProportionFromOrganToPlantCloud(double proportionFromOrganToPlantCloud) {
+    void setProportionFromOrganToPlantCloud(float proportionFromOrganToPlantCloud) {
         this->proportionFromOrganToPlantCloud = proportionFromOrganToPlantCloud;
     }
 
@@ -123,7 +123,7 @@ public:
      * 
      * @return Proportion of spores from plant to field cloud.
      */
-    double getProportionFromPlantToFieldCloud() {
+    float getProportionFromPlantToFieldCloud() {
         return proportionFromPlantToFieldCloud;
     }
 
@@ -132,7 +132,7 @@ public:
      * 
      * @param proportionFromPlantToFieldCloud Proportion of spores from plant to field cloud.
      */
-    void setProportionFromPlantToFieldCloud(double proportionFromPlantToFieldCloud) {
+    void setProportionFromPlantToFieldCloud(float proportionFromPlantToFieldCloud) {
         this->proportionFromPlantToFieldCloud = proportionFromPlantToFieldCloud;
     }
 
@@ -141,7 +141,7 @@ public:
      * 
      * @return Maximum spore clouds density.
      */
-    double getMaxSporeCloudsDensity() {
+    float getMaxSporeCloudsDensity() {
         return maxSporeCloudsDensity;
     }
 
@@ -150,7 +150,7 @@ public:
      * 
      * @param maxSporeCloudsDensity Maximum spore clouds density.
      */
-    void setMaxSporeCloudsDensity(double maxSporeCloudsDensity) {
+    void setMaxSporeCloudsDensity(float maxSporeCloudsDensity) {
         this->maxSporeCloudsDensity = maxSporeCloudsDensity;
     }
 
@@ -159,7 +159,7 @@ public:
      * 
      * @return Set of factors/coefficients related to the cohort age function.
      */
-    double* getCohortAgeSet() {
+    float* getCohortAgeSet() {
         return &cohortAgeSet[0];
     }
 
@@ -168,7 +168,7 @@ public:
      * 
      * @param cohortAgeSet Set of factors/coefficients related to the cohort age function.
      */
-    void setCohortAgeSet(double cohortAgeSet[]) {
+    void setCohortAgeSet(float cohortAgeSet[]) {
         std::copy(cohortAgeSet, cohortAgeSet + 4, this->cohortAgeSet);
     }
 
@@ -177,7 +177,7 @@ public:
      * 
      * @return Daily spore production per lesion.
      */
-    double getDailySporeProductionPerLesion() {
+    float getDailySporeProductionPerLesion() {
         return dailySporeProductionPerLesion;
     }
 
@@ -186,7 +186,7 @@ public:
      * 
      * @param dailySporeProductionPerLesion Daily spore production per lesion.
      */
-    void setDailySporeProductionPerLesion(double dailySporeProductionPerLesion) {
+    void setDailySporeProductionPerLesion(float dailySporeProductionPerLesion) {
         this->dailySporeProductionPerLesion = dailySporeProductionPerLesion;
     }
 
@@ -213,7 +213,7 @@ public:
      * 
      * @return Wetness threshold.
      */
-    double getWetnessThreshold() {
+    float getWetnessThreshold() {
         return wetnessThreshold;
     }
 
@@ -222,7 +222,7 @@ public:
      * 
      * @param wetnessThreshold Wetness threshold.
      */
-    void setWetnessThreshold(double wetnessThreshold) {
+    void setWetnessThreshold(float wetnessThreshold) {
         this->wetnessThreshold = wetnessThreshold;
     }
 
@@ -287,7 +287,7 @@ public:
      * 
      * @return MRRS.
      */
-    double getMRRS() {
+    float getMRRS() {
         return MRRS;
     }
 
@@ -305,7 +305,7 @@ public:
      * 
      * @return Infection efficiency.
      */
-    double getInfectionEfficiency() {
+    float getInfectionEfficiency() {
         return infectionEfficiency;
     }
 
@@ -314,7 +314,7 @@ public:
      * 
      * @param infectionEfficiency Infection efficiency.
      */
-    void setInfectionEfficiency(double infectionEfficiency) {
+    void setInfectionEfficiency(float infectionEfficiency) {
         this->infectionEfficiency = infectionEfficiency;
     }
 
@@ -325,7 +325,7 @@ public:
      * 
      * @return Temperature favorability set.
      */
-    double* getTemperatureFavorabilitySet() {
+    float* getTemperatureFavorabilitySet() {
         return &temperatureFavorabilitySet[0];
     }
 
@@ -336,7 +336,7 @@ public:
      * 
      * @param temperatureFavorabilitySet Temperature favorability set.
      */
-    void setTemperatureFavorabilitySet(double temperatureFavorabilitySet[]) {
+    void setTemperatureFavorabilitySet(float temperatureFavorabilitySet[]) {
         std::copy(temperatureFavorabilitySet, 
                   temperatureFavorabilitySet + 3, 
                   this->temperatureFavorabilitySet);
@@ -401,7 +401,7 @@ public:
      * 
      * @return Host factor.
      */
-    double getHostFactor() {
+    float getHostFactor() {
         return hostFactor;
     }
 
@@ -410,7 +410,7 @@ public:
      * 
      * @param hostFactor Host factor.
      */
-    void setHostFactor(double hostFactor) {
+    void setHostFactor(float hostFactor) {
         this->hostFactor = hostFactor;
     }
 
@@ -419,7 +419,7 @@ public:
      * 
      * @return Initial pustule size.
      */
-    double getInitialPustuleSize() {
+    float getInitialPustuleSize() {
         return initialPustuleSize;
     }
 
@@ -428,7 +428,7 @@ public:
      * 
      * @param initialPustuleSize Initial pustule size.
      */
-    void setInitialPustuleSize(double initialPustuleSize) {
+    void setInitialPustuleSize(float initialPustuleSize) {
         this->initialPustuleSize = initialPustuleSize;
     }
 
@@ -437,7 +437,7 @@ public:
      * 
      * @return Initial inoculum.
      */
-    double getInitialInoculum() {
+    float getInitialInoculum() {
         return initialInoculum;
     }
 
@@ -446,7 +446,7 @@ public:
      * 
      * @param initialInoculum Initial inoculum.
      */
-    void setInitialInoculum(double initialInoculum) {
+    void setInitialInoculum(float initialInoculum) {
         this->initialInoculum = initialInoculum;
     }
 
@@ -455,7 +455,7 @@ public:
      * 
      * @return Acumulate favorability.
      */
-    double getAcumulateFavorability() {
+    float getAcumulateFavorability() {
         return acumulateFavorability;
     }
     
@@ -464,7 +464,7 @@ public:
      * 
      * @param acumulateFavorability Acumulate favorability.
      */
-    void setAcumulateFavorability(double acumulateFavorability) {
+    void setAcumulateFavorability(float acumulateFavorability) {
         this->acumulateFavorability = acumulateFavorability;
     }
 
@@ -478,7 +478,7 @@ public:
      * 
      * @return Sporulation crowding factors set.
      */
-    double* getSporulationCrowdingFactorsSet() {
+    float* getSporulationCrowdingFactorsSet() {
         return &sporulationCrowdingFactorsSet[0];
     }
 
@@ -489,7 +489,7 @@ public:
      * 
      * @param sporulationCrowdingFactorsSet Sporulation crowding factors set.
      */
-    void setSporulationCrowdingFactorsSet(double sporulationCrowdingFactorsSet[]) {
+    void setSporulationCrowdingFactorsSet(float sporulationCrowdingFactorsSet[]) {
         std::copy(sporulationCrowdingFactorsSet, sporulationCrowdingFactorsSet + 4, 
                   this->sporulationCrowdingFactorsSet);
     }
@@ -523,7 +523,7 @@ public:
      * 
      * @return Cardinal temperature physiological life.
      */
-    double* getCardinalTempPhysiologicalLife() {
+    float* getCardinalTempPhysiologicalLife() {
         return &cardinalTempPhysiologicalLife[0];
     }
 
@@ -534,7 +534,7 @@ public:
      * 
      * @param cardinalTempPhysiologicalLife Cardinal temperature physiological life vector (size = 4).
      */
-    void setCardinalTempPhysiologicalLife(double cardinalTempPhysiologicalLife[]) {
+    void setCardinalTempPhysiologicalLife(float cardinalTempPhysiologicalLife[]) {
         std::copy(cardinalTempPhysiologicalLife, cardinalTempPhysiologicalLife + 4, 
                   this->cardinalTempPhysiologicalLife);
     }

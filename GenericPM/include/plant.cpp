@@ -34,7 +34,7 @@ void Plant::integration() {
     totalArea = diseaseArea = latentDiseaseArea = infectionDiseaseArea = necroticDiseaseArea = visibleDiseaseArea = invisibleDiseaseArea = senescenceArea = 0;
     totalLesions = visibleLesions = 0;
     int newOrgan = 0;
-    double cloudOValue = 0, cloudPValue = 0, cloudFvalue = 0;
+    float cloudOValue = 0, cloudPValue = 0, cloudFvalue = 0;
     Organ *o;
     for (unsigned int i = 0; i < organs.size(); i++) {
         o = &organs[i];
@@ -62,7 +62,6 @@ void Plant::integration() {
 
     newOrgan = Simulator::getInstance()->getCropInterface()->hasNewOrgan();
     if (newOrgan > 0) {
-        printf("New Organ is created with total area: %e\n", Simulator::getInstance()->getCropInterface()->getOrganArea(newOrgan));
         organs.emplace_back(cloudsP, newOrgan, Simulator::getInstance()->getCropInterface()->getOrganArea(newOrgan));
     }
 
@@ -75,8 +74,8 @@ void Plant::integration() {
     convert << ID << "," << Basic::getWeather()->getYearDoy() << "," << totalArea << "," << senescenceArea << "," << diseaseArea << "," 
             << visibleDiseaseArea << "," << invisibleDiseaseArea << "," << totalLesions << "," 
             << latentDiseaseArea << "," << infectionDiseaseArea << "," << necroticDiseaseArea << ","
-            << Utilities::formatDouble(cloudOValue) << "," << Utilities::formatDouble(cloudPValue) << "," 
-            << Utilities::formatDouble(cloudFvalue);
+            << Utilities::formatfloat(cloudOValue) << "," << Utilities::formatfloat(cloudPValue) << "," 
+            << Utilities::formatfloat(cloudFvalue);
     Basic::output.push_back(convert.str());
 }
 

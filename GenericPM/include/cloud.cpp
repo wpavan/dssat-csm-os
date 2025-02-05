@@ -27,23 +27,23 @@ void Cloud::integration() {
     sporesCreated = sporesToBeRemoved = 0;
 }
 
-double Cloud::getValue() {
-    double sum = 0;
+float Cloud::getValue() {
+    float sum = 0;
     for (unsigned int i = 0; i < values.size(); i++) {
         sum += values[i];
     }
     return sum;
 }
 
-void Cloud::removeSporesCloud(double toBeRemoved) {
-    double total = getValue();
+void Cloud::removeSporesCloud(float toBeRemoved) {
+    float total = getValue();
     for (unsigned int i = 0; i < values.size() && total > 0; i++) {
         values[i] -= (toBeRemoved * (values[i] / total));
     }
 }
 
-void Cloud::removeSporesCloudByRain(double percent) {
-    double oldValue = 0;
+void Cloud::removeSporesCloudByRain(float percent) {
+    float oldValue = 0;
     for (unsigned int i = 0; i < values.size(); i++) {
         oldValue = values[i];
         values[i] = (oldValue * percent);

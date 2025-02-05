@@ -28,26 +28,26 @@ extern "C" {
 
     void readinputfile(char *GROUP);
 
-    void getReal(char *GROUP, char *VARNAME, double *VALUE);
+    void getReal(char *GROUP, char *VARNAME, float *VALUE);
     void getInteger(char *GROUP, char *VARNAME, int *VALUE);
     void getChar(char *GROUP, char *VARNAME, char  *VALUE);
-    void getRealIndex(char *GROUP, char *VARNAME, double *VALUE, int *INDEX);
+    void getRealIndex(char *GROUP, char *VARNAME, float *VALUE, int *INDEX);
     void getIntegerIndex(char *GROUP, char *VARNAME, int *VALUE, int *INDEX);
     void getCharIndex(char *GROUP, char *VARNAME, char *VALUE, int *INDEX);
-    void getRealArray(char *GROUP, char *VARNAME, double *VALUE, char *SIZE);
+    void getRealArray(char *GROUP, char *VARNAME, float *VALUE, char *SIZE);
     void getIntegerArray(char *GROUP, char *VARNAME, int *VALUE, char *SIZE);
     void getCharArray(char *GROUP, char *VARNAME, char *VALUE, char *SIZE);
-    void getRealYrdoy(char *GROUP, int *YRDOY, char *VARNAME, double *VALUE);
+    void getRealYrdoy(char *GROUP, int *YRDOY, char *VARNAME, float *VALUE);
     void getIntegerYrdoy(char *GROUP, int *YRDOY, char *VARNAME, int *VALUE);
     void getCharYrdoy(char *GROUP, int *YRDOY, char *VARNAME, char  *VALUE);
 
-    void setRealMemory(char *GROUP, char *VARNAME, double *VALUE);
+    void setRealMemory(char *GROUP, char *VARNAME, float *VALUE);
     void setIntegerMemory(char *GROUP, char *VARNAME, int *VALUE);
     void setCharMemory(char *GROUP, char *VARNAME, char  *VALUE);
-    void setRealIndexMemory(char *GROUP, char *VARNAME, double *VALUE, int *INDEX);
+    void setRealIndexMemory(char *GROUP, char *VARNAME, float *VALUE, int *INDEX);
     void setIntegerIndexMemory(char *GROUP, char *VARNAME, int *VALUE, int *INDEX);
     void setCharIndexMemory(char *GROUP, char *VARNAME, char  *VALUE, int *INDEX);
-    void setRealYrdoyMemory(char *GROUP, int *YRDOY, char *VARNAME, double *VALUE);
+    void setRealYrdoyMemory(char *GROUP, int *YRDOY, char *VARNAME, float *VALUE);
     void setIntegerYrdoyMemory(char *GROUP, int *YRDOY, char *VARNAME, int *VALUE);
     void setCharYrdoyMemory(char *GROUP, int *YRDOY, char *VARNAME, char *VALUE);
 
@@ -62,7 +62,7 @@ void readinputfile(char *GROUP)
 
 }
 
-void getReal(char *GROUP, char *VARNAME, double *VALUE)
+void getReal(char *GROUP, char *VARNAME, float *VALUE)
 {
 
     std::string group(GROUP), varname(VARNAME);
@@ -90,7 +90,7 @@ void getChar(char *GROUP, char *VARNAME, char  *VALUE)
 
 }
 
-void getRealIndex(char *GROUP, char *VARNAME, double *VALUE, int *INDEX)
+void getRealIndex(char *GROUP, char *VARNAME, float *VALUE, int *INDEX)
 {
 
     std::string group(GROUP), varname(VARNAME);
@@ -118,12 +118,12 @@ void getCharIndex(char *GROUP, char *VARNAME, char *VALUE, int *INDEX)
 
 }
 
-void getRealArray(char *GROUP, char *VARNAME, double *VALUE, char *SIZE)
+void getRealArray(char *GROUP, char *VARNAME, float *VALUE, char *SIZE)
 {
 
     std::string group(GROUP), varname(VARNAME), size(SIZE);
 
-    double *array = FlexibleIO::getInstance()->getRealArray(group, varname, size);
+    float *array = FlexibleIO::getInstance()->getRealArray(group, varname, size);
 
     std::copy(array, array + std::stoi(size,NULL, 0), VALUE);
 
@@ -149,7 +149,7 @@ void getCharArray(char *GROUP, char *VARNAME, char *VALUE, char *SIZE)
 
 }
 
-void getRealYrdoy(char *GROUP, int *YRDOY, char *VARNAME, double *VALUE)
+void getRealYrdoy(char *GROUP, int *YRDOY, char *VARNAME, float *VALUE)
 {
 
     std::string group(GROUP), yrdoy(std::to_string(*YRDOY)), varname(VARNAME);
@@ -177,7 +177,7 @@ void getCharYrdoy(char *GROUP, int *YRDOY, char *VARNAME, char  *VALUE)
 }
 
 
-void setRealMemory(char *GROUP, char *VARNAME, double *VALUE)
+void setRealMemory(char *GROUP, char *VARNAME, float *VALUE)
 {
 
     std::string group(GROUP), varname(VARNAME);
@@ -206,7 +206,7 @@ void setCharMemory(char *GROUP, char *VARNAME, char  *VALUE)
 
 }
 
-void setRealIndexMemory(char *GROUP, char *VARNAME, double *VALUE, int *INDEX)
+void setRealIndexMemory(char *GROUP, char *VARNAME, float *VALUE, int *INDEX)
 {
 
     std::string group(GROUP), varname(VARNAME);
@@ -235,7 +235,7 @@ void setCharIndexMemory(char *GROUP, char *VARNAME, char  *VALUE, int *INDEX)
 
 }
 
-void setRealYrdoyMemory(char *GROUP, int *YRDOY, char *VARNAME, double *VALUE)
+void setRealYrdoyMemory(char *GROUP, int *YRDOY, char *VARNAME, float *VALUE)
 {
 
     std::string group(GROUP), yrdoy(std::to_string(*YRDOY)), varname(VARNAME);

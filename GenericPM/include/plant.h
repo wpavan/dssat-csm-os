@@ -25,7 +25,7 @@ protected:
     std::vector<CloudP> cloudsP;
     static int qtd;
     int ID = ++qtd;
-    double totalArea = 0, diseaseArea = 0, latentDiseaseArea = 0, infectionDiseaseArea = 0,
+    float totalArea = 0, diseaseArea = 0, latentDiseaseArea = 0, infectionDiseaseArea = 0,
             necroticDiseaseArea = 0, visibleDiseaseArea = 0, invisibleDiseaseArea = 0, visibleLesions = 0,
             totalLesions = 0, senescenceArea = 0;
     static int firstOutputCall;
@@ -41,7 +41,7 @@ public:
     void integration();
     void output();
 
-    double getTotalArea() {
+    float getTotalArea() {
         return totalArea;
     }
 
@@ -71,39 +71,39 @@ public:
         return false;
     }
 
-    double getDiseaseArea() {
+    float getDiseaseArea() {
         return diseaseArea;
     }
 
-    double getLatentDiseaseArea() {
+    float getLatentDiseaseArea() {
         return latentDiseaseArea;
     }
 
-    double getInfectionDiseaseArea() {
+    float getInfectionDiseaseArea() {
         return infectionDiseaseArea;
     }
 
-    double getNecroticDiseaseArea() {
+    float getNecroticDiseaseArea() {
         return necroticDiseaseArea;
     }
 
-    double getVisibleDiseaseArea() {
+    float getVisibleDiseaseArea() {
         return visibleDiseaseArea;
     }
 
-    double getInvisibleDiseaseArea() {
+    float getInvisibleDiseaseArea() {
         return invisibleDiseaseArea;
     }
 
-    double getVisibleLesions() {
+    float getVisibleLesions() {
         return visibleLesions;
     }
 
-    double getTotalLesions() {
+    float getTotalLesions() {
         return totalLesions;
     }
 
-    double getSenescenceArea() {
+    float getSenescenceArea() {
         return senescenceArea;
     }
     

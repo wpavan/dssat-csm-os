@@ -13,31 +13,31 @@ protected:
     int id;
     std::string cropModel = "CRGRO";
     std::string description = "Soybean Leaf Rust";
-    double infectionEfficiency = 0.17;
-    //double depositionFrequency = 0.15;
-    double initialInoculum = 50;
+    float infectionEfficiency = 0.17;
+    //float depositionFrequency = 0.15;
+    float initialInoculum = 50;
     int vectorSizeCloudF = 5;
     int vectorSizeCloudP = 7;
     int vectorSizeCloudO = 10;
-    double dailySporeProductionPerLesion = 3000;
-    double cohortAgeSet[4] = {4,20,22,30};
-    double sporulationCrowdingFactorsSet[3] = {0.98669, 10.71894, 0.93374}; 
-    double maxSporeCloudsDensity = 12000;
-    double proportionFromOrganToPlantCloud = 0.20;
-    double proportionFromPlantToFieldCloud = 0.30;
-    double temperatureFavorabilitySet[3] = {29,10,22.5};
+    float dailySporeProductionPerLesion = 3000;
+    float cohortAgeSet[4] = {4,20,22,30};
+    float sporulationCrowdingFactorsSet[3] = {0.98669, 10.71894, 0.93374}; 
+    float maxSporeCloudsDensity = 12000;
+    float proportionFromOrganToPlantCloud = 0.20;
+    float proportionFromPlantToFieldCloud = 0.30;
+    float temperatureFavorabilitySet[3] = {29,10,22.5};
     int latentPeriod = 7;
     int infectionPeriod = 21;
     int MRRS = 2000;
     std::string visibleGrowthFunction = "0.4*exp(-10*exp(-0.4*x))";
     std::string wetnessFunction = "1/(1+exp(4.948-0.348*x))";
     std::string depositionFrequency = "0.367753*(x+0.001)^0.129605*exp(-0.085252*(x+0.001))";
-    double initialPustuleSize = 0.00001;
+    float initialPustuleSize = 0.00001;
     std::string invisibleGrowthFunction = "0.8*exp(-10*exp(-0.4*x))";
-    double wetnessThreshold = 6;
-    double acumulateFavorability = 35;
-    double hostFactor = 1;
-    double cardinalTempPhysiologicalLife[4] = {0, 28, 30, 40};
+    float wetnessThreshold = 6;
+    float acumulateFavorability = 35;
+    float hostFactor = 1;
+    float cardinalTempPhysiologicalLife[4] = {0, 28, 30, 40};
     static std::vector<DiseaseS*> listDiseasesS;
     std::string rhFactor = "1*x";
 
@@ -50,42 +50,42 @@ public:
     static std::vector<DiseaseS*>& getDisease() {
         return listDiseasesS;
     }
-    double getSporulationCrowdingFactorS(double proportionDiseaseArea);
-    int newLesionsS(double cloudDensity, double healthyAreaProportion);
+    float getSporulationCrowdingFactorS(float proportionDiseaseArea);
+    int newLesionsS(float cloudDensity, float healthyAreaProportion);
 
-    double getProportionFromOrganToPlantCloud() {
+    float getProportionFromOrganToPlantCloud() {
         return proportionFromOrganToPlantCloud;
     }
 
-    double getProportionFromPlantToFieldCloud() {
+    float getProportionFromPlantToFieldCloud() {
         return proportionFromPlantToFieldCloud;
     }
 
-    void setProportionFromOrganToPlantCloud(double proportionFromOrganToPlantCloud) {
+    void setProportionFromOrganToPlantCloud(float proportionFromOrganToPlantCloud) {
         this->proportionFromOrganToPlantCloud = proportionFromOrganToPlantCloud;
     }
 
-    void setProportionFromPlantToFieldCloud(double proportionFromPlantToFieldCloud) {
+    void setProportionFromPlantToFieldCloud(float proportionFromPlantToFieldCloud) {
         this->proportionFromPlantToFieldCloud = proportionFromPlantToFieldCloud;
     }
 
-    void setMaxSporeCloudsDensity(double maxSporeCloudsDensity) {
+    void setMaxSporeCloudsDensity(float maxSporeCloudsDensity) {
         this->maxSporeCloudsDensity = maxSporeCloudsDensity;
     }
 
-    double getMaxSporeCloudsDensity() {
+    float getMaxSporeCloudsDensity() {
         return maxSporeCloudsDensity;
     }
 
-    void setCohortAgeSet(double cohortAgeSet[]) {
+    void setCohortAgeSet(float cohortAgeSet[]) {
         std::copy(cohortAgeSet, cohortAgeSet + 4, this->cohortAgeSet);
     }
 
-    double* getCohortAgeSet() {
+    float* getCohortAgeSet() {
         return &cohortAgeSet[0];
     }
 
-    double getDailySporeProductionPerLesion() {
+    float getDailySporeProductionPerLesion() {
         return dailySporeProductionPerLesion;
     }
 
@@ -97,11 +97,11 @@ public:
         this->id = id;
     }
 
-    double getWetnessThreshold() {
+    float getWetnessThreshold() {
         return wetnessThreshold;
     }
 
-    void setWetnessThreshold(double wetnessThreshold) {
+    void setWetnessThreshold(float wetnessThreshold) {
         this->wetnessThreshold = wetnessThreshold;
     }
 
@@ -133,23 +133,23 @@ public:
         this->MRRS = MRRS;
     }
 
-    double getMRRS() {
+    float getMRRS() {
         return MRRS;
     }
 
-    double getInfectionEfficiency() {
+    float getInfectionEfficiency() {
         return infectionEfficiency;
     }
     
-    void setInfectionEfficiency(double infectionEfficiency) {
+    void setInfectionEfficiency(float infectionEfficiency) {
         this->infectionEfficiency = infectionEfficiency;
     }
 
-    double* getTemperatureFavorabilitySet() {
+    float* getTemperatureFavorabilitySet() {
         return &temperatureFavorabilitySet[0];
     }
 
-    void setTemperatureFavorabilitySet(double temperatureFavorabilitySet[]) {
+    void setTemperatureFavorabilitySet(float temperatureFavorabilitySet[]) {
         std::copy(temperatureFavorabilitySet, temperatureFavorabilitySet + 3, this->temperatureFavorabilitySet);
     }
 
@@ -165,15 +165,15 @@ public:
         return vectorSizeCloudP;
     }
 
-    double getHostFactor() {
+    float getHostFactor() {
         return hostFactor;
     }
 
-    double getInitialPustuleSize() {
+    float getInitialPustuleSize() {
         return initialPustuleSize;
     }
 
-    void setInitialPustuleSize(double initialPustuleSize) {
+    void setInitialPustuleSize(float initialPustuleSize) {
         this->initialPustuleSize = initialPustuleSize;
     }
 
@@ -181,15 +181,15 @@ public:
         return invisibleGrowthFunction;
     }
 
-    double getInitialInoculum() {
+    float getInitialInoculum() {
         return initialInoculum;
     }
 
-    void setInitialInoculum(double initialInoculum) {
+    void setInitialInoculum(float initialInoculum) {
         this->initialInoculum = initialInoculum;
     }
 
-    double getAcumulateFavorability() {
+    float getAcumulateFavorability() {
         return acumulateFavorability;
     }
 
@@ -205,15 +205,15 @@ public:
         this->vectorSizeCloudO = vectorSizeCloudO;
     }
 
-    void setDailySporeProductionPerLesion(double dailySporeProductionPerLesion) {
+    void setDailySporeProductionPerLesion(float dailySporeProductionPerLesion) {
         this->dailySporeProductionPerLesion = dailySporeProductionPerLesion;
     }
 
-    void setSporulationCrowdingFactorsSet(double sporulationCrowdingFactorsSet[]) {
+    void setSporulationCrowdingFactorsSet(float sporulationCrowdingFactorsSet[]) {
         std::copy(sporulationCrowdingFactorsSet, sporulationCrowdingFactorsSet + 4, this->sporulationCrowdingFactorsSet);
     }
 
-    double* getSporulationCrowdingFactorsSet() {
+    float* getSporulationCrowdingFactorsSet() {
         return &sporulationCrowdingFactorsSet[0];
     }
 
@@ -221,11 +221,11 @@ public:
         this->invisibleGrowthFunction = invisibleGrowthFunction;
     }
 
-    void setAcumulateFavorability(double acumulateFavorability) {
+    void setAcumulateFavorability(float acumulateFavorability) {
         this->acumulateFavorability = acumulateFavorability;
     }
 
-    void setHostFactor(double hostFactor) {
+    void setHostFactor(float hostFactor) {
         this->hostFactor = hostFactor;
     }
 
@@ -237,11 +237,11 @@ public:
         return cropModel;
     }
     
-    void setCardinalTempPhysiologicalLife(double cardinalTempPhysiologicalLife[]) {
+    void setCardinalTempPhysiologicalLife(float cardinalTempPhysiologicalLife[]) {
         std::copy(cardinalTempPhysiologicalLife, cardinalTempPhysiologicalLife + 4, this->cardinalTempPhysiologicalLife);
     }
 
-    double* getCardinalTempPhysiologicalLife() {
+    float* getCardinalTempPhysiologicalLife() {
         return &cardinalTempPhysiologicalLife[0];
     }
 

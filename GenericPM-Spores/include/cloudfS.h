@@ -10,7 +10,7 @@ class CloudFS : public CloudS, virtual public BasicInterfaceS {
 protected:
     static int qtdS;
     int ID = ++qtdS;
-    double firstSporeCloud = 0;
+    float firstSporeCloud = 0;
     static int firstOutputCallS;
 
 public:
@@ -24,10 +24,10 @@ public:
     }
     void integrationS();
 
-    double getValueS() {
+    float getValueS() {
         return CloudS::getValueS() + firstSporeCloud;
     }
-    void setValue(double value) {
+    void setValue(float value) {
         CloudS::values.clear();
         CloudS::values.push_back(value);
     }
@@ -37,11 +37,11 @@ public:
         CloudS::rateS();
     }
 
-    void addSporesCreatedS(double sporesCreated) {
+    void addSporesCreatedS(float sporesCreated) {
         this->sporesCreated += sporesCreated;
     }
 
-    void setFirstSporeCloud(double firstSporeCloud) {
+    void setFirstSporeCloud(float firstSporeCloud) {
         this->firstSporeCloud = firstSporeCloud;
     }
 

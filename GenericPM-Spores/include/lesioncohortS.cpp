@@ -60,7 +60,7 @@ void LesionCohortS::outputS() {
 }
 
 void LesionCohortS::rateS() {
-    //double dailyVisibleGrowRate = 0, dailyInvisibleGrowRate = 0;
+    //float dailyVisibleGrowRate = 0, dailyInvisibleGrowRate = 0;
     DiseaseS *disease = cloudo->getDisease();
     physiologicalDay = util.temperatureFavorabilityS(
                             BasicS::getWeather()->getTMean(),

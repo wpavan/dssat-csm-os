@@ -45,39 +45,39 @@ void SimulatorS::inputPSTS() {
       FlexibleIO *flexibleio = FlexibleIO::getInstance();
       
       std::string str;
-      double f; 
-      double arraysize3[3], arraysize4[4];
+      float f; 
+      float arraysize3[3], arraysize4[4];
       
       str = flexibleio->getChar("PST", "PESTID#");
       disease->setId(std::stoi(str.substr(2, str.size()),nullptr,0));
       
       disease->setDescription(flexibleio->getChar("PST", "PSTNAME"));
       
-      disease->setDailySporeProductionPerLesion((double)flexibleio->getReal("PST", "DSPL"));
+      disease->setDailySporeProductionPerLesion((float)flexibleio->getReal("PST", "DSPL"));
       
       f = flexibleio->getRealIndex("PST", "SPE", 1);
-      arraysize4[0] = (double) f;
+      arraysize4[0] = (float) f;
       f = flexibleio->getRealIndex("PST", "SPE", 2);
-      arraysize4[1] = (double) f;
+      arraysize4[1] = (float) f;
       f = flexibleio->getRealIndex("PST", "SPE", 3);
-      arraysize4[2] = (double) f;
+      arraysize4[2] = (float) f;
       f = flexibleio->getRealIndex("PST", "SPE", 4);
-      arraysize4[3] = (double) f;
+      arraysize4[3] = (float) f;
       disease->setCohortAgeSet(arraysize4);
       
       f = flexibleio->getRealIndex("PST", "SCF", 1);
-      arraysize3[0] = (double) f;
+      arraysize3[0] = (float) f;
       f = flexibleio->getRealIndex("PST", "SCF", 2);
-      arraysize3[1] = (double) f;
+      arraysize3[1] = (float) f;
       f = flexibleio->getRealIndex("PST", "SCF", 3);
-      arraysize3[2] = (double) f;
+      arraysize3[2] = (float) f;
       disease->setSporulationCrowdingFactorsSet(arraysize3);
       
-      disease->setMaxSporeCloudsDensity((double) flexibleio->getReal("PST", "MSCD"));
+      disease->setMaxSporeCloudsDensity((float) flexibleio->getReal("PST", "MSCD"));
       
-      disease->setProportionFromOrganToPlantCloud((double) flexibleio->getReal("PST", "SPO2P"));
+      disease->setProportionFromOrganToPlantCloud((float) flexibleio->getReal("PST", "SPO2P"));
       
-      disease->setProportionFromPlantToFieldCloud((double) flexibleio->getReal("PST", "SPP2F"));
+      disease->setProportionFromPlantToFieldCloud((float) flexibleio->getReal("PST", "SPP2F"));
       
       disease->setVectorSizeCloudF(flexibleio->getIntegerIndex("PST", "CCFPO", 1));
       
@@ -87,31 +87,31 @@ void SimulatorS::inputPSTS() {
       
       disease->setMRRS(flexibleio->getInteger("PST", "MRRS"));
       
-      disease->setInitialInoculum((double) flexibleio->getReal("PST", "II"));
+      disease->setInitialInoculum((float) flexibleio->getReal("PST", "II"));
       
-      disease->setAcumulateFavorability((double) flexibleio->getReal("PST", "AFII"));    
+      disease->setAcumulateFavorability((float) flexibleio->getReal("PST", "AFII"));    
       
       f = flexibleio->getRealIndex("PST", "TFS", 1);
-      arraysize3[0] = (double) f;
+      arraysize3[0] = (float) f;
       f = flexibleio->getRealIndex("PST", "TFS", 2);
-      arraysize3[1] = (double) f;
+      arraysize3[1] = (float) f;
       f = flexibleio->getRealIndex("PST", "TFS", 3);
-      arraysize3[2] = (double) f;
+      arraysize3[2] = (float) f;
       disease->setTemperatureFavorabilitySet(arraysize3);
       
-      disease->setInfectionEfficiency((double) flexibleio->getReal("PST", "IE"));
+      disease->setInfectionEfficiency((float) flexibleio->getReal("PST", "IE"));
       
-      //disease->setDispersionFreequency((double) flexibleio->getReal("PST", "DF"));
+      //disease->setDispersionFreequency((float) flexibleio->getReal("PST", "DF"));
       
-      disease->setInitialPustuleSize((double) flexibleio->getReal("PST", "IPS"));
+      disease->setInitialPustuleSize((float) flexibleio->getReal("PST", "IPS"));
       
       disease->setLatentPeriod(flexibleio->getInteger("PST", "LP"));
       
       disease->setInfectionPeriod(flexibleio->getInteger("PST", "IP"));
       
-      disease->setWetnessThreshold((double) flexibleio->getReal("PST", "WT"));
+      disease->setWetnessThreshold((float) flexibleio->getReal("PST", "WT"));
       
-      disease->setHostFactor((double) flexibleio->getReal("PST", "HF"));
+      disease->setHostFactor((float) flexibleio->getReal("PST", "HF"));
       
       disease->setInvisibleGrowthFunction(flexibleio->getChar("PST", "IGF"));
       

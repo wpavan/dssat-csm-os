@@ -19,23 +19,23 @@ extern "C" {
     // Coupling Functions
     int couplingInit(int *YRDOY, int *YRPLT);
     int couplingRate(int *YRDOY,
-            double *AREALF, double *CLW, double *CSW, double *PCLMT, double *PCSTMD,
-            double *PDLA, double *PLFAD, double *PLFMD, double *PSTMD, double *PVSTGD,
-            double *SLA, double *SLDOT, double *SSDOT, double *STMWT, double *TDLA,
-            double *VSTGD, double *WLFDOT, double *WSTMD, double *WTLF,
-            double *TLFAD, double *TLFMD, double *VSTAGE, double *WLIDOT,
-            double *CLAI, double *CLFM, double *CSTEM, double *DISLA, double *DISLAP,
-            double *LAIDOT, double *WSIDOT, float *SDWT, double *WSDD, 
-            double *PSDD, int *DAS, int *YRPLT);
+            float *AREALF, float *CLW, float *CSW, float *PCLMT, float *PCSTMD,
+            float *PDLA, float *PLFAD, float *PLFMD, float *PSTMD, float *PVSTGD,
+            float *SLA, float *SLDOT, float *SSDOT, float *STMWT, float *TDLA,
+            float *VSTGD, float *WLFDOT, float *WSTMD, float *WTLF,
+            float *TLFAD, float *TLFMD, float *VSTAGE, float *WLIDOT,
+            float *CLAI, float *CLFM, float *CSTEM, float *DISLA, float *DISLAP,
+            float *LAIDOT, float *WSIDOT, float *SDWT, float *WSDD, 
+            float *PSDD, int *DAS, int *YRPLT);
     int couplingIntegration(int *YRDOY,
-            double *AREALF, double *CLW, double *CSW, double *PCLMT, double *PCSTMD,
-            double *PDLA, double *PLFAD, double *PLFMD, double *PSTMD, double *PVSTGD,
-            double *SLA, double *SLDOT, double *SSDOT, double *STMWT, double *TDLA,
-            double *VSTGD, double *WLFDOT, double *WSTMD, double *WTLF,
-            double *TLFAD, double *TLFMD, double *VSTAGE, double *WLIDOT,
-            double *CLAI, double *CLFM, double *CSTEM, double *DISLA, double *DISLAP,
-            double *LAIDOT, double *WSIDOT, double *SDWT, double *WSDD, 
-            double *PSDD, int *DAS);
+            float *AREALF, float *CLW, float *CSW, float *PCLMT, float *PCSTMD,
+            float *PDLA, float *PLFAD, float *PLFMD, float *PSTMD, float *PVSTGD,
+            float *SLA, float *SLDOT, float *SSDOT, float *STMWT, float *TDLA,
+            float *VSTGD, float *WLFDOT, float *WSTMD, float *WTLF,
+            float *TLFAD, float *TLFMD, float *VSTAGE, float *WLIDOT,
+            float *CLAI, float *CLFM, float *CSTEM, float *DISLA, float *DISLAP,
+            float *LAIDOT, float *WSIDOT, float *SDWT, float *WSDD, 
+            float *PSDD, int *DAS);
     int couplingOutput(int *doy);
 }
 
@@ -59,20 +59,18 @@ int couplingInit(int *YRDOY, int *YRPLT) {
 }
 
 int couplingRate(int *YRDOY,
-        double *AREALF, double *CLW, double *CSW, double *PCLMT, double *PCSTMD,
-        double *PDLA, double *PLFAD, double *PLFMD, double *PSTMD, double *PVSTGD,
-        double *SLA, double *SLDOT, double *SSDOT, double *STMWT, double *TDLA,
-        double *VSTGD, double *WLFDOT, double *WSTMD, double *WTLF,
-        double *TLFAD, double *TLFMD, double *VSTAGE, double *WLIDOT,
-        double *CLAI, double *CLFM, double *CSTEM, double *DISLA, double *DISLAP,
-        double *LAIDOT, double *WSIDOT, float *SDWT, 
-        double *WSDD, double *PSDD, int *DAS, int *YRPLT) {
-
-    printf("SDWT that gets received: %e\n", *SDWT);
+        float *AREALF, float *CLW, float *CSW, float *PCLMT, float *PCSTMD,
+        float *PDLA, float *PLFAD, float *PLFMD, float *PSTMD, float *PVSTGD,
+        float *SLA, float *SLDOT, float *SSDOT, float *STMWT, float *TDLA,
+        float *VSTGD, float *WLFDOT, float *WSTMD, float *WTLF,
+        float *TLFAD, float *TLFMD, float *VSTAGE, float *WLIDOT,
+        float *CLAI, float *CLFM, float *CSTEM, float *DISLA, float *DISLAP,
+        float *LAIDOT, float *WSIDOT, float *SDWT, 
+        float *WSDD, float *PSDD, int *DAS, int *YRPLT) {
 
     // Temporary variable used for computations 
-    double temp = 0, newOrgan = 0;
-    double CloudField = 0;
+    float temp = 0, newOrgan = 0;
+    float CloudField = 0;
 
     // Get an instance of Simulator
     //printf("Rate - \n");
@@ -107,7 +105,6 @@ int couplingRate(int *YRDOY,
     //printf("WSIDOT %f SDWT: %f WSDD %f PSDD %f DAS %i YRPLT %i SDWTp %f *SDWT-SDWTp %f \n", 
     //                    *WSIDOT, *SDWT, *WSDD, *PSDD, *DAS, *YRPLT, SDWTp, *SDWT-SDWTp);
     if(*SDWT-SDWTp > 0){ //&& CloudField > 0){
-        printf("The new organ area is set with %e\n", (*SDWT-SDWTp));
         s->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));            
     }
     if(s->getPlants().size()>0) {
@@ -128,16 +125,16 @@ int couplingRate(int *YRDOY,
 }
 
 int couplingIntegration(int *YRDOY,
-        double *AREALF, double *CLW, double *CSW, double *PCLMT, double *PCSTMD,
-        double *PDLA, double *PLFAD, double *PLFMD, double *PSTMD, double *PVSTGD,
-        double *SLA, double *SLDOT, double *SSDOT, double *STMWT, double *TDLA,
-        double *VSTGD, double *WLFDOT, double *WSTMD, double *WTLF,
-        double *TLFAD, double *TLFMD, double *VSTAGE, double *WLIDOT,
-        double *CLAI, double *CLFM, double *CSTEM, double *DISLA, double *DISLAP,
-        double *LAIDOT, double *WSIDOT, double *SDWT, 
-        double *WSDD, double *PSDD, int *DAS) {
+        float *AREALF, float *CLW, float *CSW, float *PCLMT, float *PCSTMD,
+        float *PDLA, float *PLFAD, float *PLFMD, float *PSTMD, float *PVSTGD,
+        float *SLA, float *SLDOT, float *SSDOT, float *STMWT, float *TDLA,
+        float *VSTGD, float *WLFDOT, float *WSTMD, float *WTLF,
+        float *TLFAD, float *TLFMD, float *VSTAGE, float *WLIDOT,
+        float *CLAI, float *CLFM, float *CSTEM, float *DISLA, float *DISLAP,
+        float *LAIDOT, float *WSIDOT, float *SDWT, 
+        float *WSDD, float *PSDD, int *DAS) {
     // Temporary variable used for computations 
-    double dArea = 0, tArea=0, sArea=0;
+    float dArea = 0, tArea=0, sArea=0;
     int seedAge = 0;
     
     // Get an instance of Simulator

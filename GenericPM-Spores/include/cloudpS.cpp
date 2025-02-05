@@ -47,7 +47,7 @@ void CloudPS::outputS() {
     //    std::cout << BasicS::output[i] << std::endl;
 }
 
-void CloudPS::addSporesCreatedS(double sporesCreated) {
+void CloudPS::addSporesCreatedS(float sporesCreated) {
     CloudS::sporesCreated += (sporesCreated * (1 - disease->getProportionFromPlantToFieldCloud()));
     cloudF->addSporesCreatedS(sporesCreated * disease->getProportionFromPlantToFieldCloud());
 }

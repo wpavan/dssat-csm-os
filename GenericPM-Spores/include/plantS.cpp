@@ -24,7 +24,7 @@ PlantS::PlantS() {
 void PlantS::integrationS() {
     totalArea = diseaseArea = latentDiseaseArea = infectionDiseaseArea = necroticDiseaseArea = visibleDiseaseArea = invisibleDiseaseArea = totalLesions = visibleLesions = senescenceArea = 0;
     int newOrgan = 0;
-    double cloudOValue = 0, cloudPValue = 0, cloudFvalue = 0;
+    float cloudOValue = 0, cloudPValue = 0, cloudFvalue = 0;
     OrganS *o;
     for (unsigned int i = 0; i < organs.size(); i++) {
         o = &organs[i];
@@ -68,14 +68,14 @@ void PlantS::integrationS() {
     convert << ID << "," << BasicS::getWeather()->getYearDoy() << "," << totalArea << "," << senescenceArea << "," << diseaseArea << "," 
             << visibleDiseaseArea << "," << invisibleDiseaseArea << "," << totalLesions << "," 
             << latentDiseaseArea << "," << infectionDiseaseArea << "," << necroticDiseaseArea << ","
-            << UtilitiesS::formatDoubleS(cloudOValue) << "," << UtilitiesS::formatDoubleS(cloudPValue) << "," 
-            << UtilitiesS::formatDoubleS(cloudFvalue);
+            << UtilitiesS::formatfloatS(cloudOValue) << "," << UtilitiesS::formatfloatS(cloudPValue) << "," 
+            << UtilitiesS::formatfloatS(cloudFvalue);
     BasicS::output.push_back(convert.str());
     //std::cout << ID << "," << BasicS::getWeather()->getYearDoy() << "," << totalArea << "," << senescenceArea << "," << diseaseArea << "," 
     //        << visibleDiseaseArea << "," << invisibleDiseaseArea << "," << totalLesions << "," 
     //        << latentDiseaseArea << "," << infectionDiseaseArea << "," << necroticDiseaseArea << ","
-    //        << UtilitiesS::formatDoubleS(cloudOValue) << "," << UtilitiesS::formatDoubleS(cloudPValue) << "," 
-    //        << UtilitiesS::formatDoubleS(cloudFvalue)<<std::endl;
+    //        << UtilitiesS::formatfloatS(cloudOValue) << "," << UtilitiesS::formatfloatS(cloudPValue) << "," 
+    //        << UtilitiesS::formatfloatS(cloudFvalue)<<std::endl;
     BasicS::output.push_back(convert.str());
 
 }

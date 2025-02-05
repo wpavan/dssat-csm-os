@@ -19,7 +19,7 @@
 
 class Cloud : public Basic, virtual public BasicInterface {
 protected:
-    std::vector<double> values;
+    std::vector<float> values;
     Disease *disease;
     int sporesCreated = 0;
     int sporesToBeRemoved = 0;
@@ -28,7 +28,7 @@ public:
     Disease* getDisease() {
         return disease;
     }
-    virtual void addSporesCreated(double sporesCreated) = 0;
+    virtual void addSporesCreated(float sporesCreated) = 0;
 
     void rate() {
     }
@@ -38,10 +38,10 @@ public:
     void output() {
     }
 
-    double getValue();
+    float getValue();
     
-    void removeSporesCloud(double toBeRemove);
-    void removeSporesCloudByRain(double percent);
+    void removeSporesCloud(float toBeRemove);
+    void removeSporesCloudByRain(float percent);
 
     int getSporesToBeRemoved() {
         return sporesToBeRemoved;

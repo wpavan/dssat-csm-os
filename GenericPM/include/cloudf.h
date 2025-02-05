@@ -25,7 +25,7 @@ class CloudF : public Cloud, virtual public BasicInterface {
 protected:
     static int qtd;
     int ID = ++qtd;
-    double firstSporeCloud = 0;
+    float firstSporeCloud = 0;
     static int firstOutputCall;
 
 public:
@@ -45,8 +45,8 @@ public:
      * 
      * @return The total value of the field spore cloud.
      */
-    double getValue() {
-        double total = Cloud::getValue();
+    float getValue() {
+        float total = Cloud::getValue();
         return total;
     }
 
@@ -77,15 +77,15 @@ public:
      */
     void output();
 
-    void addSporesCreated(double sporesCreated) {
+    void addSporesCreated(float sporesCreated) {
         this->sporesCreated += sporesCreated;
     }
-    void setSporesCreated(double sporesCreated) {
+    void setSporesCreated(float sporesCreated) {
         values.clear();
         values.push_back(sporesCreated);
     }
 
-    void setFirstSporeCloud(double firstSporeCloud) {
+    void setFirstSporeCloud(float firstSporeCloud) {
         this->firstSporeCloud = firstSporeCloud;
     }
 };

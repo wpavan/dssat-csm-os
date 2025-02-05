@@ -11,40 +11,40 @@
 
 class OrganS : public BasicS, virtual public BasicInterfaceS {
 protected:
-    double totalArea = 0;
-    double diseaseArea = 0;
-    double visibleDiseaseArea = 0;
-    double invisibleDiseaseArea = 0;
-    double senescenceArea = 0;
-    double latentDiseaseArea = 0;
-    double infectionDiseaseArea = 0;
-    double necroticDiseaseArea = 0;
+    float totalArea = 0;
+    float diseaseArea = 0;
+    float visibleDiseaseArea = 0;
+    float invisibleDiseaseArea = 0;
+    float senescenceArea = 0;
+    float latentDiseaseArea = 0;
+    float infectionDiseaseArea = 0;
+    float necroticDiseaseArea = 0;
     int organNumber = 0;
     int newLesionsS = 0;
     int newLesionsFromOrgan, newLesionsFromPlant, newLesionsFromField;
     int totalLesions = 0;
     int visibleLesions = 0;
-    double dailyDiseaseArea = 0;
-    double dailyVisibleDiseaseArea = 0;
-    double dailySenescenceArea = 0;
-    double dailyLatentDiseaseArea = 0;
-    double dailyInfectionDiseaseArea = 0;
-    double dailyNecroticDiseaseArea = 0;
+    float dailyDiseaseArea = 0;
+    float dailyVisibleDiseaseArea = 0;
+    float dailySenescenceArea = 0;
+    float dailyLatentDiseaseArea = 0;
+    float dailyInfectionDiseaseArea = 0;
+    float dailyNecroticDiseaseArea = 0;
     int dailyTotalLesions = 0;
     int dailyVisibleLesions = 0;
     bool suceptible = false;
-    double organLastSize = 0;
-    double healthAreaProportion = 0;
-    double proportionFromTotalArea = 0;
+    float organLastSize = 0;
+    float healthAreaProportion = 0;
+    float proportionFromTotalArea = 0;
     int doc = BasicS::getWeather()->getDoy();
-    double physiologicalLife = 0;
+    float physiologicalLife = 0;
     std::vector<LesionCohortS> lesionCohorts;
     std::vector<CloudOS> cloudsO;
     static int firstOutputCallS;
 
 public:
 
-    OrganS(std::vector<CloudPS>& cloudsP, int organNumber, double totalArea) {
+    OrganS(std::vector<CloudPS>& cloudsP, int organNumber, float totalArea) {
         //BasicS::output.push_back("OrganS, YearDoy, TotalArea, Senesced, Diseased, VisibleArea, InvisibleArea, LesionDensity, Age, newLesionsS, TotalLesions, CloudOS, CloudPS, CloudFS, HealthAreaProportion");
         this->organNumber = organNumber;
         this->totalArea = totalArea;
@@ -57,11 +57,11 @@ public:
 
     void integrationS();
     void cloudIntegrationS();
-    double cloudAmountS();
+    float cloudAmountS();
     void outputS();
     void rateS();
 
-    double getAreaIfSeverity(int porcent) {
+    float getAreaIfSeverity(int porcent) {
         if(diseaseArea>(totalArea*(porcent/100.0))) {
             return totalArea;
         }
@@ -76,7 +76,7 @@ public:
         }
     }
 
-    double getDensity() {
+    float getDensity() {
         return totalArea > 0 ? (visibleLesions / totalArea) : 0;
     }
 
@@ -96,11 +96,11 @@ public:
         return lesionCohorts;
     }
 
-    void setPhysiologicalLife(double physiologicalLife) {
+    void setPhysiologicalLife(float physiologicalLife) {
         this->physiologicalLife = physiologicalLife;
     }
 
-    double getPhysiologicalLife() const {
+    float getPhysiologicalLife() const {
         return physiologicalLife;
     }
 
@@ -108,11 +108,11 @@ public:
         this->doc = doc;
     }
     
-    double getProportionFromTotalArea() {
+    float getProportionFromTotalArea() {
         return proportionFromTotalArea;
     }
 
-    void setProportionFromTotalArea(double proportionFromTotalArea) {
+    void setProportionFromTotalArea(float proportionFromTotalArea) {
         this->proportionFromTotalArea = proportionFromTotalArea;
     }
 
@@ -120,19 +120,19 @@ public:
         return doc;
     }
 
-    void setHealthAreaProportion(double healthAreaProportion) {
+    void setHealthAreaProportion(float healthAreaProportion) {
         this->healthAreaProportion = healthAreaProportion;
     }
 
-    double getHealthAreaProportionS() const {
+    float getHealthAreaProportionS() const {
         return healthAreaProportion;
     }
 
-    void setOrganLastSize(double organLastSize) {
+    void setOrganLastSize(float organLastSize) {
         this->organLastSize = organLastSize;
     }
 
-    double getOrganLastSize() const {
+    float getOrganLastSize() const {
         return organLastSize;
     }
 
@@ -160,51 +160,51 @@ public:
         return dailyTotalLesions;
     }
 
-    void setDailyNecroticDiseaseArea(double dailyNecroticDiseaseArea) {
+    void setDailyNecroticDiseaseArea(float dailyNecroticDiseaseArea) {
         this->dailyNecroticDiseaseArea = dailyNecroticDiseaseArea;
     }
 
-    double getDailyNecroticDiseaseArea() const {
+    float getDailyNecroticDiseaseArea() const {
         return dailyNecroticDiseaseArea;
     }
 
-    void setDailyInfectionDiseaseArea(double dailyInfectionDiseaseArea) {
+    void setDailyInfectionDiseaseArea(float dailyInfectionDiseaseArea) {
         this->dailyInfectionDiseaseArea = dailyInfectionDiseaseArea;
     }
 
-    double getDailyInfectionDiseaseArea() const {
+    float getDailyInfectionDiseaseArea() const {
         return dailyInfectionDiseaseArea;
     }
 
-    void setDailyLatentDiseaseArea(double dailyLatentDiseaseArea) {
+    void setDailyLatentDiseaseArea(float dailyLatentDiseaseArea) {
         this->dailyLatentDiseaseArea = dailyLatentDiseaseArea;
     }
 
-    double getDailyLatentDiseaseArea() const {
+    float getDailyLatentDiseaseArea() const {
         return dailyLatentDiseaseArea;
     }
 
-    void setDailySenescenceArea(double dailySenescenceArea) {
+    void setDailySenescenceArea(float dailySenescenceArea) {
         this->dailySenescenceArea = dailySenescenceArea;
     }
 
-    double getDailySenescenceArea() const {
+    float getDailySenescenceArea() const {
         return dailySenescenceArea;
     }
 
-    void setDailyVisibleDiseaseArea(double dailyVisibleDiseaseArea) {
+    void setDailyVisibleDiseaseArea(float dailyVisibleDiseaseArea) {
         this->dailyVisibleDiseaseArea = dailyVisibleDiseaseArea;
     }
 
-    double getDailyVisibleDiseaseArea() const {
+    float getDailyVisibleDiseaseArea() const {
         return dailyVisibleDiseaseArea;
     }
 
-    void setDailyDiseaseArea(double dailyDiseaseArea) {
+    void setDailyDiseaseArea(float dailyDiseaseArea) {
         this->dailyDiseaseArea = dailyDiseaseArea;
     }
 
-    double getDailyDiseaseArea() const {
+    float getDailyDiseaseArea() const {
         return dailyDiseaseArea;
     }
 
@@ -240,63 +240,63 @@ public:
         return organNumber;
     }
 
-    void setNecroticDiseaseArea(double necroticDiseaseArea) {
+    void setNecroticDiseaseArea(float necroticDiseaseArea) {
         this->necroticDiseaseArea = necroticDiseaseArea;
     }
 
-    double getNecroticDiseaseArea() const {
+    float getNecroticDiseaseArea() const {
         return necroticDiseaseArea;
     }
 
-    void setInfectionDiseaseArea(double infectionDiseaseArea) {
+    void setInfectionDiseaseArea(float infectionDiseaseArea) {
         this->infectionDiseaseArea = infectionDiseaseArea;
     }
 
-    double getInfectionDiseaseArea() const {
+    float getInfectionDiseaseArea() const {
         return infectionDiseaseArea;
     }
 
-    void setLatentDiseaseArea(double latentDiseaseArea) {
+    void setLatentDiseaseArea(float latentDiseaseArea) {
         this->latentDiseaseArea = latentDiseaseArea;
     }
 
-    double getLatentDiseaseArea() const {
+    float getLatentDiseaseArea() const {
         return latentDiseaseArea;
     }
 
-    void setSenescenceArea(double senescenceArea) {
+    void setSenescenceArea(float senescenceArea) {
         this->senescenceArea = senescenceArea;
     }
 
-    double getSenescenceArea() const {
+    float getSenescenceArea() const {
         return senescenceArea;
     }
 
-    void setVisibleDiseaseArea(double visibleDiseaseArea) {
+    void setVisibleDiseaseArea(float visibleDiseaseArea) {
         this->visibleDiseaseArea = visibleDiseaseArea;
     }
 
-    double getVisibleDiseaseArea() const {
+    float getVisibleDiseaseArea() const {
         return visibleDiseaseArea;
     }
 
-    double getInvisibleDiseaseArea() const {
+    float getInvisibleDiseaseArea() const {
         return invisibleDiseaseArea;
     }
 
-    void setDiseaseArea(double diseaseArea) {
+    void setDiseaseArea(float diseaseArea) {
         this->diseaseArea = diseaseArea;
     }
 
-    double getDiseaseArea() const {
+    float getDiseaseArea() const {
         return diseaseArea;
     }
 
-    void setTotalArea(double totalArea) {
+    void setTotalArea(float totalArea) {
         this->totalArea = totalArea;
     }
 
-    double getTotalArea() const {
+    float getTotalArea() const {
         return totalArea;
     }
 

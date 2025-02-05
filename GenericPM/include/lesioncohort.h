@@ -22,19 +22,19 @@ private:
     Utilities util;
     
 protected:
-    double totalArea = 0;
-    double visibleArea = 0, invisibleArea = 0;
-    double dailyVisibleAreaGrow = 0, dailyInvisibleAreaGrow = 0;
-    double latentArea = 0;
-    double infectionArea = 0;
-    double necroticArea = 0;
+    float totalArea = 0;
+    float visibleArea = 0, invisibleArea = 0;
+    float dailyVisibleAreaGrow = 0, dailyInvisibleAreaGrow = 0;
+    float latentArea = 0;
+    float infectionArea = 0;
+    float necroticArea = 0;
     int lesionsInThisCohort;
     int doc = 0; // Day of creation (cohort)
     CloudO *cloudo;
     int newSpores = 0;
-    double physiologicalDaysAcumm = 0; // Physiological days accumulation 
-    double physiologicalDay = 0; // Physiological value on that day 
-    double organHealthAreaProportion = 0;
+    float physiologicalDaysAcumm = 0; // Physiological days accumulation 
+    float physiologicalDay = 0; // Physiological value on that day 
+    float organHealthAreaProportion = 0;
     
     static int qtd;
     int ID = ++qtd;
@@ -60,7 +60,7 @@ public:
     void integration();
     int getVisibleLesions();
 
-    double getVisibleArea() {
+    float getVisibleArea() {
         return visibleArea;
     }
     void output();
@@ -69,54 +69,54 @@ public:
     bool isLatentPeriod();
     bool isNecroticPeriod();
 
-    double getInfectionArea() {
+    float getInfectionArea() {
         return infectionArea;
     }
 
-    double getNecroticArea() {
+    float getNecroticArea() {
         return necroticArea;
     }
 
-    double getLatentArea() {
+    float getLatentArea() {
         return latentArea;
     }
 
-    void setInvisibleArea(double invisibleArea) {
+    void setInvisibleArea(float invisibleArea) {
         this->invisibleArea = invisibleArea;
     }
 
-    double getInvisibleArea() const {
+    float getInvisibleArea() const {
         return invisibleArea;
     }
 
-    void setVisibleArea(double visibleArea) {
+    void setVisibleArea(float visibleArea) {
         this->visibleArea = visibleArea;
     }
 
-    void setTotalArea(double totalArea) {
+    void setTotalArea(float totalArea) {
         this->totalArea = totalArea;
     }
 
-    double getTotalArea() const {
+    float getTotalArea() const {
         return totalArea;
     }
 
-    void setPhysiologicalDaysAcumm(double physiologicalDaysAcumm) {
+    void setPhysiologicalDaysAcumm(float physiologicalDaysAcumm) {
         this->physiologicalDaysAcumm = physiologicalDaysAcumm;
     }
 
-    double getPhysiologicalDaysAcumm() const {
+    float getPhysiologicalDaysAcumm() const {
         return physiologicalDaysAcumm;
     }
 
-    void setOrganHealthAreaProportion(double organHealthAreaProportion) {
+    void setOrganHealthAreaProportion(float organHealthAreaProportion) {
         this->organHealthAreaProportion = organHealthAreaProportion;
     }
 
-    double getOrganHealthAreaProportion() const {
+    float getOrganHealthAreaProportion() const {
         return organHealthAreaProportion;
     }
-    double getOrganDiseasedAreaProportion() const {
+    float getOrganDiseasedAreaProportion() const {
         return (1-organHealthAreaProportion);
     }
 };

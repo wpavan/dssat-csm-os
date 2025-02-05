@@ -21,8 +21,8 @@ void OrganS::integrationS() {
     CloudOS *cloudo;
     LesionCohortS *lc;
 
-    double cloudDensity = 0;
-    double cloudOValue = 0, cloudPValue = 0, cloudFvalue = 0;
+    float cloudDensity = 0;
+    float cloudOValue = 0, cloudPValue = 0, cloudFvalue = 0;
     dailyDiseaseArea = diseaseArea;
     dailyVisibleDiseaseArea = visibleDiseaseArea;
     dailySenescenceArea = senescenceArea;
@@ -107,14 +107,14 @@ void OrganS::integrationS() {
     std::ostringstream convert;
     convert << organNumber << "," 
             << BasicS::getWeather()->getYearDoy() << "," << totalArea << "," << senescenceArea << "," 
-            << UtilitiesS::formatDoubleS(diseaseArea, 4) << ","
-            << UtilitiesS::formatDoubleS(visibleDiseaseArea, 4) << "," 
-            << UtilitiesS::formatDoubleS(invisibleDiseaseArea, 4) << ","
-            << UtilitiesS::formatDoubleS(totalLesions / totalArea, 4) << ","
-            << UtilitiesS::formatDoubleS(physiologicalLife, 4) << "," << dailyTotalLesions << "," 
+            << UtilitiesS::formatfloatS(diseaseArea, 4) << ","
+            << UtilitiesS::formatfloatS(visibleDiseaseArea, 4) << "," 
+            << UtilitiesS::formatfloatS(invisibleDiseaseArea, 4) << ","
+            << UtilitiesS::formatfloatS(totalLesions / totalArea, 4) << ","
+            << UtilitiesS::formatfloatS(physiologicalLife, 4) << "," << dailyTotalLesions << "," 
             << totalLesions << "," 
-            << UtilitiesS::formatDoubleS(cloudOValue) << "," << UtilitiesS::formatDoubleS(cloudPValue) << ","
-            << UtilitiesS::formatDoubleS(cloudFvalue) << "," << healthAreaProportion << "," 
+            << UtilitiesS::formatfloatS(cloudOValue) << "," << UtilitiesS::formatfloatS(cloudPValue) << ","
+            << UtilitiesS::formatfloatS(cloudFvalue) << "," << healthAreaProportion << "," 
             << getProportionFromTotalArea() << "," << BasicS::getWeather()->getWetDur() << ","
             << newLesionsFromOrgan << "," << newLesionsFromPlant << "," << newLesionsFromField;
     BasicS::output.push_back(convert.str());
@@ -124,8 +124,8 @@ void OrganS::cloudIntegrationS() {
         (&cloudsO[i])->integrationS();
     }
 }
-double OrganS::cloudAmountS() {
-    double cloudOValue=0;
+float OrganS::cloudAmountS() {
+    float cloudOValue=0;
     for (unsigned int i = 0; i < cloudsO.size(); i++) {
         cloudOValue += (&cloudsO[i])->getValueS();
     }
@@ -159,7 +159,7 @@ void OrganS::outputS() {
 
 void OrganS::rateS() {
     // Calculate the ratio due senescence based on previews day
-    double actualDisease=0, ratioSenescence = this->senescenceArea / this->totalArea;
+    float actualDisease=0, ratioSenescence = this->senescenceArea / this->totalArea;
     // Update the senescence area for the current day
     this->senescenceArea = SimulatorS::getInstanceS()->getCropInterface()->getSenescenceOrganArea(organNumber);
     // Recalculate the ratio due senescence and take the difference from previews ratio

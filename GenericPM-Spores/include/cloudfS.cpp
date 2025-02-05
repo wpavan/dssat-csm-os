@@ -9,7 +9,7 @@ int CloudFS::firstOutputCallS = 0;
 
 void CloudFS::integrationS() {
     CloudS::integrationS();
-    double porcent=0;
+    float porcent=0;
     if (values.size() > (unsigned) disease->getVectorSizeCloudF()) {
         values.erase(values.begin());
     }

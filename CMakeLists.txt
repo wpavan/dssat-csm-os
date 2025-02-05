@@ -3,8 +3,8 @@
 ##########################################################################################
 # Define the project and the dependencies that it has
 ##########################################################################################
-
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5.0)
+# This is not true anymore because FetchContent requires VERSION >= 3.11
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5.0) 
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
    message(FATAL_ERROR "DSSAT in-source builds are not permitted. \nMake a separate folder"
@@ -83,6 +83,8 @@ GET_FILENAME_COMPONENT(FCNAME ${CMAKE_Fortran_COMPILER} NAME)
 IF(FCNAME STREQUAL "pgf90")
     UNSET(CMAKE_SHARED_LIBRARY_LINK_Fortran_FLAGS)
 ENDIF(FCNAME STREQUAL "pgf90")
+
+INCLUDE(FetchContent)
 
 ##########################################################################################
 # Define the actual files and folders that make the build
@@ -691,7 +693,34 @@ set(
         "Weather/WGEN.for"
         "Weather/WTHMOD.for"
 )
+
+# Fetch the yaml-cpp library from github
+FetchContent_Declare(
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/VirginiaBee47/yaml-cpp.git
+    GIT_TAG f7320141120f720aecc4c32be25586e7da9eb978 # Full commit SHA for tag=0.8.0
+    # Alternatively replace above line with:
+    # GIT_TAG 0.8.0
+    GIT_SHALLOW TRUE
+)
+
+# Optionally for more security, use this FetchContent_Declare statement:
+#
+# ```cmake
+# FetchContent_Declare(
+#     yaml-cpp
+#     URL https://github.com/VirginiaBee47/yaml-cpp/archive/f7320141120f720aecc4c32be25586e7da9eb978.tar.gz
+#     URL_HASH SHA256=fbe74bbdcee21d656715688706da3c8becfd946d92cd44705cc6098bb23b3a16
+# )
+# ```
+# This hash was generated via python script and needs to be recomputed if new versions are used. 
+
+FetchContent_MakeAvailable(yaml-cpp)
+
 ADD_EXECUTABLE(${EXECUTABLE_NAME} ${source_list})
+
+# Link fetched and compiled yaml-cpp to executable as library
+target_link_libraries(${EXECUTABLE_NAME} PUBLIC yaml-cpp::yaml-cpp)
 
 foreach(source IN LISTS source_list)
     get_filename_component(source_path "${source}" PATH)
@@ -709,6 +738,14 @@ install(FILES Utilities/run_dssat DESTINATION .
 
 install(DIRECTORY Data/ DESTINATION .
 	PATTERN "*.in" EXCLUDE)
+
+# Define a custom target that removes unnecessary executables after the build
+add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/bin/parse.exe
+    COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/bin/read.exe
+    COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/bin/sandbox.exe
+    COMMENT "Removing extra executables"
+)
 
 ##################################################
 # Resume information about flags and option used #

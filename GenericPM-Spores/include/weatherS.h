@@ -8,24 +8,24 @@ protected:
     int yearDoy = 0;
     int year = 0;
     int doy = 0;
-    double tMin = 0;
-    double tMax = 0;
-    double tMean = 0;
-    double sRad = 0;
-    double rain = 0;
-    double par = 0;
-    double wetDur = 0;
-    double hWetDur = 0;
-    double rh = 0;
-    double rhMax = 0;
-    double rhMin = 0;
-    double rhMean = 0;
+    float tMin = 0;
+    float tMax = 0;
+    float tMean = 0;
+    float sRad = 0;
+    float rain = 0;
+    float par = 0;
+    float wetDur = 0;
+    float hWetDur = 0;
+    float rh = 0;
+    float rhMax = 0;
+    float rhMin = 0;
+    float rhMean = 0;
     int hRH90 = 0;
 
 public:
     static WeatherS* getInstance();
 
-    double getWetDur() {
+    float getWetDur() {
         if (wetDur == 0)
             return hRH90;
         else
@@ -33,19 +33,19 @@ public:
     }
     bool updateS();
 
-    void setRain(double rain) {
+    void setRain(float rain) {
         this->rain = rain;
     }
 
-    double getRain() const {
+    float getRain() const {
         return rain;
     }
 
-    void setTMean(double tMean) {
+    void setTMean(float tMean) {
         this->tMean = tMean;
     }
 
-    double getTMean() const {
+    float getTMean() const {
         return tMean;
     }
 
@@ -65,7 +65,7 @@ public:
         return yearDoy;
     }
 
-    double getRh() const {
+    float getRh() const {
         return rh;
     }
 

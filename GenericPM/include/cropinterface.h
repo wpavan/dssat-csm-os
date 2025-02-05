@@ -21,9 +21,9 @@ protected:
     static CropInterface *instance;
     int lastOrgan = 0;
     int plantingDate = 0;
-    double newDailySenescenceArea = 0;
+    float newDailySenescenceArea = 0;
     bool newOrgan = false;
-    std::vector<std::vector<double>> data;
+    std::vector<std::vector<float>> data;
 
 public:
     static CropInterface* getInstance();
@@ -48,29 +48,29 @@ public:
         return data.size();
     }
 
-    double getOrganArea(int organ) {
+    float getOrganArea(int organ) {
         return data[organ - 1][0];
     }
 
-    double getSenescenceOrganArea(int organ) {
+    float getSenescenceOrganArea(int organ) {
         return data[organ - 1][1];
     }
 
-    double getPreviewsOrganArea(int organ) {
+    float getPreviewsOrganArea(int organ) {
         return data[organ - 1][2];
     }
 
-    double getPreviewsSenescenceOrganArea(int organ) {
+    float getPreviewsSenescenceOrganArea(int organ) {
         return data[organ - 1][3];
     }
 
-    double getRatioDueDefoliation(int organ) const {
+    float getRatioDueDefoliation(int organ) const {
         return data[organ - 1][4];
     }
 
-    void setOrganArea(int organ, double area) {
+    void setOrganArea(int organ, float area) {
         if (organ > data.size()) {
-            std::vector<double> vetLine;
+            std::vector<float> vetLine;
             vetLine.push_back(area); // Organ Area
             vetLine.push_back(0); // Senescence Area
             vetLine.push_back(area); // Previews Organ Area
@@ -86,9 +86,9 @@ public:
         }
     }
 
-    void setSenescenceOrganArea(int organ, double area) {
+    void setSenescenceOrganArea(int organ, float area) {
         if (organ > data.size()) {
-            std::vector<double> vetLine;
+            std::vector<float> vetLine;
             vetLine.push_back(0); // Organ Area
             vetLine.push_back(area); // Senescence Area
             vetLine.push_back(0); // Previews Organ Area
@@ -105,9 +105,9 @@ public:
     /* Set Senescence area (cm2/m2) in a given day (DSSAT - PEST - SLDOT)
        This area will be used to remove organs as daily senescence (older first)
     */
-    void setDailySenescenceArea(double area) {
+    void setDailySenescenceArea(float area) {
         newDailySenescenceArea = area;
-        double diff=0;
+        float diff=0;
         for (unsigned int i = 0; i < data.size(); i++) {
             // set the senescence area to each organ and just call organ rate if it has area to be affected 
             if(data[i][1] < data[i][0]) { // senescence < Organ Area
@@ -140,13 +140,13 @@ public:
     /* Return the senescence area (cm2/m2) set (DSSAT - PEST - SLDOT)
        This represents the area that need to be removed (organs - older first)
     */
-    double getDailySenescenceArea() {
+    float getDailySenescenceArea() {
         return(newDailySenescenceArea);
     }
 
-    void setRatioDueDefoliation(int organ, double ratio) {
+    void setRatioDueDefoliation(int organ, float ratio) {
         if (organ > data.size()) {
-            std::vector<double> vetLine;
+            std::vector<float> vetLine;
             vetLine.push_back(0); // Organ Area
             vetLine.push_back(0); // Senescence Area
             vetLine.push_back(0); // Previews Organ Area

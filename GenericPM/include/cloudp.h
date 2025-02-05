@@ -54,7 +54,7 @@ public:
      * 
      * @param sporesCreated Number of spores created.
      */
-    void addSporesCreated(double sporesCreated);
+    void addSporesCreated(float sporesCreated);
 };
 
 #endif // CLOUDP_H

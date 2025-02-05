@@ -17,18 +17,18 @@
 
 class Utilities {
 public:
-    static double trapezoidalFunction(double value, double v[]);
-    static double temperatureFavorability(double temp, double cardinalTemperatures[]);
-    static double wetnessFavorability(double wetDuration, std::string wetnessFunction);
-    static double growthFunction(double value, std::string expression_string);
-    static double runExpressionFunction(double value, std::string expressionString);
-    static double getHealthAreaProportion(double diseaseArea, double totalArea, double senescedArea);
-    static std::string formatDouble(double value);
-    static std::string formatDouble(double value, int decimals);
+    static float trapezoidalFunction(float value, float v[]);
+    static float temperatureFavorability(float temp, float cardinalTemperatures[]);
+    static float wetnessFavorability(float wetDuration, std::string wetnessFunction);
+    static float growthFunction(float value, std::string expression_string);
+    static float runExpressionFunction(float value, std::string expressionString);
+    static float getHealthAreaProportion(float diseaseArea, float totalArea, float senescedArea);
+    static std::string formatfloat(float value);
+    static std::string formatfloat(float value, int decimals);
     static int addOneDay(int yearDoy);
     static bool isLeapYear(int year);
 
-    static double runExpression(std::string expression_string, double value) {
+    static float runExpression(std::string expression_string, float value) {
         te_variable vars[] = {{"x", &value}};
         int err;
         te_expr *expr = te_compile(expression_string.c_str(), vars, 1, &err);

@@ -25,27 +25,27 @@ void CloudS::integrationS()
     sporesCreated = sporesToBeRemoved = 0;
 }
 
-double CloudS::getValueS()
+float CloudS::getValueS()
 {
-    double sum = 0;
+    float sum = 0;
     for (unsigned int i = 0; i < values.size(); i++)
         sum += values[i];
 
     return sum;
 }
 
-void CloudS::removeSporesCloudS(double toBeRemoved)
+void CloudS::removeSporesCloudS(float toBeRemoved)
 {
-    double total = getValueS();
+    float total = getValueS();
     for (unsigned int i = 0; i < values.size() && total > 0; i++)
     {
         values[i] -= (toBeRemoved * (values[i] / total));
     }
 }
 
-void CloudS::removeSporesCloudByRainS(double percent)
+void CloudS::removeSporesCloudByRainS(float percent)
 {
-    double oldValue = 0;
+    float oldValue = 0;
     for (unsigned int i = 0; i < values.size(); i++)
     {
         oldValue = values[i];
@@ -82,8 +82,8 @@ void CloudS::removeSporesCloudOByAgeS(void)
 /*void CloudS::removeSporesCloudFByAgeUvS(void)
 {
     int yearDoy = SimulatorS::getInstanceS()->getCurrentYearDoy();
-    double tMax = 0;
-    double tMin = 0;
+    float tMax = 0;
+    float tMin = 0;
     tMax = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "TMAX");
     tMin = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "TMIN");
    

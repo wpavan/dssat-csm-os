@@ -11,21 +11,21 @@
 using namespace std;
 
 
-vector<double> areaslf;
-vector<double> outSpore;
+vector<float> areaslf;
+vector<float> outSpore;
 
-double AREALF = UtilitiesS::runExpressionFunctionS(1,"500000");
+float AREALF = UtilitiesS::runExpressionFunctionS(1,"500000");
 
 extern "C"
 {
     // Coupling Functionsa
     int couplingInitSpore(int *YRDOY, int *YRPLT);
-    int couplingRateSpore(int *YRDOY, double *SL1);
-    double couplingIntegrationSpore(int *YRDOY, int *YRPLT);
+    int couplingRateSpore(int *YRDOY, float *SL1);
+    float couplingIntegrationSpore(int *YRDOY, int *YRPLT);
     int couplingOutputSpore(int *doy);
 }
 
-double CLWpS, SLApS;
+float CLWpS, SLApS;
 
 // Coupling Functions Implementation
 
@@ -46,11 +46,11 @@ int couplingInitSpore(int *YRDOY, int *YRPLT)
     return (1);
 }
 
-int couplingRateSpore(int *YRDOY, double *SL1)
+int couplingRateSpore(int *YRDOY, float *SL1)
 {
     // Temporary variable used for computations 
-    double temp = 0, newOrgan = 0;
-    double CloudField = 0;
+    float temp = 0, newOrgan = 0;
+    float CloudField = 0;
     // Get an instance of Simulator
     SimulatorS *sS = SimulatorS::getInstanceS();
     //newOrgan = sS->getCropInterface()->getOrgansQtd()+1;
@@ -79,11 +79,11 @@ int couplingRateSpore(int *YRDOY, double *SL1)
     return (1);
 }
 
-double couplingIntegrationSpore(int *YRDOY,  int *YRPLT)
+float couplingIntegrationSpore(int *YRDOY,  int *YRPLT)
 {
     // Temporary variable used for computations
-    double dArea = 0, tArea = 0, pDArea = 0, sArea = 0, pclaCalc = 0;
-    double CloudField = 0;
+    float dArea = 0, tArea = 0, pDArea = 0, sArea = 0, pclaCalc = 0;
+    float CloudField = 0;
 
     // Get an instance of SimulatorS
     SimulatorS *sS = SimulatorS::getInstanceS();

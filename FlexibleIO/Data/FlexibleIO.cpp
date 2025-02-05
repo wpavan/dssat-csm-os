@@ -41,7 +41,7 @@ FlexibleIO::FlexibleIO()
 }
 
 
-double FlexibleIO::getReal(std::string GROUP, std::string VARNAME)
+float FlexibleIO::getReal(std::string GROUP, std::string VARNAME)
 {
 
     if ( this->datatwodimensional[GROUP][VARNAME] != "\0")
@@ -83,7 +83,7 @@ std::string FlexibleIO::getChar(std::string GROUP, std::string VARNAME)
 
 }
 
-double FlexibleIO::getRealIndex(std::string GROUP, std::string VARNAME, int INDEX)
+float FlexibleIO::getRealIndex(std::string GROUP, std::string VARNAME, int INDEX)
 {
 
     if ( this->datathreedimensional[GROUP][VARNAME][std::to_string(INDEX)] != "\0")
@@ -125,12 +125,12 @@ std::string FlexibleIO::getCharIndex(std::string GROUP, std::string VARNAME, int
 
 }
 
-double* FlexibleIO::getRealArray(std::string GROUP, std::string VARNAME, std::string SIZE)
+float* FlexibleIO::getRealArray(std::string GROUP, std::string VARNAME, std::string SIZE)
 {
 
     int size = std::stoi(SIZE, NULL, 0);
 
-    double *array = (double*) malloc(size * sizeof(double));
+    float *array = (float*) malloc(size * sizeof(float));
     if (array == NULL)
     {
         return array;
@@ -203,7 +203,7 @@ std::string FlexibleIO::getCharArray(std::string GROUP, std::string VARNAME, std
     return strarray;
 }
 
-double FlexibleIO::getRealYrdoy(std::string GROUP, std::string YRDOY, std::string VARNAME)
+float FlexibleIO::getRealYrdoy(std::string GROUP, std::string YRDOY, std::string VARNAME)
 {
 
     if ( this->datathreedimensional[GROUP][YRDOY][VARNAME] != "\0")
@@ -246,7 +246,7 @@ std::string FlexibleIO::getCharYrdoy(std::string GROUP, std::string YRDOY, std::
 }
 
 
-void FlexibleIO::setRealMemory(std::string GROUP, std::string VARNAME, double VALUE)
+void FlexibleIO::setRealMemory(std::string GROUP, std::string VARNAME, float VALUE)
 {
 
     this->datatwodimensional[GROUP][VARNAME] = std::to_string(VALUE);
@@ -267,7 +267,7 @@ void FlexibleIO::setCharMemory(std::string GROUP, std::string VARNAME, std::stri
 
 }
 
-void FlexibleIO::setRealIndexMemory(std::string GROUP, std::string VARNAME, double VALUE, int INDEX)
+void FlexibleIO::setRealIndexMemory(std::string GROUP, std::string VARNAME, float VALUE, int INDEX)
 {
 
     this->datathreedimensional[GROUP][VARNAME][std::to_string(INDEX)] = std::to_string(VALUE);
@@ -288,7 +288,7 @@ void FlexibleIO::setCharIndexMemory(std::string GROUP, std::string VARNAME, std:
 
 }
 
-void FlexibleIO::setRealYrdoyMemory(std::string GROUP, std::string YRDOY, std::string VARNAME, double VALUE)
+void FlexibleIO::setRealYrdoyMemory(std::string GROUP, std::string YRDOY, std::string VARNAME, float VALUE)
 {
 
     this->datathreedimensional[GROUP][YRDOY][VARNAME] = std::to_string(VALUE);
