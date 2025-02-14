@@ -179,6 +179,7 @@ int* FlexibleIO::getIntegerArray(std::string GROUP, std::string VARNAME, std::st
 
 }
 
+// NOTE: Can we make another version of the getCharArray function that takes size as type size or int?
 std::string FlexibleIO::getCharArray(std::string GROUP, std::string VARNAME, std::string SIZE)
 {
 

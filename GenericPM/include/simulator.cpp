@@ -49,8 +49,41 @@ void Simulator::initialization() {
     }
 }
 
-void Simulator::inputPST() {
+// This is the placeholder to interact with the groups dedicated to GDM 2.
+// NOTE: This name must be changed to properly replace the previous version.
+void Simulator::inputPST_FromYaml() {
+    // This will mirror the existing inputPST() function.
     if (Disease::getDisease().size() == 0) {
+        FlexibleIO *flexibleio = FlexibleIO::getInstance();
+
+        // Get group names from PST group.
+        int maxDiseases = flexibleio->getInteger("PST", "MAXDISEASES");
+        std::vector<std::string> diseaseHashes;
+        std::string storedHash;
+        std::istringstream iss(flexibleio->getCharArray("PST", "DISEASES", std::to_string(maxDiseases)));
+        while (iss >> storedHash) {
+          diseaseHashes.push_back(storedHash);
+        }
+
+        for (std::string groupName : diseaseHashes) {
+            if (groupName != "-99"){
+                Disease *disease = new Disease();
+
+                // NOTE: The disease ID situation needs to be resolved.
+                // NOTE: Description also does not exist, so this should return a -99?
+                std::cout << flexibleio->getChar(groupName, "PSTNAME") << std::endl;
+                disease->setDescription(flexibleio->getChar(groupName, "PSTNAME"));
+
+                disease->setDailySporeProductionPerLesion(flexibleio->getReal(groupName, "DSPL"));
+            }
+        }
+    }
+}
+
+void Simulator::inputPST() {
+    std::cout << "inside inputPST" << std::endl;
+    if (Disease::getDisease().size() == 0) {
+        std::cout << "inside if" << std::endl;
         Disease *disease = new Disease();
         FlexibleIO *flexibleio = FlexibleIO::getInstance();
         
@@ -58,6 +91,14 @@ void Simulator::inputPST() {
         float f; 
         float arraysize3[3], arraysize4[4];
         
+        // Insert code here to bring in the disease info from yaml groups.
+        std::istringstream diseaseHash(flexibleio->getCharArray("PEST", "DISEASES", "5"));
+        while (diseaseHash >> str) {
+            std::cout << flexibleio->getChar(str, "SPE") << std::endl;
+        }
+
+
+
         str = flexibleio->getChar("PST", "PESTID#");
         disease->setId(std::stoi(str.substr(2, str.size()),nullptr,0));
         

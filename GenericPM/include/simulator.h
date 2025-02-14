@@ -33,6 +33,7 @@ protected:
 public:
     static Simulator* getInstance();
     static Simulator* newInstance();
+    void inputPST_FromYaml();
     void inputPST();
     void initialization();
     void integration();
