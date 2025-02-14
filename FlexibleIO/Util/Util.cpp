@@ -18,6 +18,7 @@
 #include <iostream>
 #include <vector>
 
+const std::string Util::BASE52_CODING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 std::string Util::trim(std::string str)
 {
@@ -343,8 +344,6 @@ int Util::checkDate(int dateReadFormat, std::vector<std::string> &dtidentfied, s
 
 }
 
-const std::string BASE52_CODING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
 std::string Util::base52Encode(size_t hashValue) {
     if (hashValue == 0) {
         return "0";
@@ -352,7 +351,7 @@ std::string Util::base52Encode(size_t hashValue) {
 
     std::string encodedResult;
     while (hashValue > 0) {
-        encodedResult = BASE52_CODING[hashValue % 52] + encodedResult;
+        encodedResult = Util::BASE52_CODING[hashValue % 52] + encodedResult;
         hashValue /= 52;
     }
     return encodedResult;

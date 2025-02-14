@@ -8,22 +8,31 @@
 #ifndef Util_H
 #define Util_H
 
-#include<string>
-#include<vector>
+#include <string>
+#include <vector>
 
-class Util
-{
-public:
-  // NOTE: Look into static vs. inline for speed improvements.
-  static std::string trim(std::string str);
-  static char* convert(const std::string & s);
-  static int ignore_line( std::string line);
-  static int ignore_line2(std::string line);
-  static int ignore_line3( std::string line);
-  static int Y2K_DOY(int YRDOY);
-  static bool isLeap(int year);
-  static bool formatDate(int &checkDateFormat, int &dateReadFormat, std::string &date);
-  static int checkDate(int dateReadFormat, std::vector<std::string> &dtidentfied, std::string &date);
-  static std::string base52Encode(size_t hashValue);
+class Util{
+  private:
+    static const std::string BASE52_CODING;
+  public:
+    // NOTE: Look into static vs. inline for speed improvements.
+    static std::string trim(std::string str);
+    static char* convert(const std::string & s);
+    static int ignore_line( std::string line);
+    static int ignore_line2(std::string line);
+    static int ignore_line3( std::string line);
+    static int Y2K_DOY(int YRDOY);
+    static bool isLeap(int year);
+    static bool formatDate(int &checkDateFormat, int &dateReadFormat, std::string &date);
+    static int checkDate(int dateReadFormat, std::vector<std::string> &dtidentfied, std::string &date);
+
+    /**
+     * Encode a hash value into an alpha string of base 52.
+     * 
+     * @param hashValue The hash value to encode.
+     * 
+     * @return The base 52 encoded string.
+     */
+    static std::string base52Encode(size_t hashValue);
 };
 #endif // Util_H
