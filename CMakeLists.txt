@@ -4,7 +4,7 @@
 # Define the project and the dependencies that it has
 ##########################################################################################
 # This is not true anymore because FetchContent requires VERSION >= 3.11
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5.0) 
+CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0) 
 
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
    message(FATAL_ERROR "DSSAT in-source builds are not permitted. \nMake a separate folder"
