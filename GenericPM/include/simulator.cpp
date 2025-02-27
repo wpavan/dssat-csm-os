@@ -52,15 +52,16 @@ void Simulator::initialization() {
 // This is the placeholder to interact with the groups dedicated to GDM 2.
 // NOTE: This name must be changed to properly replace the previous version.
 void Simulator::inputPST_FromYaml() {
-    // This will mirror the existing inputPST() function.
+    // This check ensures that diseases are only entered on the first year
+    // of a multi-year simulation.
     if (Disease::getDisease().size() == 0) {
         FlexibleIO *flexibleio = FlexibleIO::getInstance();
 
         // Get group names from PST group.
-        int maxDiseases = flexibleio->getInteger("PST", "MAXDISEASES");
+        int maxDiseases = flexibleio->getInteger("PEST", "MAXDISEASES");
         std::vector<std::string> diseaseHashes;
         std::string storedHash;
-        std::istringstream iss(flexibleio->getCharArray("PST", "DISEASES", std::to_string(maxDiseases)));
+        std::istringstream iss(flexibleio->getCharArray("PEST", "DISEASES", std::to_string(maxDiseases)));
         while (iss >> storedHash) {
           diseaseHashes.push_back(storedHash);
         }
@@ -71,19 +72,24 @@ void Simulator::inputPST_FromYaml() {
 
                 // NOTE: The disease ID situation needs to be resolved.
                 // NOTE: Description also does not exist, so this should return a -99?
-                std::cout << flexibleio->getChar(groupName, "PSTNAME") << std::endl;
-                disease->setDescription(flexibleio->getChar(groupName, "PSTNAME"));
-
+                std::cout << groupName << flexibleio->getChar(groupName, "ORGAN_SELECTIVITY") << std::endl;
+                disease->setDescription(flexibleio->getChar(groupName, "PESTID"));
+                
                 disease->setDailySporeProductionPerLesion(flexibleio->getReal(groupName, "DSPL"));
+                std::cout << disease->getDailySporeProductionPerLesion() << std::endl;
+                
             }
         }
     }
 }
 
 void Simulator::inputPST() {
-    std::cout << "inside inputPST" << std::endl;
+    inputPST_FromYaml();
+    
+    // This happens every new initialization phase, but...
     if (Disease::getDisease().size() == 0) {
-        std::cout << "inside if" << std::endl;
+        // ...this happens only the first time. Once the 
+        // disease is created it is not destroyed.
         Disease *disease = new Disease();
         FlexibleIO *flexibleio = FlexibleIO::getInstance();
         
@@ -96,8 +102,6 @@ void Simulator::inputPST() {
         while (diseaseHash >> str) {
             std::cout << flexibleio->getChar(str, "SPE") << std::endl;
         }
-
-
 
         str = flexibleio->getChar("PST", "PESTID#");
         disease->setId(std::stoi(str.substr(2, str.size()),nullptr,0));

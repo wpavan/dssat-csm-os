@@ -123,15 +123,14 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::string group
     case 5: // YAML::NodeType::Undefined:
       flexIO->setCharMemory(groupName, paramName, "-99");
       break;
-
-    default:
-      break;
   }
-  
 }
 
+// Before entering into flexibleio, handle all of the preprocessing 
+int readPestYaml(char *filePST, char *PESTID, int *FOUND) {
+  // NOTE: This is a manual setting of the input file and should be removed.
+  filePST = "WHGEN048.yaml";
 
-int readPestYaml(std::string filePST) {
   FlexibleIO* flexIOInstance = FlexibleIO::getInstance();
   std::vector<YAML::Node> diseases;
   std::string groupName;
@@ -142,7 +141,7 @@ int readPestYaml(std::string filePST) {
   int maxDiseases = 5;
   std::vector<std::string> diseaseHashes;
   std::string storedHash;
-  std::istringstream iss(flexIOInstance->getCharArray("PST", "DISEASES", std::to_string(maxDiseases)));
+  std::istringstream iss(flexIOInstance->getCharArray("PEST", "DISEASES", std::to_string(maxDiseases)));
   while (iss >> storedHash) {
     diseaseHashes.push_back(storedHash);
   }
@@ -155,9 +154,10 @@ int readPestYaml(std::string filePST) {
       break;
     }
   }
+
   // Then clear out the overall disease list.
-  flexIOInstance->eraseGroupMemory("PST");
-  flexIOInstance->setIntegerMemory("PST", "MAXDISEASES", maxDiseases);
+  flexIOInstance->eraseGroupMemory("PEST");
+  flexIOInstance->setIntegerMemory("PEST", "MAXDISEASES", maxDiseases);
 
   // Try to read the input YAML file and throw an error if it doesn't work.
   // NOTE: How should we address errors in GDM/FlexibleIO?
@@ -166,7 +166,8 @@ int readPestYaml(std::string filePST) {
   }
   catch (const std::exception& e) {
     std::cout << "Exception: " << e.what() << std::endl;
-    return 0; // NOTE: Check and make sure this is the right return.
+    *FOUND = -1;
+    return 1; // NOTE: Check and make sure this is the right return.
   }
 
   // Iterate through the 'documents' in the YAML file which each enumerate 
@@ -199,6 +200,7 @@ int readPestYaml(std::string filePST) {
 
         for (auto it=disease.begin(); it!=disease.end(); ++it) {
           std::string key = it->first.as<std::string>();
+          // NOTE: name "value" here is a bit hard to understand because it refers to the entire submapping (value, desc, etc.)
           YAML::Node value = it->second;
 
           switch (value.Type()) {
@@ -210,6 +212,10 @@ int readPestYaml(std::string filePST) {
             // These will include all of the metadata for the disease.
             // NOTE: -99 conversions to NA should be done here and checked top-level.
             case 2: // YAML::NodeType::Scalar:
+              // Add important metadata to FlexibleIO.
+              if (key == "PESTID" || key == "DISEASE") {
+                flexIOInstance->setCharMemory(groupName, key, value.as<std::string>());
+              }
               break;
 
             // This is seen mostly inside parameter nodes. May not need to check here.
@@ -218,7 +224,7 @@ int readPestYaml(std::string filePST) {
             
             // Every functional disease parameter must fit into this category.
             // We should write a function above which adds a single FlexibleIO 
-            // variable at a time. To lessen the time impact, pass one shared instance 
+            // variable at a time. To lessen the time demand, pass one shared instance 
             // of FlexibleIO. (I think this is already handled by FlexibleIO )
             case 4: // YAML::NodeType::Map:
               addPestParam(key, value, groupName);
@@ -237,7 +243,7 @@ int readPestYaml(std::string filePST) {
         }
       }
     }
-    // Move on to the next disease in the YAML file, if relevant.
+    // Move on to the next disease in the YAML file, if present.
     diseaseNum++;
   }
   // No more diseases found in the YAML file.
@@ -245,7 +251,7 @@ int readPestYaml(std::string filePST) {
 } 
 
 int readPest(char *filePST, char *PESTID, int *FOUND) {
-  readPestYaml("WHGEN048.yaml");
+  readPestYaml(filePST, PESTID, FOUND);
 
     std::string file(filePST), PestID(PESTID), type;
     file = Util::trim(file);
@@ -337,5 +343,4 @@ int readPest(char *filePST, char *PESTID, int *FOUND) {
         *FOUND = -1;
 
     return 1;
-
 }
