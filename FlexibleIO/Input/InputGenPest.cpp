@@ -6,6 +6,7 @@
   01/07/2018 FO Added Read Pest header.
 ========================================================================*/
 #include <string>
+#include <regex>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -95,6 +96,39 @@ int readPestH(std::string file){
 std::string hashDisease(std::string diseaseName) {
   return Util::base52Encode(std::hash<std::string>{}(diseaseName));
 }
+
+
+std::string replacePlaceholders(std::string originalValue, YAML::Node disease){
+  // First, look for the special charcter '$' which indicates a variable reference.
+  // If the variable reference is not found, then return the original value.
+  // If the variable reference is found, then look for the variable in the rest of the file.
+  std::regex varPattern(R"(\$\w+)");
+  std::smatch matchResults;
+
+  bool replaced = true;
+
+  while (replaced) {
+    replaced = false;
+    std::string tempStr = originalValue;
+
+    while (std::regex_search(tempStr, matchResults, varPattern)) {
+      std::string placeholder = matchResults.str();
+      std::string key = placeholder.substr(1); // Remove the '$'
+      // Then, look for the variable name in the disease YAML::Node.
+      if (disease[key]){
+        std::string value = disease[key]["VALUE"].as<std::string>();
+        // Finally, replace the variable reference with the actual value.
+        originalValue = std::regex_replace(originalValue, std::regex("\\" + placeholder), value);
+        replaced = true;
+      }
+      // Being sure to keep checking the rest of the string for placeholders.
+      tempStr = matchResults.suffix();
+    }
+  }
+
+  return originalValue;
+}
+
 
 void addPestParam(std::string paramName, YAML::Node valueNode, std::string groupName) {
   FlexibleIO* flexIO = FlexibleIO::getInstance();
@@ -186,7 +220,19 @@ int readPestYaml(char *filePST, char *PESTID, int *FOUND) {
       if (disease.IsMap()) {
       // Disease YAML::Node is active and of proper type, so load it.
       // NOTE: Is checking disease.IsMap() necessary?
+      // Step 1 to loading the disease is to process the input for variable references.
+      for (auto it=disease.begin(); it!=disease.end(); ++it) {
+        std::string key = it->first.as<std::string>();
+        // NOTE: name "value" here is a bit hard to understand because it refers to the entire submapping (value, desc, etc.)
+        YAML::Node value = it->second;
 
+        if (value.Type() == 4) {
+          std::string originalValue = value["VALUE"].as<std::string>();
+          value["VALUE"] = replacePlaceholders(originalValue, disease);
+        }
+      }
+
+      // Step 2 is to load the disease into flexibleio.
       std::cout << "Loading disease: " << disease["DISEASE"].as<std::string>() << " With size: " << disease.size() << std::endl;
 
       /* Create the disease groupName for FlexibleIO. Hashing ensures uniqueness.
