@@ -75,12 +75,9 @@ void Simulator::inputPST_FromYaml() {
 
                 // NOTE: The disease ID situation needs to be resolved.
                 // NOTE: Description also does not exist, so this should return a -99?
-                std::cout << groupName << flexibleio->getChar(groupName, "ORGAN_SELECTIVITY") << std::endl;
                 disease->setDescription(flexibleio->getChar(groupName, "PESTID"));
                 
-                std::cout << "Value in flexibleIO" << flexibleio->getReal(groupName, "DSPL") << std::endl;
                 disease->setDailySporeProductionPerLesion((float) flexibleio->getReal(groupName, "DSPL"));
-                std::cout << "Value in disease" << disease->getDailySporeProductionPerLesion() << std::endl;
                 
                 f = flexibleio->getRealIndex("PST", "SPE", 1);
                 arraysize4[0] = (float) f;

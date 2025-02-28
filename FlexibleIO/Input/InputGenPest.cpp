@@ -148,10 +148,7 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::string group
       flexIO->setCharMemory(groupName, paramName, "-99");
       break;
 
-    case 2: // YAML::NodeType::Scalar:
-      if (paramName == "DSPL") {
-        std::cout << groupName << " contains " << valueNode["VALUE"].as<std::string>() << "For DSPL" << std::endl;
-      } 
+    case 2: // YAML::NodeType::Scalar: 
       flexIO->setCharMemory(groupName, paramName, valueNode["VALUE"].as<std::string>());
       break;
 
