@@ -226,9 +226,20 @@ int readPestYaml(char *filePST, char *PESTID, int *FOUND) {
         // NOTE: name "value" here is a bit hard to understand because it refers to the entire submapping (value, desc, etc.)
         YAML::Node value = it->second;
 
-        if (value.Type() == 4 && value["VALUE"].Type() == 2) {
-          std::string originalValue = value["VALUE"].as<std::string>();
-          value["VALUE"] = replacePlaceholders(originalValue, disease);
+        // Check if the node is a map (i.e. a parameter node)
+        if (value.Type() == 4) {
+          // Check if the value is a string or numeric value.
+          if (value["VALUE"].Type() == 2) {
+            std::string originalValue = value["VALUE"].as<std::string>();
+            value["VALUE"] = replacePlaceholders(originalValue, disease);
+          // Check if the value is a sequence, so each one can be checked for placeholders.
+          // This is necessary because automatic sequence -> string conversion is not supported.
+          } else if (value["VALUE"].Type() == 3) {
+            for (int i=0; i<value["VALUE"].size(); i++) {
+              std::string originalValue = value["VALUE"][i].as<std::string>();
+              value["VALUE"][i] = replacePlaceholders(originalValue, disease);
+            }
+          }
         }
       }
 
