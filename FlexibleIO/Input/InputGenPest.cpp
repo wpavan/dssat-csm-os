@@ -116,7 +116,7 @@ std::string replacePlaceholders(std::string originalValue, YAML::Node disease){
       std::string key = placeholder.substr(1); // Remove the '$'
       // Then, look for the variable name in the disease YAML::Node.
       if (disease[key]){
-        std::string value = disease[key]["VALUE"].as<std::string>();
+        std::string value = '(' + disease[key]["VALUE"].as<std::string>() + ')';
         // Finally, replace the variable reference with the actual value.
         originalValue = std::regex_replace(originalValue, std::regex("\\" + placeholder), value);
         replaced = true;
@@ -226,7 +226,7 @@ int readPestYaml(char *filePST, char *PESTID, int *FOUND) {
         // NOTE: name "value" here is a bit hard to understand because it refers to the entire submapping (value, desc, etc.)
         YAML::Node value = it->second;
 
-        if (value.Type() == 4) {
+        if (value.Type() == 4 && value["VALUE"].Type() == 2) {
           std::string originalValue = value["VALUE"].as<std::string>();
           value["VALUE"] = replacePlaceholders(originalValue, disease);
         }
