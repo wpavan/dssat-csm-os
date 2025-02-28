@@ -98,7 +98,7 @@ std::string hashDisease(std::string diseaseName) {
 }
 
 
-std::string replacePlaceholders(std::string originalValue, YAML::Node disease){
+std::string replacePlaceholders(std::string originalValue, std::string originalType, YAML::Node disease){
   // First, look for the special charcter '$' which indicates a variable reference.
   // If the variable reference is not found, then return the original value.
   // If the variable reference is found, then look for the variable in the rest of the file.
@@ -107,19 +107,29 @@ std::string replacePlaceholders(std::string originalValue, YAML::Node disease){
 
   bool replaced = true;
 
-  while (replaced) {
+  while (replaced){
     replaced = false;
     std::string tempStr = originalValue;
 
-    while (std::regex_search(tempStr, matchResults, varPattern)) {
+    while (std::regex_search(tempStr, matchResults, varPattern)){
       std::string placeholder = matchResults.str();
       std::string key = placeholder.substr(1); // Remove the '$'
       // Then, look for the variable name in the disease YAML::Node.
       if (disease[key]){
-        std::string value = '(' + disease[key]["VALUE"].as<std::string>() + ')';
-        // Finally, replace the variable reference with the actual value.
-        originalValue = std::regex_replace(originalValue, std::regex("\\" + placeholder), value);
-        replaced = true;
+        // Here, we check to see if the variable is a string (used for equations where parentheses are needed).
+        if (originalType == "std::string" || originalType == "string"){
+          std::string value = '(' + disease[key]["VALUE"].as<std::string>() + ')';
+          // Finally, replace the variable reference with the actual value.
+          originalValue = std::regex_replace(originalValue, std::regex("\\" + placeholder), value);
+          replaced = true;
+        // If it is not an equation, then numeric substitution should be without parentheses.
+        } else {
+          std::string value = disease[key]["VALUE"].as<std::string>();
+          // Finally, replace the variable reference with the actual value.
+          originalValue = std::regex_replace(originalValue, std::regex("\\" + placeholder), value);
+          replaced = true;
+        }
+        
       }
       // Being sure to keep checking the rest of the string for placeholders.
       tempStr = matchResults.suffix();
@@ -139,6 +149,9 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::string group
       break;
 
     case 2: // YAML::NodeType::Scalar:
+      if (paramName == "DSPL") {
+        std::cout << groupName << " contains " << valueNode["VALUE"].as<std::string>() << "For DSPL" << std::endl;
+      } 
       flexIO->setCharMemory(groupName, paramName, valueNode["VALUE"].as<std::string>());
       break;
 
@@ -206,6 +219,7 @@ int readPestYaml(char *filePST, char *PESTID, int *FOUND) {
 
   // Iterate through the 'documents' in the YAML file which each enumerate 
   // one disease.
+  // NOTE: Check to see if this '&' implies immutability.
   for (const auto& disease : diseases) {
     // Disease not formatted correctly.
     if (!disease["IS_ACTIVE"]) {
@@ -231,20 +245,22 @@ int readPestYaml(char *filePST, char *PESTID, int *FOUND) {
           // Check if the value is a string or numeric value.
           if (value["VALUE"].Type() == 2) {
             std::string originalValue = value["VALUE"].as<std::string>();
-            value["VALUE"] = replacePlaceholders(originalValue, disease);
+            std::string originalType = value["TYPE"].as<std::string>();
+            value["VALUE"] = replacePlaceholders(originalValue, originalType, disease);
           // Check if the value is a sequence, so each one can be checked for placeholders.
           // This is necessary because automatic sequence -> string conversion is not supported.
           } else if (value["VALUE"].Type() == 3) {
             for (int i=0; i<value["VALUE"].size(); i++) {
               std::string originalValue = value["VALUE"][i].as<std::string>();
-              value["VALUE"][i] = replacePlaceholders(originalValue, disease);
+              std::string originalType = value["TYPE"].as<std::string>();
+              value["VALUE"][i] = replacePlaceholders(originalValue, originalType, disease);
             }
           }
         }
       }
 
       // Step 2 is to load the disease into flexibleio.
-      std::cout << "Loading disease: " << disease["DISEASE"].as<std::string>() << " With size: " << disease.size() << std::endl;
+      // std::cout << "Loading disease: " << disease["DISEASE"].as<std::string>() << " With size: " << disease.size() << std::endl;
 
       /* Create the disease groupName for FlexibleIO. Hashing ensures uniqueness.
        * All of the diseases have their own group in memory. The "PST" group holds
