@@ -32,6 +32,7 @@ public:
     void rateS();
     void updateCurrentYearDoyS(int yearDoy);
     bool allPlantsSenescedS();
+    void inputPST_FromYamlS();
 
     std::vector<PlantS>& getPlants() {
         return plants;

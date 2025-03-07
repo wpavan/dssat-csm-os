@@ -9,6 +9,8 @@ int InitialConditionS::qtdS = 0;
 /** Calculate the daily favorability based on temp * wetness favorability*/
 void InitialConditionS::rateS() {
     if (!stop) {
+        std::cout << "TMean " << BasicS::getWeather()->getTMean() << " Temperature Favorability " << cloudf.getDisease()->getTemperatureFavorabilitySet() <<
+        " Wetness Duration " << BasicS::getWeather()->getWetDur() << " Wetness Function " << cloudf.getDisease()->getWetnessFunction() << "." << std::endl;
         dailyFavorability = UtilitiesS::temperatureFavorabilityS(BasicS::getWeather()->getTMean(),
                                                                cloudf.getDisease()->getTemperatureFavorabilitySet()) 
                             *

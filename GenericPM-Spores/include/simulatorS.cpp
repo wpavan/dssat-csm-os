@@ -38,8 +38,107 @@ void SimulatorS::inicializationS() {
         initialConditions.emplace_back(diseases[i]);
 }
 
+void SimulatorS::inputPST_FromYamlS() {
+    // This check ensures that diseases are only entered on the first year
+    // of a multi-year simulation.
+    if (DiseaseS::getDisease().size() == 0) {
+        FlexibleIO *flexibleio = FlexibleIO::getInstance();
+        std::string str;
+        float f; 
+        float arraysize3[3], arraysize4[4];
+
+        // Get group names from PST group.
+        int maxDiseases = flexibleio->getInteger("PEST", "MAXDISEASES");
+        std::vector<std::string> diseaseHashes;
+        std::string storedHash;
+        std::istringstream iss(flexibleio->getCharArray("PEST", "DISEASES", std::to_string(maxDiseases)));
+        while (iss >> storedHash) {
+          diseaseHashes.push_back(storedHash);
+        }
+
+        for (std::string groupName : diseaseHashes) {
+            if (groupName != "-99"){
+                DiseaseS *disease = new DiseaseS();
+
+                // NOTE: The disease ID situation needs to be resolved.
+                // NOTE: Description also does not exist, so this should return a -99?
+                disease->setDescription(flexibleio->getChar(groupName, "PESTID"));
+                
+                disease->setDailySporeProductionPerLesion((float) flexibleio->getReal(groupName, "DSPL"));
+                
+                f = flexibleio->getRealIndex(groupName, "SPE", 1);
+                arraysize4[0] = (float) f;
+                f = flexibleio->getRealIndex(groupName, "SPE", 2);
+                arraysize4[1] = (float) f;
+                f = flexibleio->getRealIndex(groupName, "SPE", 3);
+                arraysize4[2] = (float) f;
+                f = flexibleio->getRealIndex(groupName, "SPE", 4);
+                arraysize4[3] = (float) f;
+                disease->setCohortAgeSet(arraysize4);
+
+                f = flexibleio->getRealIndex(groupName, "SCF", 1);
+                arraysize3[0] = (float) f;
+                f = flexibleio->getRealIndex(groupName, "SCF", 2);
+                arraysize3[1] = (float) f;
+                f = flexibleio->getRealIndex(groupName, "SCF", 3);
+                arraysize3[2] = (float) f;
+                disease->setSporulationCrowdingFactorsSet(arraysize3);
+                
+                disease->setMaxSporeCloudsDensity((float) flexibleio->getReal(groupName, "MSCD"));
+                
+                disease->setProportionFromOrganToPlantCloud((float) flexibleio->getReal(groupName, "SPO2P"));
+                
+                disease->setProportionFromPlantToFieldCloud((float) flexibleio->getReal(groupName, "SPP2F"));
+                
+                disease->setVectorSizeCloudF(flexibleio->getIntegerIndex(groupName, "CCFPO", 1));
+                
+                disease->setVectorSizeCloudP(flexibleio->getIntegerIndex(groupName, "CCFPO", 2));
+                
+                disease->setVectorSizeCloudO(flexibleio->getIntegerIndex(groupName, "CCFPO", 3));
+                
+                disease->setMRRS(flexibleio->getInteger(groupName, "MRRS"));
+                
+                disease->setInitialInoculum((float) flexibleio->getReal(groupName, "II"));
+                
+                disease->setAcumulateFavorability((float) flexibleio->getReal(groupName, "AFII"));    
+                
+                f = flexibleio->getRealIndex(groupName, "TFS", 1);
+                arraysize3[0] = (float) f;
+                f = flexibleio->getRealIndex(groupName, "TFS", 2);
+                arraysize3[1] = (float) f;
+                f = flexibleio->getRealIndex(groupName, "TFS", 3);
+                arraysize3[2] = (float) f;
+                disease->setTemperatureFavorabilitySet(arraysize3);
+                
+                disease->setInfectionEfficiency((float) flexibleio->getReal(groupName, "IE"));
+                
+                disease->setInitialPustuleSize((float) flexibleio->getReal(groupName, "IPS"));
+                
+                disease->setLatentPeriod(flexibleio->getInteger(groupName, "LP"));
+                
+                disease->setInfectionPeriod(flexibleio->getInteger(groupName, "IP"));
+                
+                disease->setWetnessThreshold((float) flexibleio->getReal(groupName, "WT"));
+                
+                disease->setHostFactor((float) flexibleio->getReal(groupName, "HF"));
+                
+                disease->setInvisibleGrowthFunction(flexibleio->getChar(groupName, "IGF"));
+                
+                disease->setVisibleGrowthFunction(flexibleio->getChar(groupName, "VGF"));
+
+                disease->setWetnessFunction(flexibleio->getChar(groupName, "WF"));
+
+                // disease->setDispersionFrequency(flexibleio->getChar(groupName, "DRE"));
+
+                disease->setRhFactor(flexibleio->getChar(groupName, "RHFac"));
+            }
+        }
+    }
+}
+
 void SimulatorS::inputPSTS() {
-  
+    inputPST_FromYamlS();
+/*
   if (DiseaseS::getDisease().size() == 0) {
       DiseaseS *disease = new DiseaseS();
       FlexibleIO *flexibleio = FlexibleIO::getInstance();
@@ -126,7 +225,7 @@ void SimulatorS::inputPSTS() {
       disease->setRhFactor(flexibleio->getChar("PST", "RHFac"));
 
   }
-  
+*/  
 }
 
 void SimulatorS::integrationS() {
