@@ -6,7 +6,10 @@
 
 #include <string>
 #include <vector>
-#include<algorithm>
+#include <algorithm>
+#include <iostream>
+
+using namespace std;
 
 class DiseaseS : public BasicS {
 protected:
@@ -50,6 +53,37 @@ public:
     static std::vector<DiseaseS*>& getDisease() {
         return listDiseasesS;
     }
+
+    void printDiseaseS() {
+        std::cout << "Disease ID: " << id << std::endl;
+        std::cout << "Description: " << description << std::endl;
+        std::cout << "Infection Efficiency: " << infectionEfficiency << std::endl;
+        std::cout << "Initial Inoculum: " << initialInoculum << std::endl;
+        std::cout << "Vector Size Cloud F: " << vectorSizeCloudF << std::endl;
+        std::cout << "Vector Size Cloud P: " << vectorSizeCloudP << std::endl;
+        std::cout << "Vector Size Cloud O: " << vectorSizeCloudO << std::endl;
+        std::cout << "Daily Spore Production Per Lesion: " << dailySporeProductionPerLesion << std::endl;
+        std::cout << "Cohort Age Set: " << cohortAgeSet[0] << " " << cohortAgeSet[1] << " " << cohortAgeSet[2] << " " << cohortAgeSet[3] << std::endl;
+        std::cout << "Sporulation Crowding Factors Set: " << sporulationCrowdingFactorsSet[0] << " " << sporulationCrowdingFactorsSet[1] << " " << sporulationCrowdingFactorsSet[2] << std::endl;
+        std::cout << "Max Spore Clouds Density: " << maxSporeCloudsDensity << std::endl;
+        std::cout << "Proportion From Organ To Plant Cloud: " << proportionFromOrganToPlantCloud << std::endl;
+        std::cout << "Proportion From Plant To Field Cloud: " << proportionFromPlantToFieldCloud << std::endl;
+        std::cout << "Temperature Favorability Set: " << temperatureFavorabilitySet[0] << " " << temperatureFavorabilitySet[1] << " " << temperatureFavorabilitySet[2] << std::endl;
+        std::cout << "Latent Period: " << latentPeriod << std::endl;
+        std::cout << "Infection Period: " << infectionPeriod << std::endl;
+        std::cout << "MRRS: " << MRRS << std::endl;
+        std::cout << "Visible Growth Function: " << visibleGrowthFunction << std::endl;
+        std::cout << "Wetness Function: " << wetnessFunction << std::endl;
+        std::cout << "Deposition Frequency: " << depositionFrequency << std::endl;
+        std::cout << "Initial Pustule Size: " << initialPustuleSize << std::endl;
+        std::cout << "Invisible Growth Function: " << invisibleGrowthFunction << std::endl;
+        std::cout << "Wetness Threshold: " << wetnessThreshold << std::endl;
+        std::cout << "Acumulate Favorability: " << acumulateFavorability << std::endl;
+        std::cout << "Host Factor: " << hostFactor << std::endl;
+        std::cout << "Cardinal Temp Physiological Life: " << cardinalTempPhysiologicalLife[0] << " " << cardinalTempPhysiologicalLife[1] << " " << cardinalTempPhysiologicalLife[2] << " " << cardinalTempPhysiologicalLife[3] << std::endl;
+        std::cout << "Rh Factor: " << rhFactor << std::endl;
+    }
+
     float getSporulationCrowdingFactorS(float proportionDiseaseArea);
     int newLesionsS(float cloudDensity, float healthyAreaProportion);
 

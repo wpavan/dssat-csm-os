@@ -1,10 +1,10 @@
 #include "utilitiesS.h"
-#include<cmath>
-#include<string>
-#include<sstream>
-#include<iomanip>
+#include <cmath>
+#include <string>
+#include <sstream>
+#include <iomanip>
 #include "diseaseS.h"
-#include<iostream>
+#include <iostream>
 
 float UtilitiesS::trapezoidalFunctionS(float value, float v[]) {
     if (value >= v[1] && value <= v[2])
@@ -34,33 +34,26 @@ float UtilitiesS::temperatureFavorabilityS(float temp, float cardinalTemperature
 }
 
 float UtilitiesS::wetnessFavorabilityS(float wetDuration, std::string wetnessFunction) {
-//    float wf;
-    float wf, k = 0.99374, b = 350.81064, r = 0.88591;
-    //wf = (k / (1 + b * exp(-r * wetDuration)));
-    wf = UtilitiesS::growthFunction(wetnessFunction, wetDuration);
-    //std::cout<<"WF: "<<wf<<std::endl;
-    //std::cout<<"WF: "<<wf<<" wetnessFunction: "<<wetnessFunction<<" wetDuration: "<<wetDuration<<std::endl;
+    return UtilitiesS::runExpression(wetnessFunction, wetDuration);
+}
 
-    //printf("WF: %f Wetness Function: %s WetDuration: %f",wetnessFunction, wf,wetDuration);  
-    return wf;
+float UtilitiesS::growthFunction(std::string expressionString, float value) {
+    return UtilitiesS::runExpression(expressionString, value);
 }
 
 float UtilitiesS::dispersalRainFunctionS(float rain, std::string dispersionFreequency) {
-    float dre;
-    // We need to revisit this function *********
+    // NOTE: We need to revisit this function
     if(rain < 0) rain = 0;
-    //printf("rain: %f dispersionFreequency: %s\n",rain,dispersionFreequency.c_str());
-    dre = UtilitiesS::growthFunction(dispersionFreequency, rain);
-    //std::cout<<"DRE: "<<dre<<" Rain: "<<rain<<" DisperifonF: "<<dispersionFreequency<<std::endl;
-    return dre;
+    return UtilitiesS::runExpression(dispersionFreequency, rain);
 }
+
 float UtilitiesS::runExpressionFunctionS(float value, std::string expressionString) {
     return UtilitiesS::runExpression(expressionString, value);
 }
 
 float UtilitiesS::getHealthAreaProportionS(float diseaseArea, float totalArea, float senescedArea) {
-        float hap = 1 - ((diseaseArea+senescedArea) / totalArea);
-        return (hap > 0 ? hap : 0);
+    float hap = 1 - ((diseaseArea+senescedArea) / totalArea);
+    return (hap > 0 ? hap : 0);
     //float hap = (1 - (diseaseArea / totalArea));
     //return (hap > 0 ? hap : 0);
 }

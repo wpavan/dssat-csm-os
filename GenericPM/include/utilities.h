@@ -14,6 +14,8 @@
 #include "../TinyExpr/tinyexpr.h"
 
 #include <string>
+#include <cstring>
+#include <iostream>
 
 class Utilities {
 public:
@@ -29,10 +31,20 @@ public:
     static bool isLeapYear(int year);
 
     static float runExpression(std::string expression_string, float value) {
-        te_variable vars[] = {{"x", &value}};
+        double x = value;
+        te_variable vars[] = {{"x", &x}};
+
         int err;
         te_expr *expr = te_compile(expression_string.c_str(), vars, 1, &err);
-        return te_eval(expr);
+        
+        if (err != 0 || expr == nullptr) {
+            std::cout << "Error: " << err << std::endl;
+        }
+
+        float result = te_eval(expr);
+
+        te_free(expr);
+        return result;
     }
 };
 

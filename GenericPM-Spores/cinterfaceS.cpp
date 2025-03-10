@@ -60,7 +60,7 @@ int couplingRateSpore(int *YRDOY, float *SL1)
     sS->getCropInterface()->setSoilMoisture(*SL1);
     // Set the current YearDOY for next Disease step computation
     sS->updateCurrentYearDoyS(*YRDOY);
-
+    //std::cout << *SL1 << "  -  " << *YRDOY << std::endl;
     //CinterfaceSpore spores;
     //spores.couplingIntegrationSpore(*YRDOY);
     //CloudField = spores.getcouplingCloudSpore();

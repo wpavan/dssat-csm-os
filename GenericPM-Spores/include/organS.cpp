@@ -179,7 +179,7 @@ void OrganS::rateS() {
         lc = &lesionCohorts[i];
         // Must affect the disease area related with senescent area
         if (ratioSenescence > 0) {
-            //printf("ID: %i Age: %i VisibleArea: %f InvisibleArea: %f RatioDueDefoliation: %f\n", lc->getID(), lc->getAge(), lc->getVisibleArea(),lc->getInvisibleArea(),CropInterfaceS::getInstance()->getRatioDueDefoliation(1));
+            printf("ID: %i Age: %i VisibleArea: %f InvisibleArea: %f RatioDueDefoliation: %f\n", lc->getID(), lc->getAge(), lc->getVisibleArea(),lc->getInvisibleArea(),CropInterfaceS::getInstance()->getRatioDueDefoliation(1));
             lc->setVisibleArea(lc->getVisibleArea() * (1-ratioSenescence));
             lc->setInvisibleArea(lc->getInvisibleArea() * (1-ratioSenescence));
             lc->setTotalArea(lc->getVisibleArea()+lc->getInvisibleArea());

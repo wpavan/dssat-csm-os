@@ -20,17 +20,18 @@ int DiseaseS::newLesionsS(float cloudDensity, float healthyAreaProportion) {
         newLesionsS = (cloudDensity * healthyAreaProportion * getInfectionEfficiency() *
                 util.temperatureFavorabilityS(BasicS::getWeather()->getTMean(),
                                              getTemperatureFavorabilitySet()) *
-                util.wetnessFavorabilityS(BasicS::getWeather()->getWetDur(),getWetnessFunction())) >0 ? (cloudDensity * healthyAreaProportion * getInfectionEfficiency() *
+                util.wetnessFavorabilityS(BasicS::getWeather()->getWetDur(), getWetnessFunction())) >0 ? (cloudDensity * healthyAreaProportion * getInfectionEfficiency() *
                 util.temperatureFavorabilityS(BasicS::getWeather()->getTMean(),
                                              getTemperatureFavorabilitySet()) *
-                util.wetnessFavorabilityS(BasicS::getWeather()->getWetDur(),getWetnessFunction())) : 0;
+                util.wetnessFavorabilityS(BasicS::getWeather()->getWetDur(), getWetnessFunction())) : 0;
             /*std::cout << " 1: " << newLesionsS << " 2: " << cloudDensity << " 3: " << healthyAreaProportion << " 4: " << getInfectionEfficiency() <<
-                " 5: " << util.temperatureFavorabilityS(BasicS::getWeather()->getTMean(),getTemperatureFavorabilitySet()) << " 6: " <<
-                util.wetnessFavorabilityS(BasicS::getWeather()->getWetDur()) << " 7: " << BasicS::getWeather()->getWetDur()<< std::endl; */
+                " 5: " << util.temperatureFavorabilityS(BasicS::getWeather()->getTMean(), getTemperatureFavorabilitySet()) << " 6: " <<
+                util.wetnessFavorabilityS(BasicS::getWeather()->getWetDur(), getWetnessFunction()) << " 7: " << BasicS::getWeather()->getWetDur()<< 
+                "8: " << getWetnessFunction() << std::endl;*/
     //newLesionsS = newLesionsS * UtilitiesS::runExpressionFunctionS(BasicS::getWeather()->getRh(),getRhFactor());
     //newLesionsS= newLesionsS *  UtilitiesS::runExpressionFunctionS(BasicS::getWeather()->getRh(),getRhFactor());
     //std::cout<<newLesionsS<< " exp : "<<newLesionsS *  UtilitiesS::runExpressionFunctionS(BasicS::getWeather()->getRh(),getRhFactor()) <<std::endl; 
-   // std::cout<<"rhfacetor "<<getRhFactor()<<" RH : "<<BasicS::getWeather()->getRh()<<std::endl;
+    //std::cout<<"rhfacetor "<<getRhFactor()<<" RH : "<<BasicS::getWeather()->getRh()<<std::endl;
     }
     return newLesionsS;
 }

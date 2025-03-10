@@ -34,8 +34,8 @@ float Utilities::trapezoidalFunction(float value, float v[]) {
 //       default and this implementation be used in case of .json omission.
 float Utilities::temperatureFavorability(float temp, float cardinalTemperatures[]) {
     float tempMax = cardinalTemperatures[0], 
-           tempMin = cardinalTemperatures[1], 
-           tempOpt = cardinalTemperatures[2];
+          tempMin = cardinalTemperatures[1], 
+          tempOpt = cardinalTemperatures[2];
     float tf, a, b;
 
     b = ((tempMax - tempOpt) / (tempOpt - tempMin));

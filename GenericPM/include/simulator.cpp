@@ -144,6 +144,8 @@ void Simulator::inputPST_FromYaml() {
                 disease->setDispersionFrequency(flexibleio->getChar(groupName, "DRE"));
 
                 disease->setRhFactor(flexibleio->getChar(groupName, "RHFac"));
+                
+                disease->printDisease();
             }
         }
     }

@@ -110,6 +110,7 @@ void PlantS::rateS() {
     OrganS *o;
     for (unsigned int i = 0; i < organs.size(); i++) {
         o = &organs[i];
+        //std::cout << "Organ number: " << o->getOrganNumber() << std::endl;
         if(o->getSenescenceArea() < o->getTotalArea()) {
             if(totalArea > 0) {
                 o->setProportionFromTotalArea(o->getTotalArea()/totalArea);
