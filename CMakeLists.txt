@@ -97,8 +97,18 @@ configure_file(
     "${PROJECT_SOURCE_DIR}/Utilities/CSMVersion.for"
 )
 IF(WIN32)
-    SET(OSDefinitions "Utilities/OSDefsWINDOWS.for")
-    add_definitions(-DWIN32=1})
+    SET(DSSAT_INSTALL_DIR $CMAKE_INSTALL_PREFIX)
+    SET(OSDefinitions "Utilities/OSDefsLINUX.for")
+    configure_file(
+        "${PROJECT_SOURCE_DIR}/Data/DSSATPRO.L48.in"
+		"${PROJECT_SOURCE_DIR}/Data/DSSATPRO.L48"
+    )
+	configure_file(
+		"${PROJECT_SOURCE_DIR}/Utilities/run_dssat.in"
+		"${PROJECT_SOURCE_DIR}/Utilities/run_dssat"
+	)
+    # SET(OSDefinitions "Utilities/OSDefsWINDOWS.for")
+    # add_definitions(-DWIN32=1})
 ELSE()
     SET(DSSAT_INSTALL_DIR $CMAKE_INSTALL_PREFIX)
     SET(OSDefinitions "Utilities/OSDefsLINUX.for")
@@ -132,7 +142,6 @@ set(
         "GenericPM/include/utilities.cpp"
         "GenericPM/include/weather.cpp"
         "GenericPM-Spores/cinterfaceS.cpp"
-        "GenericPM-Spores/TinyExpr/tinyexprS.c"
         "GenericPM-Spores/include/cloudS.cpp"
         "GenericPM-Spores/include/cloudfS.cpp"
         "GenericPM-Spores/include/cloudoS.cpp"
