@@ -97,18 +97,8 @@ configure_file(
     "${PROJECT_SOURCE_DIR}/Utilities/CSMVersion.for"
 )
 IF(WIN32)
-    SET(DSSAT_INSTALL_DIR $CMAKE_INSTALL_PREFIX)
-    SET(OSDefinitions "Utilities/OSDefsLINUX.for")
-    configure_file(
-        "${PROJECT_SOURCE_DIR}/Data/DSSATPRO.L48.in"
-		"${PROJECT_SOURCE_DIR}/Data/DSSATPRO.L48"
-    )
-	configure_file(
-		"${PROJECT_SOURCE_DIR}/Utilities/run_dssat.in"
-		"${PROJECT_SOURCE_DIR}/Utilities/run_dssat"
-	)
-    # SET(OSDefinitions "Utilities/OSDefsWINDOWS.for")
-    # add_definitions(-DWIN32=1})
+    SET(OSDefinitions "Utilities/OSDefsWINDOWS.for")
+    add_definitions(-DWIN32=1})
 ELSE()
     SET(DSSAT_INSTALL_DIR $CMAKE_INSTALL_PREFIX)
     SET(OSDefinitions "Utilities/OSDefsLINUX.for")
