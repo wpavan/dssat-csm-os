@@ -9,6 +9,7 @@
  */
 
 #include "include/simulator.h"
+#include "include/utilities.h"
 #include "../GenericPM-Spores/cinterfaceS.h"
 
 #include <cmath>
@@ -40,6 +41,8 @@ extern "C" {
 }
 
 float CLWp, SLAp, SDWTp, cloudFp;
+// Declare variables used for FHB modifications:
+float SW, SL1, SLL1, SSAT1, SDUL1, FSEED, first;
 
 // Coupling Functions Implementation 
 
@@ -55,6 +58,10 @@ int couplingInit(int *YRDOY, int *YRPLT) {
     //printf("Init - YRDOY: %i YRPLT: %i\n",
     //        *YRDOY, *YRPLT);
     CLWp=0; SLAp=0; SDWTp=0; cloudFp=0;
+
+    // Set the initial values for the variables used in the coupling with the FHB model
+    FSEED = 0; first = 0;
+    
     return (1);
 }
 
@@ -72,8 +79,10 @@ int couplingRate(int *YRDOY,
     float temp = 0, newOrgan = 0;
     float CloudField = 0;
 
-    // Get an instance of Simulator
-    //printf("Rate - \n");
+    float SW = 0, SL1 = 0, SLL1 = 0, SSAT1 = 0, SDUL1 = 0, TAVG = 0;
+
+    // Get necessary instances for speed
+    FlexibleIO *fio = FlexibleIO::getInstance();
     Simulator *s = Simulator::getInstance();
 
     // NOTE: Do we plan to remove the GenericPM-Spores module from the project? 
@@ -89,31 +98,53 @@ int couplingRate(int *YRDOY,
     // Set the current YearDOY for next Disease step computation
     s->updateCurrentYearDoy(*YRDOY);
     
-    CloudField = (sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS());
-    if(CloudField < 0) {
-        CloudField = 0;
+    TAVG = fio->getReal("PEST", "TAVG");
+
+    fio->setIntegerMemory("PEST", "YRDOY", *YRDOY);
+
+    // Get the current value of the CloudField vairable from either:
+    // 1. the SimulatorS instance (if the GenericPM-Spores module is used)
+    // 2. the soil moisture equation (if soil moisture residues produce spores)
+    if (s->getPlants()[0].getCloudsP()[0].getDisease()->getSporeModule() == "GenericPM-Spores") {
+        // Here the GenericPM-Spores module is used to calculate the CloudField value.
+        CloudField = std::max(0.0f, sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS());    
+        std::cout << "Method Used: GenericPM-Spores" << std::endl;
+        std::cout << "CloudField: " << CloudField << std::endl;
+        
+        if(s->getPlants().size()>0) {
+            s->getPlants()[0].getCloudsP()[0].getCloudF()->setSporesCreated(CloudField);
+        }
+    } else if (s->getPlants()[0].getCloudsP()[0].getDisease()->getSporeModule() == "SoilMoisture") {
+        // Here the soil moisture equation is used to calculate the CloudField value.
+        std::cout << "Method Used: SoilMoisture" << std::endl;
+        if(*SDWT-SDWTp > 0){
+            if(first == 0){
+                FSEED = *YRDOY;
+                fio->setIntegerMemory("PEST", "FSEED", FSEED);
+                first = 1;
+            }
+            // NOTE: Unsure if this line is needed for the other module as well.
+            s->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));
+
+            if(s->getPlants().size()>0) {
+                SL1 = fio->getReal("PEST", "SL1");
+                SLL1 = fio->getReal("PEST", "SLL1");
+                SDUL1 = fio->getReal("PEST", "SDUL1");
+                SSAT1 = fio->getReal("PEST", "SSAT1");
+    
+                // NOTE: What does TEMP mean here Dr. Pavan?
+                //TEMP
+                SW = std::min(100.0f, std::max(0.0f, (SL1-SLL1)/(SSAT1-SLL1)*100));
+                CloudField = Utilities::runExpressionFunction(SW, s->getPlants()[0].getCloudsP()[0].getDisease()->getSWF());     
+                std::cout << "CloudField: " << CloudField << std::endl;
+
+                s->getPlants()[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
+            }         
+        }
     }
+
+    // NOTE: Unsure whether or not we need this line.
     cloudFp = sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS();
-
-    //std::cout<<"sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS(); "<<sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS()<<std::endl;
-
-    //CinterfaceSpore spores;
-    ////CloudField = spores.couplingIntegrationSpore(*YRDOY);
-    //spores.couplingIntegrationSpore(*YRDOY);
-    //CloudField = spores.getcouplingCloudSpore();
-    // Set the current Leaf area for a specific organ (one big leaf for awhile)
-    //printf("WSIDOT %f SDWT: %f WSDD %f PSDD %f DAS %i YRPLT %i SDWTp %f *SDWT-SDWTp %f \n", 
-    //                    *WSIDOT, *SDWT, *WSDD, *PSDD, *DAS, *YRPLT, SDWTp, *SDWT-SDWTp);
-    if(*SDWT-SDWTp > 0){ //&& CloudField > 0){
-        s->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));            
-    }
-    if(s->getPlants().size()>0) {
-        //std::cout <<"Spores antes: "<<s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue()<<std::endl;
-        //std::cout << *YRDOY<< " Adicionado SPORES para CloudF: corrente: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << " set to: " << CloudField <<std::endl;
-        s->getPlants()[0].getCloudsP()[0].getCloudF()->setSporesCreated(CloudField);
-        //s->getPlants()[0].getCloudsP()[0].getCloudF()->integration();
-        //std::cout << *YRDOY<< " Atual: "<< s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue() << std::endl;
-    }
 
     SDWTp = *SDWT;
 

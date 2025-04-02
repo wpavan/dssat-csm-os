@@ -144,6 +144,14 @@ void Simulator::inputPST_FromYaml() {
                 disease->setDispersionFrequency(flexibleio->getChar(groupName, "DRE"));
 
                 disease->setRhFactor(flexibleio->getChar(groupName, "RHFac"));
+
+                // Added new parameter called sporeModule to the disease class
+                // - V. L. Covert 4/1/2025
+                disease->setSporeModule(flexibleio->getChar(groupName, "SPOREMODULE"));
+
+                // Added SWF parameter which was previously unused.
+                // - V. L. Covert 4/1/2025
+                disease->setSWF(flexibleio->getChar(groupName, "SWF"));
                 
                 disease->printDisease();
             }

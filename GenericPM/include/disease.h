@@ -29,6 +29,7 @@ protected:
     int id;
     std::string cropModel = "CRGRO";
     std::string description = "Soybean Leaf Rust";
+    std::string sporeModule = "GenericPM-Spores";
 
     // NOTE: Units for all of these values would be great to include in the documentation.
     float infectionEfficiency = 0.17;
@@ -48,6 +49,7 @@ protected:
     std::string depositionFrequency = "0.367753*(x+0.001)^0.129605*exp(-0.085252*(x+0.001))";
     float initialPustuleSize = 0.00001;
     std::string invisibleGrowthFunction = "0.8*exp(-10*exp(-0.4*x))";
+    std::string SWF = "0.0000005*exp(0.20*x)";
     float wetnessThreshold = 6;
     float acumulateFavorability = 35;
     float hostFactor = 1;
@@ -101,6 +103,7 @@ public:
     void printDisease() {
         std::cout << "Disease ID: " << id << std::endl;
         std::cout << "Description: " << description << std::endl;
+        std::cout << "Spore Module: " << sporeModule << std::endl;
         std::cout << "Infection Efficiency: " << infectionEfficiency << std::endl;
         std::cout << "Initial Inoculum: " << initialInoculum << std::endl;
         std::cout << "Vector Size Cloud F: " << vectorSizeCloudF << std::endl;
@@ -126,6 +129,22 @@ public:
         std::cout << "Host Factor: " << hostFactor << std::endl;
         std::cout << "Cardinal Temp Physiological Life: " << cardinalTempPhysiologicalLife[0] << " " << cardinalTempPhysiologicalLife[1] << " " << cardinalTempPhysiologicalLife[2] << " " << cardinalTempPhysiologicalLife[3] << std::endl;
         std::cout << "Rh Factor: " << rhFactor << std::endl;
+    }
+
+    std::string getSWF() {
+        return SWF;
+    }
+
+    void setSWF(std::string SWF) {
+        this->SWF = SWF;
+    }
+
+    std::string getSporeModule() {
+        return sporeModule;
+    }
+
+    void setSporeModule(std::string sporeModule) {
+        this->sporeModule = sporeModule;
     }
 
     float getSporulationCrowdingFactor(float proportionDiseaseArea);
