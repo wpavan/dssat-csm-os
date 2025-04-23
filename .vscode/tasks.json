@@ -5,7 +5,7 @@
         {
             "label": "dssat-csm: Run DSSAT (without debugging)",
             "options": {
-                "cwd": "C:\\DSSAT48\\GDM"
+                "cwd": "C:\\DSSAT48\\GDM2"
             },
             "args": [
                 "C",
@@ -87,7 +87,7 @@
             "windows": {
                 "command": "mingw32-make.exe",
                 "args": [
-                    "-j4"
+                    "-j8"
                 ]
             },
             "osx": {
@@ -130,7 +130,8 @@
             "options": {
                 "cwd": "${workspaceRoot}"
             },
-            "command": "cmake -P distclean.cmake"
+            "command": "cmake -P distclean.cmake",
+            "problemMatcher": []
         },
         {
             "label": "dssat-csm: create build dir",

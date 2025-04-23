@@ -293,7 +293,6 @@ void Simulator::rate() {
 
     /** If Planting Date is the current day, instantiate the Plant */
     if (CropInterface::getInstance()->getPlantingDate() == getCurrentYearDoy()) {
-        //printf("NEW Plant: PlantingDate: %i - CurrentYearDoy: %i \n",CropInterface::getInstance()->getPlantingDate(), getCurrentYearDoy());
         plants.emplace_back();
     }    
 
@@ -308,6 +307,8 @@ void Simulator::rate() {
         p = &plants[i];
         p->rate();
     }
+
+    // <- Here goes the rate code injection.
 }
 
 /**

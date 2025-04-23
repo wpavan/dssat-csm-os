@@ -7,8 +7,8 @@
             "name": "Debug DSSAT-CSM",
             //Select plataform
             "windows": {
-                "cwd": "C:\\DSSAT48\\Maize",                          //<- Set execution working directory
-                "args": ["C", "UFGA8201.MZX", "1"],                   //<- Set program's arguments
+                "cwd": "C:\\DSSAT48\\GDM",                          //<- Set execution working directory
+                "args": ["C", "GENE0001.SNX", "1"],                   //<- Set program's arguments
                 "miDebuggerPath": "gdb.exe",                          //<- Set Debugger path    
             },
             "osx": {
