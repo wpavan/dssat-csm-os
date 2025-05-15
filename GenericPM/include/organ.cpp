@@ -7,7 +7,6 @@
  * @copyright Copyright (c) 2017–2025, DSSAT Foundation
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
-
 #include "organ.h"
 #include "simulator.h"
 #include "cloudo.h"
@@ -146,13 +145,11 @@ void Organ::integration() {
             << newLesionsFromOrgan << "," << newLesionsFromPlant << "," << newLesionsFromField;
     Basic::output.push_back(convert.str());
 }
-
 void Organ::cloudIntegration() {
     for (unsigned int i = 0; i < cloudsO.size(); i++) {
         (&cloudsO[i])->integration();
     }
 }
-
 float Organ::cloudAmount() {
     float cloudOValue=0;
     for (unsigned int i = 0; i < cloudsO.size(); i++) {

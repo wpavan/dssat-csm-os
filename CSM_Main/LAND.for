@@ -39,41 +39,9 @@ C-----------------------------------------------------------------------
       EXTERNAL INFO, ERROR, WARNING, IPIBS, WEATHR, SOIL, SPAM, PLANT, 
      &  OPSUM, MGMTOPS
       SAVE
-
-!------ Generic Disease Purpose -----!      
-   	  interface
-        subroutine couplingInitSpore(
-     &      YRDOY,      ! Input - Current day of simulation (YYDDD)
-     &      YRPLT       ! Input - Planting date (YYDDD)
-     &  ) bind(C, name = 'couplingInitSpore') 
-            INTEGER :: YRDOY
-            INTEGER :: YRPLT
-        end subroutine couplingInitSpore
-        subroutine couplingOutputSpore(val) bind(C, name = 'couplingOutputSpore')
-            INTEGER :: val
-        end subroutine couplingOutputSpore
-
-        subroutine couplingRateSpore(
-     &      YRDOY, 
-     &      SL1
-     &  ) bind(C, name = 'couplingRateSpore') 
-            INTEGER :: YRDOY
-            REAL :: SL1
-        end subroutine couplingRateSpore
-!     being called at couplingRateSpore
-        subroutine couplingIntegrationSpore(
-     &      YRDOY,       ! Input - Days After Simulation
-     &      YRPLT
-     &  ) bind(C, name = 'couplingIntegrationSpore') 
-            INTEGER :: YRDOY
-            INTEGER :: YRPLT
-        end subroutine couplingIntegrationSpore
-      end interface
-      CHARACTER*1  ISDYNAMICDIS,TEMPCHAR1
-      REAL TEMP, SINGLE_RUN
+      
       CHARACTER*1 ISWDIS
       CHARACTER*12  FILEP
-!----------------END-----------------!  
 
 C-----------------------------------------------------------------------
 C     Crop, Experiment, Command line Variables
@@ -250,9 +218,17 @@ C-----------------------------------------------------------------------
       CALL OPSUM (CONTROL, ISWITCH, YRPLT)
 
 C*********************************************************************** 
+
+      IF(ISWDIS.EQ.'Y') THEN
+          YRPLT = YRDOY
+          CALL READPEST(FILEP, 'WH005', 0)
+      ENDIF
+
+C*********************************************************************** 
 C     SEASONAL INITIALIZATION
 C*********************************************************************** 
       ELSEIF (DYNAMIC .EQ. SEASINIT) THEN
+
 C-----------------------------------------------------------------------
 C     Call WEATHR for initialization - reads first day of weather
 C     data for use in soil N and soil temp initialization.
@@ -413,7 +389,6 @@ C-----------------------------------------------------------------------
 
       IF(ISWDIS.EQ.'Y') THEN
         SL1 = SW(1)
-        CALL couplingRateSpore(YRDOY, SL1)
       ENDIF
 
 C***********************************************************************

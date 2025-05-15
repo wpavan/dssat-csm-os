@@ -52,13 +52,14 @@ C The statements begining with !*! are refer to APSIM source codes
 !        JZW note: KCAN/KEP  ic calculated in WH_PHENO. RWUMX is not used 
 !        PUptake/FracRts is not calculated for Nwheat, 
       USE ModuleDefs
+      USE ModuleData     ! which contain control information, soil
+                         ! parameters, hourly weather data.
       USE WH_module
       IMPLICIT NONE
       EXTERNAL GETLUN, HRES_CERES, PEST, WH_PHENOL, WH_GROSUB, 
      &  WH_OPGROW, WH_OPNIT, WH_OPHARV
 
       SAVE
-
 !----------------------------------------------------------------------
       real rwu_nw (NL)! (nwheats_watup_new OUTPUT) root water 
                       !  uptake (mm)
@@ -365,6 +366,7 @@ C The statements begining with !*! are refer to APSIM source codes
 !      value refers to this. In this way NWheat model runs normally.
 !      (Fabio - 09/10/2018)
       NR2 = 10000
+
 C----------------------------------------------------------------------
 C
 C              Code for all Dynamic Variables
