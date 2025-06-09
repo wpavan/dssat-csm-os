@@ -74,6 +74,8 @@ void Organ::integration() {
             //       in the .json file.
             if ((newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField) > 0 && physiologicalLife >= 5) {
                 newLesions = newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField;
+                std::cout << "Organ: " << organNumber << "\tnew lesions: " << newLesions << std::endl;
+                
                 lesionCohorts.emplace_back(newLesions, cloudo);
                 totalLesions += newLesions;
 
@@ -145,11 +147,13 @@ void Organ::integration() {
             << newLesionsFromOrgan << "," << newLesionsFromPlant << "," << newLesionsFromField;
     Basic::output.push_back(convert.str());
 }
+
 void Organ::cloudIntegration() {
     for (unsigned int i = 0; i < cloudsO.size(); i++) {
         (&cloudsO[i])->integration();
     }
 }
+
 float Organ::cloudAmount() {
     float cloudOValue=0;
     for (unsigned int i = 0; i < cloudsO.size(); i++) {

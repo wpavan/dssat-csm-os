@@ -304,7 +304,7 @@ C***********************************************************************
       IF(ISWDIS.EQ.'Y') THEN
           YRPLT = YRDOY
           CALL READPEST(FILEP, 'WH001', 0)
-          call couplingInitSpore(YRDOY, YRPLT)
+c          call couplingInitSpore(YRDOY, YRPLT)
       ENDIF
 
 C***********************************************************************
@@ -314,6 +314,7 @@ C***********************************************************************
       ELSE IF (DYNAMIC .EQ. RATE) THEN
 
       IF(ISWDIS.EQ.'Y') THEN
+!         SOILPROP can be used to access soils data
           SLL1 = SOILPROP % LL(1)   !Lower limit soil water,1st layer
           SDUL1 = SOILPROP % DUL(1) !Drained upper limit, 1st layer
           SSAT1 = SOILPROP % SAT(1) !Upper limit, saturated,1st layer
@@ -448,7 +449,7 @@ C-----------------------------------------------------------------------
      &    MDATE, OMADATA, TILLVALS, YRPLT)                !Output
 
       IF(ISWDIS.EQ.'Y') THEN
-        CALL couplingIntegrationSpore(YRDOY, YRPLT)
+c        CALL couplingIntegrationSpore(YRDOY, YRPLT)
       ENDIF
 
 C***********************************************************************

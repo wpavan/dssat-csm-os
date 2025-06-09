@@ -36,9 +36,11 @@ public:
 
         int err;
         te_expr *expr = te_compile(expression_string.c_str(), vars, 1, &err);
+
         
         if (err != 0 || expr == nullptr) {
-            std::cout << "Error: " << err << std::endl;
+            std::cout << "-----" << std::endl << "Expression: " << expression_string << std::endl 
+            << "Error: " << err << std::endl << "-----" << std::endl;
         }
 
         float result = te_eval(expr);

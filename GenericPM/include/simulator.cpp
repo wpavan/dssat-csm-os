@@ -290,7 +290,7 @@ void Simulator::output() {
 void Simulator::rate() {
     InitialCondition *ic;
     Plant *p;
-
+    
     /** If Planting Date is the current day, instantiate the Plant */
     if (CropInterface::getInstance()->getPlantingDate() == getCurrentYearDoy()) {
         plants.emplace_back();

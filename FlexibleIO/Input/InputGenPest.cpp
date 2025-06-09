@@ -46,7 +46,6 @@ int readPestH(std::string file){
     
     if (myfile.is_open())
     {
-      //std::cout << "PEST FILE OPEN\n";
         while (getline(myfile, line) )
         {
 
@@ -173,7 +172,7 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::string group
 // Before entering into flexibleio, handle all of the preprocessing 
 int readPestYaml(char *filePST, char *PESTID, int *FOUND) {
   // NOTE: This is a manual setting of the input file and should be removed.
-  filePST = "WHGEN048.FHB.yaml";
+  filePST = "WHGEN048.yaml";
 
   FlexibleIO* flexIOInstance = FlexibleIO::getInstance();
   std::vector<YAML::Node> diseases;

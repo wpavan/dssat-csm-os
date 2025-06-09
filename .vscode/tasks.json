@@ -5,12 +5,11 @@
         {
             "label": "dssat-csm: Run DSSAT (without debugging)",
             "options": {
-                "cwd": "C:\\DSSAT48\\GDM2"
+                "cwd": "C:\\DSSAT48\\GDM"
             },
             "args": [
-                "C",
-                "GENE0001.SNX",
-                "1"
+                "A",
+                "GENE0001.SNX"
             ],
             "command": "${workspaceRoot}\\build\\bin\\dscsm048",
             "type": "shell",
