@@ -16,6 +16,8 @@
 #include "utilities.h"
 #include "basic.h"
 
+#include "../tinycc/libtcc.h"
+
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -74,7 +76,7 @@ void Organ::integration() {
             //       in the .json file.
             if ((newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField) > 0 && physiologicalLife >= 5) {
                 newLesions = newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField;
-                std::cout << "Organ: " << organNumber << "\tnew lesions: " << newLesions << std::endl;
+                //std::cout << "Organ: " << organNumber << "\tnew lesions: " << newLesions << std::endl;
                 
                 lesionCohorts.emplace_back(newLesions, cloudo);
                 totalLesions += newLesions;

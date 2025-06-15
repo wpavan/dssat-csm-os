@@ -12,10 +12,17 @@
 #define UTILITIES_H
 
 #include "../TinyExpr/tinyexpr.h"
+#include "../tinycc/libtcc.h"
 
 #include <string>
 #include <cstring>
 #include <iostream>
+
+char testCode[] = 
+"float rate(){\n"
+"    printf(\"Hello from TCC!\");\n"
+"    return 1.0f;\n"
+"}\n";
 
 class Utilities {
 public:
@@ -46,6 +53,50 @@ public:
         float result = te_eval(expr);
 
         te_free(expr);
+        return result;
+    }
+};
+
+class TCCUtilities {
+public:
+    static float evalExternalCode(const char *code, const char *phase) {
+        TCCState *s = tcc_new();
+        if (s == nullptr) {
+            std::cerr << "Failed to create TCC state." << std::endl;
+            return -1;
+        }
+
+        tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
+
+        if (tcc_set_options(s, "-nostdlib") < 0) {
+            std::cerr << "Failed to set TCC options." << std::endl;
+            tcc_delete(s);
+            return -1;
+        }
+
+        if (tcc_compile_string(s, code) < 0) {
+            std::cerr << "Failed to compile code." << std::endl;
+            tcc_delete(s);
+            return -1;
+        }
+
+        if (tcc_relocate(s) < 0) {
+            std::cerr << "Failed to relocate code." << std::endl;
+            tcc_delete(s);
+            return -1;
+        }
+        
+        void *handle = tcc_get_symbol(s, phase);
+        if (handle == nullptr) {
+            std::cerr << "Failed to get symbol '" << phase << "'." << std::endl;
+            tcc_delete(s);
+            return -1;
+        }
+        // Cast the symbol to the correct function pointer type
+        auto func = reinterpret_cast<float(*)()>(handle);
+        float result = func();
+
+        tcc_delete(s);
         return result;
     }
 };

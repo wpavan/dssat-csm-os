@@ -13,7 +13,10 @@
 #include "../FlexibleIO/Data/FlexibleIO.hpp"
 //#include "../GenericPM-Spores/cinterfaceS.h"
 
+#include <string>
+#include <sstream>
 #include <cmath>
+#include <cstring>
 
 using namespace std;
 
@@ -42,11 +45,13 @@ extern "C" {
 }
 
 float CLWp, SLAp, SDWTp, cloudFp;
+
+
 // Declare variables used for FHB modifications:
 float SW, SL1, SLL1, SSAT1, SDUL1, FSEED, first;
 
-// Coupling Functions Implementation 
 
+// Coupling Functions Implementation 
 int couplingInit(int *YRDOY, int *YRPLT) {
     // Set the start day for Disease Model
     // Get an instance of Simulator
@@ -65,6 +70,7 @@ int couplingInit(int *YRDOY, int *YRPLT) {
     
     return (1);
 }
+
 
 int couplingRate(int *YRDOY,
         float *AREALF, float *CLW, float *CSW, float *PCLMT, float *PCSTMD,
@@ -86,6 +92,11 @@ int couplingRate(int *YRDOY,
     FlexibleIO *fio = FlexibleIO::getInstance();
     Simulator *s = Simulator::getInstance();
 
+    // Rate code injection variable declaration
+    float codeOutput = 0.0f;
+    int rateFunctionSize = 0;
+    char rateFunctionChars[] = "";
+
     // NOTE: Do we plan to remove the GenericPM-Spores module from the project? 
     // SimulatorS *sS = SimulatorS::getInstanceS();
 
@@ -102,55 +113,65 @@ int couplingRate(int *YRDOY,
     TAVG = fio->getReal("PEST", "TAVG");
 
     fio->setIntegerMemory("PEST", "YRDOY", *YRDOY);
-
-    // Get the current value of the CloudField vairable from either:
-    // 1. the SimulatorS instance (if the GenericPM-Spores module is used)
-    // 2. the soil moisture equation (if soil moisture residues produce spores)
-    /*if (s->getPlants()[0].getCloudsP()[0].getDisease()->getSporeModule() == "GenericPM-Spores") {
-        // Here the GenericPM-Spores module is used to calculate the CloudField value.
-        CloudField = std::max(0.0f, sS->getPlants()[0].getCloudsP()[0].getCloudF()->getValueS());    
-        std::cout << "Method Used: GenericPM-Spores" << std::endl;
-        std::cout << "CloudField: " << CloudField << std::endl;
-        
-        if(s->getPlants().size()>0) {
-            s->getPlants()[0].getCloudsP()[0].getCloudF()->setSporesCreated(CloudField);
-        }
-    } else if (s->getPlants()[0].getCloudsP()[0].getDisease()->getSporeModule() == "SoilMoisture") {*/
-        // Here the soil moisture equation is used to calculate the CloudField value.
-        if(*SDWT-SDWTp > 0){
-            if(first == 0){
-                FSEED = *YRDOY;
-                fio->setIntegerMemory("PEST", "FSEED", FSEED);
-                first = 1;
-            }
-            // NOTE: Unsure if this line is needed for the other module as well.
-            s->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));
-
-            if(s->getPlants().size()>0) {
-                // Run rate function from yaml...
-                SL1 = fio->getReal("PEST", "SL1");
-                SLL1 = fio->getReal("PEST", "SLL1");
-                SDUL1 = fio->getReal("PEST", "SDUL1");
-                SSAT1 = fio->getReal("PEST", "SSAT1");
     
-                SW = std::min(100.0f, std::max(0.0f, (SL1-SLL1)/(SSAT1-SLL1)*100));
-                CloudField = Utilities::runExpressionFunction(SW, s->getPlants()[0].getCloudsP()[0].getDisease()->getSWF()); 
-                // 0.0000005*exp(0.20*x) 
-                std::cout << "CloudField: " << CloudField << std::endl;
-
-                s->getPlants()[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
-            }         
+    if(*SDWT-SDWTp > 0){
+        if(first == 0){
+            FSEED = *YRDOY;
+            fio->setIntegerMemory("PEST", "FSEED", FSEED);
+            first = 1;
         }
-    //}
 
+        // NOTE: Unsure if this line is needed for the other module as well.
+        s->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));
+
+        if(s->getPlants().size()>0) {
+            // Run rate function from yaml...
+            /*
+            SL1 = fio->getReal("PEST", "SL1");
+            SLL1 = fio->getReal("PEST", "SLL1");
+            SDUL1 = fio->getReal("PEST", "SDUL1");
+            SSAT1 = fio->getReal("PEST", "SSAT1");
+
+            SW = std::min(100.0f, std::max(0.0f, (SL1-SLL1)/(SSAT1-SLL1)*100));
+            CloudField = Utilities::runExpressionFunction(SW, s->getPlants()[0].getCloudsP()[0].getDisease()->getSWF()); 
+            */
+            // 0.0000005*exp(0.20*x) 
+
+            // Integrating TCC for code injection
+            int maxDiseases = fio->getInteger("PEST", "MAXDISEASES");
+            std::vector<std::string> diseaseHashes;
+            std::string storedHash;
+            std::istringstream iss(fio->getCharArray("PEST", "DISEASES", std::to_string(maxDiseases)));
+            while (iss >> storedHash) {
+                diseaseHashes.push_back(storedHash);
+            }
+            std::string groupName = diseaseHashes[0]; 
+
+            // NOTE: Maybe we could put everything in the PEST fio group as an array that matches up with the diseases. That was we can just access the disease by index.
+            strcpy(rateFunctionChars, fio->getChar(groupName, "RATE").c_str());
+
+            codeOutput = TCCUtilities::evalExternalCode(rateFunctionChars, "RATE");
+            if (codeOutput < 0) {
+                std::cerr << "Error in rate function execution." << std::endl;
+                return -1;
+            } else {
+                CloudField = codeOutput;
+            }
+
+            s->getPlants()[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
+        }         
+    }
     SDWTp = *SDWT;
 
     // Feed the Disease Model with weather information
     Weather::getInstance()->update();
     // Disease Simulator Rate
+    // NOTE: If it makes more sense to have the rate function in the Simulator class, we can move it there.
+    //       that way, more of the disease variables can be accessed directly.
     s->rate();
     return (1);
 }
+
 
 int couplingIntegration(int *YRDOY,
         float *AREALF, float *CLW, float *CSW, float *PCLMT, float *PCSTMD,
@@ -170,14 +191,6 @@ int couplingIntegration(int *YRDOY,
 
     // Call the Disease Model Integration function
     s->integration();
-    //printf("Integ - \n");
-    //printf("YRDOY: %i ", *YRDOY);
-    //printf("Plant size: %i ", s->getPlants().size());
-    //if(s->getPlants().size() > 0) {
-    //    printf("Organ size: %i\n", s->getPlants()[0].getOrgans().size());
-    //} else {
-    //    printf("\n");
-    //}
     //printf("YRDOY: %i Plant size: %d Organ size: %f\n", *YRDOY, s->getPlants().size(),s->getPlants()[0].getOrgans().size());
     //std::cout<<"s->getPlants().size() "<<s->getPlants().size()<<std::endl;
     //std::cout<<s->getPlants()[0].getOrgans().size()<<std::endl;
@@ -187,7 +200,7 @@ int couplingIntegration(int *YRDOY,
         sArea = s->getPlants()[0].getSenescenceArea();
         seedAge = s->getPlants()[0].getOrgans().size();
         //pDArea = (dArea/(tArea-sArea)*100);
-        printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
+        //printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
         //*PSDD = (dArea/tArea*5);
         if(tArea > 0) {
             *PSDD = ((dArea/tArea)*15);
@@ -200,6 +213,7 @@ int couplingIntegration(int *YRDOY,
     }
     return (1);
 }
+
 
 int couplingOutput(int *doy) {
     // Get an instance of Simulator
