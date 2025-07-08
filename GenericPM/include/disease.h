@@ -56,7 +56,6 @@ protected:
     float hostFactor = 1;
     static std::vector<Disease*> listDiseases;
     std::string rhFactor = "1*x";
-    std::string rateFunctionString = "";
 
     /**
      * @var cohortAgeSet
@@ -679,24 +678,6 @@ public:
      */
     void setRhFactor(std::string rhFactor) {
         this->rhFactor = rhFactor;
-    }
-
-    /**
-     * Get the rate function characters.
-     * 
-     * @return Rate function characters.
-     */
-    std::string getRateFunctionString() {
-        return rateFunctionString;
-    }
-
-    /**
-     * Set the rate function characters.
-     * 
-     * @param chars Rate function characters.
-     */
-    void setRateFunction(char chars[]) {
-        this->rateFunctionString = chars;
     }
 };
 

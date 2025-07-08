@@ -147,7 +147,12 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::string group
       flexIO->setCharMemory(groupName, paramName, "-99");
       break;
 
-    case 2: // YAML::NodeType::Scalar: 
+    case 2: // YAML::NodeType::Scalar:
+      if(paramName == "RATE" || paramName == "INTEGRATION") {
+        // NOTE: Necessary to find the proper pathing here. 
+        std::string filename = paramName + ".cpp";
+        Util::writeInjectedCode(valueNode["VALUE"].as<std::string>(), filename);
+      } 
       flexIO->setCharMemory(groupName, paramName, valueNode["VALUE"].as<std::string>());
       break;
 
@@ -269,7 +274,7 @@ int readPestYaml(char *filePST, char *PESTID, int *FOUND) {
 
         for (auto it=disease.begin(); it!=disease.end(); ++it) {
           std::string key = it->first.as<std::string>();
-          // NOTE: name "value" here is a bit hard to understand because it refers to the entire submapping (value, desc, etc.)
+          // The name "value" here is a bit hard to understand because it refers to the entire submapping (value, desc, etc.)
           YAML::Node value = it->second;
 
           switch (value.Type()) {
@@ -292,9 +297,6 @@ int readPestYaml(char *filePST, char *PESTID, int *FOUND) {
               break;
             
             // Every functional disease parameter must fit into this category.
-            // We should write a function above which adds a single FlexibleIO 
-            // variable at a time. To lessen the time demand, pass one shared instance 
-            // of FlexibleIO. (I think this is already handled by FlexibleIO )
             case 4: // YAML::NodeType::Map:
               addPestParam(key, value, groupName);
               break;          

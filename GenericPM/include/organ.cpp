@@ -16,8 +16,6 @@
 #include "utilities.h"
 #include "basic.h"
 
-#include "../tinycc/libtcc.h"
-
 #include <string>
 #include <sstream>
 #include <iostream>

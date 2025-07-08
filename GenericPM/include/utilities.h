@@ -11,18 +11,17 @@
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
+
 #include "../TinyExpr/tinyexpr.h"
-#include "../tinycc/libtcc.h"
 
 #include <string>
 #include <cstring>
 #include <iostream>
-
-char testCode[] = 
-"float rate(){\n"
-"    printf(\"Hello from TCC!\");\n"
-"    return 1.0f;\n"
-"}\n";
 
 class Utilities {
 public:
@@ -57,47 +56,62 @@ public:
     }
 };
 
-class TCCUtilities {
-public:
-    static float evalExternalCode(const char *code, const char *phase) {
-        TCCState *s = tcc_new();
-        if (s == nullptr) {
-            std::cerr << "Failed to create TCC state." << std::endl;
+typedef float (*InjectionFunction)();
+
+struct Injection {
+    HMODULE dllHandle = nullptr;
+    InjectionFunction injectedFunc = nullptr;
+
+    int compile(const std::string& cpp_file, const std::string& dll){
+        #ifdef _WIN32
+            std::string cmd = "g++ -shared -o " + dll + " " + cpp_file;
+            int result = std::system(cmd.c_str());
+            return result;
+        #else
+            std::cerr << "Compilation is only supported on Windows." << std::endl;
+            return -1;
+        #endif
+    }
+    
+    int load(const std::string& dll) {
+        dllHandle = LoadLibraryA(dll.c_str());
+        if (dllHandle == nullptr) {
+            std::cerr << "Error loading DLL: " << dll << std::endl;
             return -1;
         }
 
-        tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
-
-        if (tcc_set_options(s, "-nostdlib") < 0) {
-            std::cerr << "Failed to set TCC options." << std::endl;
-            tcc_delete(s);
+        injectedFunc = (InjectionFunction)GetProcAddress(dllHandle, "RATE");
+        if (injectedFunc == nullptr) {
+            std::cerr << "Error finding function in DLL: " << dll << std::endl;
+            FreeLibrary(dllHandle);
+            dllHandle = nullptr;
             return -1;
         }
+        return 0;
+    }
 
-        if (tcc_compile_string(s, code) < 0) {
-            std::cerr << "Failed to compile code." << std::endl;
-            tcc_delete(s);
-            return -1;
+    float exec() const {
+        if (injectedFunc != nullptr) {
+            return injectedFunc();
+        } else {
+            std::cerr << "Injection function is not loaded." << std::endl;
+            return -99.0f;
         }
+    }
 
-        if (tcc_relocate(s) < 0) {
-            std::cerr << "Failed to relocate code." << std::endl;
-            tcc_delete(s);
-            return -1;
+    void unload() {
+        if (dllHandle == nullptr) {
+            std::cerr << "DLL is not loaded." << std::endl;
+            return;
+        } else {
+            FreeLibrary(dllHandle);
+            dllHandle = nullptr;
+            injectedFunc = nullptr;
         }
-        
-        void *handle = tcc_get_symbol(s, phase);
-        if (handle == nullptr) {
-            std::cerr << "Failed to get symbol '" << phase << "'." << std::endl;
-            tcc_delete(s);
-            return -1;
-        }
-        // Cast the symbol to the correct function pointer type
-        auto func = reinterpret_cast<float(*)()>(handle);
-        float result = func();
+    }
 
-        tcc_delete(s);
-        return result;
+    ~Injection() {
+        unload();
     }
 };
 

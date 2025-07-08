@@ -9,6 +9,7 @@
 	12/11/2017 FO Added variable to return error code.
 ========================================================================*/
 #include "Util.hpp"
+
 #include <string>
 #include <cstring>
 #include <cstdlib>
@@ -19,6 +20,13 @@
 #include <vector>
 
 const std::string Util::BASE52_CODING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const std::string Util::INCLUDES_CODE = 
+    "#ifdef _WIN32\n"
+    "#include <windows.h>\n"
+    "#else\n"
+    "#include <dlfcn.h>\n"
+    "#endif\n";
+
 
 std::string Util::trim(std::string str)
 {
@@ -26,12 +34,14 @@ std::string Util::trim(std::string str)
     str.erase(str.find_last_not_of(" ") + 1, str.size());
     return str;
 }
+
 char *Util::convert(const std::string & s)
 {
     char *pc = new char[s.size() + 1];
     strcpy(pc, s.c_str());
     return pc;
 }
+
 int Util::ignore_line( std::string line)
 {
     line = trim(line);
@@ -47,6 +57,7 @@ int Util::ignore_line( std::string line)
     return 0;
 
 }
+
 int Util::ignore_line2(std::string line)
 {
     line = trim(line);
@@ -66,6 +77,7 @@ int Util::ignore_line2(std::string line)
     return 0;
 
 }
+
 int Util::ignore_line3( std::string line)
 {
     line = trim(line);
@@ -356,3 +368,12 @@ std::string Util::base52Encode(size_t hashValue) {
     }
     return encodedResult;
 }
+
+void Util::writeInjectedCode(const std::string& code, const std::string& filename) {
+    std::ofstream out(filename);
+    out << Util::INCLUDES_CODE;
+    out << code;
+    out.close();
+    std::cout << Util::INCLUDES_CODE << code;
+}
+

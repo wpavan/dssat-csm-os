@@ -14,11 +14,13 @@
 #include "initialcondition.h"
 #include "weather.h"
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
+#include "utilities.h"
 
 #include <sstream>
 #include <vector>
 #include <iostream>
 #include <string>
+#include <cstring>
 
 Simulator::Simulator() {
     initialization();
@@ -43,11 +45,17 @@ void Simulator::initialization() {
     cropinterface->start();
     inputPST();
 
+    // Compile and load injections
+    Injection* rateInjection = getRateInjection();
+    rateInjection->compile("RATE.cpp", "RATE.dll");
+    rateInjection->load("RATE.dll");
+    
     std::vector<Disease*> &diseases = Disease::getDisease();
     for (unsigned int i = 0; i < diseases.size(); i++) {
         initialConditions.emplace_back(diseases[i]);
     }
 }
+
 
 // This is the placeholder to interact with the groups dedicated to GDM 2.
 // NOTE: This name must be changed to properly replace the previous version.
@@ -152,7 +160,7 @@ void Simulator::inputPST_FromYaml() {
                 // Added SWF parameter which was previously unused.
                 // - V. L. Covert 4/1/2025
                 disease->setSWF(flexibleio->getChar(groupName, "SWF"));
-                
+
                 disease->printDisease();
             }
         }
@@ -290,6 +298,9 @@ void Simulator::output() {
 void Simulator::rate() {
     InitialCondition *ic;
     Plant *p;
+    Injection *inj = getRateInjection();
+
+    float result = -99.0f;
     
     /** If Planting Date is the current day, instantiate the Plant */
     if (CropInterface::getInstance()->getPlantingDate() == getCurrentYearDoy()) {
@@ -308,7 +319,9 @@ void Simulator::rate() {
         p->rate();
     }
 
-    // <- Here goes the rate code injection.
+    result = inj->exec();
+    std::cout << "Injection result: " << result << std::endl;
+
 }
 
 /**

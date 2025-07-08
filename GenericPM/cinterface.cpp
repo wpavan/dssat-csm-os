@@ -67,7 +67,7 @@ int couplingInit(int *YRDOY, int *YRPLT) {
 
     // Set the initial values for the variables used in the coupling with the FHB model
     FSEED = 0; first = 0;
-    
+
     return (1);
 }
 
@@ -88,17 +88,11 @@ int couplingRate(int *YRDOY,
 
     float SW = 0, SL1 = 0, SLL1 = 0, SSAT1 = 0, SDUL1 = 0, TAVG = 0;
 
+    float codeOutput = 0.0f;
+
     // Get necessary instances for speed
     FlexibleIO *fio = FlexibleIO::getInstance();
     Simulator *s = Simulator::getInstance();
-
-    // Rate code injection variable declaration
-    float codeOutput = 0.0f;
-    int rateFunctionSize = 0;
-    char rateFunctionChars[] = "";
-
-    // NOTE: Do we plan to remove the GenericPM-Spores module from the project? 
-    // SimulatorS *sS = SimulatorS::getInstanceS();
 
     newOrgan = s->getCropInterface()->getOrgansQtd()+1;
 
@@ -137,20 +131,6 @@ int couplingRate(int *YRDOY,
             */
             // 0.0000005*exp(0.20*x) 
 
-            // Integrating TCC for code injection
-            int maxDiseases = fio->getInteger("PEST", "MAXDISEASES");
-            std::vector<std::string> diseaseHashes;
-            std::string storedHash;
-            std::istringstream iss(fio->getCharArray("PEST", "DISEASES", std::to_string(maxDiseases)));
-            while (iss >> storedHash) {
-                diseaseHashes.push_back(storedHash);
-            }
-            std::string groupName = diseaseHashes[0]; 
-
-            // NOTE: Maybe we could put everything in the PEST fio group as an array that matches up with the diseases. That was we can just access the disease by index.
-            strcpy(rateFunctionChars, fio->getChar(groupName, "RATE").c_str());
-
-            codeOutput = TCCUtilities::evalExternalCode(rateFunctionChars, "RATE");
             if (codeOutput < 0) {
                 std::cerr << "Error in rate function execution." << std::endl;
                 return -1;

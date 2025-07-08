@@ -14,6 +14,7 @@
 class Util{
   private:
     static const std::string BASE52_CODING;
+    static const std::string INCLUDES_CODE;
   public:
     // NOTE: Look into static vs. inline for speed improvements.
     static std::string trim(std::string str);
@@ -34,5 +35,14 @@ class Util{
      * @return The base 52 encoded string.
      */
     static std::string base52Encode(size_t hashValue);
+
+    /**
+     * Write the code inside the yaml file to a cpp file for compilation.
+     * 
+     * @param code The code to write.
+     * @param filename The name of the file to write to.
+     */
+    static void writeInjectedCode(const std::string& code, const std::string& filename);
 };
+
 #endif // Util_H

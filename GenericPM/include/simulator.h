@@ -26,6 +26,7 @@ protected:
     Simulator();
     static Simulator *instance;
     int currentYearDoy = 0;
+    Injection *rateInj;
     CropInterface *cropinterface;
     std::vector<InitialCondition> initialConditions;
     std::vector<Plant> plants;
@@ -60,6 +61,17 @@ public:
 
     int getCurrentYearDoy() const {
         return currentYearDoy;
+    }
+
+    void setRateInjection(Injection *inj) {
+        rateInj = inj;
+    }
+
+    Injection* getRateInjection() {
+        if (rateInj == nullptr) {
+            rateInj = new Injection();
+        }
+        return rateInj;
     }
 };
 
