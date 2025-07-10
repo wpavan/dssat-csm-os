@@ -93,6 +93,7 @@ int couplingRate(int *YRDOY,
     // Get necessary instances for speed
     FlexibleIO *fio = FlexibleIO::getInstance();
     Simulator *s = Simulator::getInstance();
+    // multiple instances of simulator to ensure multiple diseases can be run
 
     newOrgan = s->getCropInterface()->getOrgansQtd()+1;
 

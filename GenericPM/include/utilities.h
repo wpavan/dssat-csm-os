@@ -64,6 +64,10 @@ struct Injection {
 
     int compile(const std::string& cpp_file, const std::string& dll){
         #ifdef _WIN32
+            // Use the name of the file or some checksum to make sure
+            // the DLL is not recompiled unnecessarily.
+            // Use the linux server for testing to make sure it is compatible.
+            // Potentially use the sed profiler.
             std::string cmd = "g++ -shared -o " + dll + " " + cpp_file;
             int result = std::system(cmd.c_str());
             return result;
@@ -77,12 +81,14 @@ struct Injection {
         dllHandle = LoadLibraryA(dll.c_str());
         if (dllHandle == nullptr) {
             std::cerr << "Error loading DLL: " << dll << std::endl;
+            std::cerr << "Error code: " << GetLastError() << std::endl;
             return -1;
         }
 
         injectedFunc = (InjectionFunction)GetProcAddress(dllHandle, "RATE");
         if (injectedFunc == nullptr) {
             std::cerr << "Error finding function in DLL: " << dll << std::endl;
+            std::cerr << "Error code: " << GetLastError() << std::endl;
             FreeLibrary(dllHandle);
             dllHandle = nullptr;
             return -1;
