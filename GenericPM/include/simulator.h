@@ -23,20 +23,30 @@ private:
     Utilities util;
 
 protected:
-    Simulator();
-    static Simulator *instance;
     int currentYearDoy = 0;
     Injection *rateInj;
+    Injection *integrationInj;
     CropInterface *cropinterface;
-    std::vector<InitialCondition> initialConditions;
+    InitialCondition initialCondition;
     std::vector<Plant> plants;
 
 public:
-    static Simulator* getInstance();
-    static Simulator* newInstance();
+    Simulator();
+    Simulator(Disease *disease) : initialCondition(disease){
+        cropinterface = CropInterface::newInstance();
+        cropinterface->start();
+        inputPST();
+
+        // Compile and load injections
+        //Injection* rateInjection = getRateInjection();
+        //rateInjection->compile("RATE.cpp", "RATE.dll");
+        //rateInjection->load("RATE.dll");
+    };
+
+    //static Simulator* getInstance();
+    //static Simulator* newInstance();
     void inputPST_FromYaml();
     void inputPST();
-    void initialization();
     void integration();
     void output();
     void rate();
@@ -47,8 +57,8 @@ public:
         return plants;
     }
 
-    std::vector<InitialCondition>& getInitialConditions() {
-        return initialConditions;
+    InitialCondition& getInitialCondition() {
+        return initialCondition;
     }
 
     CropInterface* getCropInterface() {

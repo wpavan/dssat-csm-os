@@ -22,41 +22,6 @@
 #include <string>
 #include <cstring>
 
-Simulator::Simulator() {
-    initialization();
-}
-
-Simulator* Simulator::instance = nullptr;
-
-Simulator* Simulator::getInstance() {
-    if (instance == nullptr) {
-        instance = new Simulator();
-    }
-    return instance;
-}
-
-Simulator* Simulator::newInstance() {
-    instance=nullptr;
-    return getInstance();
-}
-
-void Simulator::initialization() {
-    cropinterface = CropInterface::newInstance();
-    cropinterface->start();
-    inputPST();
-
-    // Compile and load injections
-    Injection* rateInjection = getRateInjection();
-    rateInjection->compile("RATE.cpp", "RATE.dll");
-    rateInjection->load("RATE.dll");
-    
-    std::vector<Disease*> &diseases = Disease::getDisease();
-    for (unsigned int i = 0; i < diseases.size(); i++) {
-        initialConditions.emplace_back(diseases[i]);
-    }
-}
-
-
 // This is the placeholder to interact with the groups dedicated to GDM 2.
 // NOTE: This name must be changed to properly replace the previous version.
 void Simulator::inputPST_FromYaml() {
@@ -264,11 +229,8 @@ void Simulator::inputPST() {
 }
 
 void Simulator::integration() {
-    InitialCondition *ic;
-    for (unsigned int i = 0; i < initialConditions.size(); i++) {
-        ic = &initialConditions[i];
-        ic->integration();
-    }
+    initialCondition.integration();
+
     Plant *p;
     for (unsigned int i = 0; i < plants.size(); i++) {
         p = &plants[i];
@@ -277,11 +239,8 @@ void Simulator::integration() {
 }
 
 void Simulator::output() {
-    InitialCondition *ic;
-    for (unsigned int i = 0; i < initialConditions.size(); i++) {
-        ic = &initialConditions[i];
-        ic->output();
-    }
+    initialCondition.output();
+
     Plant *p;
     for (unsigned int i = 0; i < plants.size(); i++) {
         p = &plants[i];
@@ -308,10 +267,7 @@ void Simulator::rate() {
     }    
 
     /** For each Initial Condition call the rate function */
-    for (unsigned int i = 0; i < initialConditions.size(); i++) {
-        ic = &initialConditions[i];
-        ic->rate();
-    }
+    initialCondition.rate();
 
     /** For each Plant, call the rate function */
     for (unsigned int i = 0; i < plants.size(); i++) {

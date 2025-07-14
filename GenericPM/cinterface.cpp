@@ -10,6 +10,7 @@
 
 #include "include/simulator.h"
 #include "include/utilities.h"
+#include "include/manager.h"
 #include "../FlexibleIO/Data/FlexibleIO.hpp"
 //#include "../GenericPM-Spores/cinterfaceS.h"
 
@@ -45,24 +46,29 @@ extern "C" {
 }
 
 float CLWp, SLAp, SDWTp, cloudFp;
-
-
 // Declare variables used for FHB modifications:
 float SW, SL1, SLL1, SSAT1, SDUL1, FSEED, first;
 
 
 // Coupling Functions Implementation 
 int couplingInit(int *YRDOY, int *YRPLT) {
+    Manager *manager = Manager::newInstance();
+
+    // Create the simulator objects here
+    
+
+    // Initialize the simulators with relevant data
+    manager->setCurrentSimDate(*YRDOY);
+    manager->setPlantingDate(*YRPLT);
+
     // Set the start day for Disease Model
     // Get an instance of Simulator
-    Simulator *s = Simulator::newInstance();
+    ///Simulator *s = Simulator::newInstance();
     // Set the start day for Disease Model
-    s->setCurrentYearDoy(*YRDOY);
+    ///s->setCurrentYearDoy(*YRDOY);
     // Set the sowing/planting date
-    s->getCropInterface()->setPlantingDate(*YRPLT);
+    ///s->getCropInterface()->setPlantingDate(*YRPLT);
 
-    //printf("Init - YRDOY: %i YRPLT: %i\n",
-    //        *YRDOY, *YRPLT);
     CLWp=0; SLAp=0; SDWTp=0; cloudFp=0;
 
     // Set the initial values for the variables used in the coupling with the FHB model
