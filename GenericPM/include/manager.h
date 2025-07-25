@@ -3,23 +3,33 @@
 
 #include <vector>
 
-#include "include/simulator.h"
+#include "simulator.h"
+#include "cropinterface.h"
 
 class Manager {
     protected:
         Manager();
         static Manager* instance;
         static std::vector<Simulator*> simulators;
+        CropInterface *cropinterface;
 
     public:
         static Manager* getInstance();
         static Manager* newInstance();
 
+        void readYAMLFile();
+
         static Simulator* getSimulator(int index);
+        static std::vector<Simulator*>& getSimulators() {
+            return simulators;
+        }
         static void pushSimulator(Simulator* simulator);
 
+        CropInterface* getCropInterface() {
+            return cropinterface;
+        }
+
         static void setCurrentSimDate(int yearDoy);
-        static void setPlantingDate(int yearPlt);
 };
 
 #endif // MANAGER_H

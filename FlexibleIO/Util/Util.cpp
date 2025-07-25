@@ -376,4 +376,3 @@ void Util::writeInjectedCode(const std::string& code, const std::string& filenam
     out.close();
     std::cout << Util::INCLUDES_CODE << code;
 }
-

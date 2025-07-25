@@ -15,6 +15,7 @@
 #include "lesioncohort.h"
 #include "utilities.h"
 #include "basic.h"
+#include "manager.h"
 
 #include <string>
 #include <sstream>
@@ -188,19 +189,21 @@ void Organ::output() {
 }
 
 void Organ::rate() {
+    Manager *manager = Manager::getInstance();
+    CropInterface *cropinterface = CropInterface::getInstance();
     // Calculate the ratio due senescence based on previous day
     float actualDisease = 0, ratioSenescence = this->senescenceArea / this->totalArea;
 
     // Update the senescence area for the current day
     // NOTE: Is this routing of simulator -> cropinterface -> getSenescenceOrganArea needed? 
     //       We could maybe change the senescenceArea of the organ to be held in the organ object itself.
-    this->senescenceArea = Simulator::getInstance()->getCropInterface()->getSenescenceOrganArea(organNumber);
+    this->senescenceArea = cropinterface->getSenescenceOrganArea(organNumber);
 
     // Recalculate the ratio due senescence and take the difference from previous ratio
     ratioSenescence = (this->senescenceArea / this->totalArea) - ratioSenescence;
 
     // Update the total organ area (current day)
-    this->totalArea = Simulator::getInstance()->getCropInterface()->getOrganArea(organNumber);
+    this->totalArea = cropinterface->getOrganArea(organNumber);
     
     if (!suceptible && this->totalArea > 0) {
         suceptible = true;

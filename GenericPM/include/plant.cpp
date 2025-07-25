@@ -9,6 +9,7 @@
  */
 
 #include "plant.h"
+#include "manager.h"
 #include "simulator.h"
 
 #include <sstream>
@@ -21,11 +22,11 @@ int Plant::qtd = 0;
 int Plant::firstOutputCall = 0;
 
 Plant::Plant() {
-    std::vector<InitialCondition> &vectIC = Simulator::getInstance()->getInitialConditions();
+    std::vector<Simulator*> simulators = Manager::getInstance()->getSimulators(); 
     InitialCondition *ic;
 
-    for (unsigned int i = 0; i < vectIC.size(); i++) {
-        ic = &vectIC[i];
+    for (unsigned int i = 0; i < simulators.size(); i++) {
+        ic = simulators[i]->getInitialCondition();
         cloudsP.emplace_back(ic->getCloud()->getDisease(), ic->getCloud());
     }
 }
@@ -60,9 +61,9 @@ void Plant::integration() {
         cloud->integration();
     }
 
-    newOrgan = Simulator::getInstance()->getCropInterface()->hasNewOrgan();
+    newOrgan = Manager::getInstance()->getCropInterface()->hasNewOrgan();
     if (newOrgan > 0) {
-        organs.emplace_back(cloudsP, newOrgan, Simulator::getInstance()->getCropInterface()->getOrganArea(newOrgan));
+        organs.emplace_back(cloudsP, newOrgan, Manager::getInstance()->getCropInterface()->getOrganArea(newOrgan));
     }
 
     // These could be moved into the convert block below instead of adding to memory

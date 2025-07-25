@@ -257,7 +257,7 @@ void Simulator::output() {
 void Simulator::rate() {
     InitialCondition *ic;
     Plant *p;
-    Injection *inj = getRateInjection();
+    //Injection *inj = getRateInjection();
 
     float result = -99.0f;
     
@@ -275,8 +275,8 @@ void Simulator::rate() {
         p->rate();
     }
 
-    result = inj->exec();
-    std::cout << "Injection result: " << result << std::endl;
+    //result = inj->exec();
+    //std::cout << "Injection result: " << result << std::endl;
 
 }
 

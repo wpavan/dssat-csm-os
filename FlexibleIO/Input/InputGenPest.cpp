@@ -151,7 +151,7 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::string group
       if(paramName == "RATE" || paramName == "INTEGRATION") {
         // NOTE: Necessary to find the proper pathing here. 
         std::string filename = paramName + ".cpp";
-        Util::writeInjectedCode(valueNode["VALUE"].as<std::string>(), filename);
+        //Util::writeInjectedCode(valueNode["VALUE"].as<std::string>(), filename);
       } 
       flexIO->setCharMemory(groupName, paramName, valueNode["VALUE"].as<std::string>());
       break;

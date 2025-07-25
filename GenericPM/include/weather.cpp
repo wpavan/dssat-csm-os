@@ -9,7 +9,7 @@
  */
 
 #include "weather.h"
-#include "simulator.h"
+#include "manager.h"
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
 #include <new>
@@ -29,7 +29,7 @@ Weather* Weather::getInstance() {
 
 bool Weather::update() {
     try {
-        yearDoy = Simulator::getInstance()->getCurrentYearDoy();
+        yearDoy = Manager::getInstance()->getSimulator(0)->getCurrentYearDoy();
         year = yearDoy / 1000;
         doy = yearDoy - (year * 1000);
         

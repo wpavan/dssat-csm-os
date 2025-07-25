@@ -24,27 +24,20 @@ private:
 
 protected:
     int currentYearDoy = 0;
-    Injection *rateInj;
-    Injection *integrationInj;
-    CropInterface *cropinterface;
+    //Injection *rateInj;
+    //Injection *integrationInj;
     InitialCondition initialCondition;
     std::vector<Plant> plants;
 
 public:
     Simulator();
     Simulator(Disease *disease) : initialCondition(disease){
-        cropinterface = CropInterface::newInstance();
-        cropinterface->start();
-        inputPST();
-
-        // Compile and load injections
+        // Compile and load injections ?
         //Injection* rateInjection = getRateInjection();
         //rateInjection->compile("RATE.cpp", "RATE.dll");
         //rateInjection->load("RATE.dll");
     };
 
-    //static Simulator* getInstance();
-    //static Simulator* newInstance();
     void inputPST_FromYaml();
     void inputPST();
     void integration();
@@ -57,12 +50,9 @@ public:
         return plants;
     }
 
-    InitialCondition& getInitialCondition() {
-        return initialCondition;
-    }
-
-    CropInterface* getCropInterface() {
-        return cropinterface;
+    InitialCondition* getInitialCondition() {
+        InitialCondition* ic = &initialCondition;
+        return ic;
     }
 
     void setCurrentYearDoy(int currentYearDoy) {
@@ -73,7 +63,7 @@ public:
         return currentYearDoy;
     }
 
-    void setRateInjection(Injection *inj) {
+    /*void setRateInjection(Injection *inj) {
         rateInj = inj;
     }
 
@@ -82,7 +72,7 @@ public:
             rateInj = new Injection();
         }
         return rateInj;
-    }
+    }*/
 };
 
 #endif // SIMULATOR_H

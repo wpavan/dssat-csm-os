@@ -128,6 +128,7 @@ set(
         "GenericPM/include/lesioncohort.cpp"
         "GenericPM/include/organ.cpp"
         "GenericPM/include/plant.cpp"
+        "GenericPM/include/manager.cpp"
         "GenericPM/include/simulator.cpp"
         "GenericPM/include/utilities.cpp"
         "GenericPM/include/weather.cpp"
