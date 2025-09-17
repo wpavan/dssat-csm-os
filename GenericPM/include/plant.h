@@ -17,10 +17,25 @@
 
 #include <vector>
 
+struct OrganSet {
+    std::vector<Organ> organs;  // The vector of all organs that belong to this coupling point.
+    CouplingPointID CP;         // The coupling point ID associated with the organ set.
+    float totalValue;           // The total area, mass, or node value associated with this organ set.
+                                /* The basis can be determined by calling:
+                                 *     Basis b = CouplingPoint().getTrait(CP).basis;
+                                 * where b is [Area | Mass | Nodes] and CP is the CouplingPointID 
+                                 * from this OrganSet.
+                                 */
+
+    OrganSet(CouplingPointID cp) : CP(cp), totalValue(0) {}
+};
+
 class Plant : public Basic, virtual public BasicInterface {
 protected:
+    static Plant* instance;
     int doc = Basic::getWeather()->getDoy();
-    std::vector<Organ> organs;
+    // NOTE: When do we create the organ set?
+    std::vector<OrganSet> organSets;
     std::vector<CloudP> cloudsP;
     static int qtd;
     int ID = ++qtd;
@@ -29,8 +44,20 @@ protected:
             totalLesions = 0, senescenceArea = 0;
     static int firstOutputCall;
 
-public:
     Plant();
+
+public:
+    static Plant* getInstance() {
+        if (instance == nullptr) {
+            instance = new Plant();
+        }
+        return instance;
+    }
+
+    static Plant* newInstance() {
+        instance = nullptr;
+        return getInstance();
+    }
 
     int getID() {
         return ID;
@@ -48,8 +75,8 @@ public:
         return doc;
     }
 
-    std::vector<Organ>& getOrgans() {
-        return organs;
+    std::vector<OrganSet>& getOrgans() {
+        return organSets;
     }
 
     std::vector<CloudP>& getCloudsP() {
@@ -57,13 +84,16 @@ public:
     }
 
     bool isAlive() {
-        if (organs.size() == 0) {
-            return true;
-        } else {
-            for (int i = organs.size() - 1; i >= 0; i--) {
-                Organ *o = &organs[i];
-                if (o->isAlive()) {
-                    return true;
+        Organ *o = nullptr;
+        for (auto& set : organSets) {
+            if (set.organs.size() == 0) {
+                return true;
+            } else {
+                for (int i = set.organs.size() - 1; 1 >= 0; i--) {
+                    o = &set.organs[i];
+                    if (o->isAlive()) {
+                        return true;
+                    }
                 }
             }
         }

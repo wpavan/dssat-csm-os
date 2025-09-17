@@ -219,10 +219,11 @@ C-----------------------------------------------------------------------
 
 C*********************************************************************** 
 
-      IF(ISWDIS.EQ.'Y') THEN
-          YRPLT = YRDOY
-          CALL READPEST(FILEP, 'WH005', 0)
-      ENDIF
+C     Remove in lieu of pest being called in RUNINIT INSIDE PEST
+C      IF(ISWDIS.EQ.'Y') THEN
+C          YRPLT = YRDOY
+C          CALL READPEST(FILEP, 'WH005', 0)
+C      ENDIF
 
 C*********************************************************************** 
 C     SEASONAL INITIALIZATION
@@ -303,7 +304,7 @@ C***********************************************************************
 
       IF(ISWDIS.EQ.'Y') THEN
           YRPLT = YRDOY
-          CALL READPEST(FILEP, 'WH001', 0)
+c          CALL READPEST(FILEP, 'WH001', 0)
 c          call couplingInitSpore(YRDOY, YRPLT)
       ENDIF
 
@@ -447,10 +448,6 @@ C-----------------------------------------------------------------------
      &    STGDOY, SW, WEATHER,                            !Input
      &    YREND, FERTDATA, HARVFRAC, IRRAMT,              !Output
      &    MDATE, OMADATA, TILLVALS, YRPLT)                !Output
-
-      IF(ISWDIS.EQ.'Y') THEN
-c        CALL couplingIntegrationSpore(YRDOY, YRPLT)
-      ENDIF
 
 C***********************************************************************
 C***********************************************************************

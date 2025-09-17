@@ -21,13 +21,49 @@
 int Plant::qtd = 0;
 int Plant::firstOutputCall = 0;
 
+Plant* Plant::instance = nullptr;
+
 Plant::Plant() {
     std::vector<Simulator*> simulators = Manager::getInstance()->getSimulators(); 
-    InitialCondition *ic;
+    std::vector<CouplingPointID> cps = Manager::getInstance()->getCouplingPointIDs();
 
+    for (auto& cp : cps) {
+        organSets.emplace_back(cp);
+    }
+    // NOTE: This currently makes as many clouds as there are 
+    //       simulators. This is a good start, but we need to make it 
+    //       such that it only creates one per unique disease type (WB
+    //       preseason and in-season should be combined).
     for (unsigned int i = 0; i < simulators.size(); i++) {
-        ic = simulators[i]->getInitialCondition();
-        cloudsP.emplace_back(ic->getCloud()->getDisease(), ic->getCloud());
+        cloudsP.emplace_back(simulators[i]->getDisease(), simulators[i]->getInitialCondition()->getCloud());
+    }
+}
+
+void Plant::rate() {
+    // NEW CODE FOR GDM2:
+    // Calculate total area by each set of organs. 
+    for (auto& set : organSets) {
+        set.totalValue = 0;
+        for (auto& organ : set.organs) {
+            set.totalValue += organ.getTotalArea();
+        }
+    }
+
+    // Assign organ area proportions based on new total area.
+    // NOTE: Instead of direct assignment, should we make the getter 
+    //       function return the evaluated area? To find out, we should
+    //       do some profiling of the code in the two configurations.
+    for (auto& set : organSets) {
+        for (auto& organ : set.organs) {
+            if(organ.getSenescenceArea() < organ.getTotalArea()) {
+                if(set.totalValue > 0) {
+                    organ.setProportionFromTotalArea(organ.getTotalArea()/set.totalValue);
+                } else {
+                    organ.setProportionFromTotalArea(0);
+                }
+                organ.rate();
+            }
+        }
     }
 }
 
@@ -35,41 +71,57 @@ void Plant::integration() {
     totalArea = diseaseArea = latentDiseaseArea = infectionDiseaseArea = necroticDiseaseArea = visibleDiseaseArea = invisibleDiseaseArea = senescenceArea = 0;
     totalLesions = visibleLesions = 0;
     int newOrgan = 0;
-    float cloudOValue = 0, cloudPValue = 0, cloudFvalue = 0;
-    Organ *o;
-    for (unsigned int i = 0; i < organs.size(); i++) {
-        o = &organs[i];
-        if(o->getSenescenceArea() < o->getTotalArea()) {
-            o->integration();
-            diseaseArea += o->getDiseaseArea();
-            latentDiseaseArea += o->getLatentDiseaseArea();
-            infectionDiseaseArea += o->getInfectionDiseaseArea();
-            necroticDiseaseArea += o->getNecroticDiseaseArea();
-            visibleDiseaseArea += o->getVisibleDiseaseArea();
-            invisibleDiseaseArea += o->getInvisibleDiseaseArea();
-            visibleLesions += o->getVisibleLesions();
-            totalLesions += o->getTotalLesions();
+
+    // Loop through all of the organs
+    for (auto& set : organSets) {
+        for (auto& organ : set.organs) {
+            // If the organ has ANY living tissue
+            if (organ.getSenescenceArea() < organ.getTotalArea()) {
+                // Run the integration step
+                organ.integration();
+
+                // Then update the areas of the plant to match the state of the organs.
+                // Because all of the component areas are set to 0 beforehand, this 
+                // definitely reflects the current state of all the organs.
+                diseaseArea += organ.getDiseaseArea();
+                latentDiseaseArea += organ.getLatentDiseaseArea();
+                infectionDiseaseArea += organ.getInfectionDiseaseArea();
+                necroticDiseaseArea += organ.getNecroticDiseaseArea();
+                visibleDiseaseArea += organ.getVisibleDiseaseArea();
+                invisibleDiseaseArea += organ.getInvisibleDiseaseArea();
+                visibleLesions += organ.getVisibleLesions();
+                totalLesions += organ.getTotalLesions();
+            }
+            // Regardless of living status, the senescence and total areas should be recorded.
+            totalArea += organ.getTotalArea();
+            senescenceArea += organ.getSenescenceArea();
         }
-        totalArea += o->getTotalArea();
-        senescenceArea += o->getSenescenceArea();
-        cloudOValue += o->cloudAmount();
     }
 
-    CloudP *cloud;
-    for (unsigned int i = 0; i < cloudsP.size(); i++) {
-        cloud = &cloudsP[i];
-        cloud->integration();
+    // Run the integration step for each of the plant clouds (1 per disease)
+    for (auto& cloudP : cloudsP) {
+        cloudP.integration();
     }
 
-    newOrgan = Manager::getInstance()->getCropInterface()->hasNewOrgan();
-    if (newOrgan > 0) {
-        organs.emplace_back(cloudsP, newOrgan, Manager::getInstance()->getCropInterface()->getOrganArea(newOrgan));
+    for (auto& set : organSets) {
+        // Check if there is a new organ and if so, how many need to be created
+        CropInterface *ci = Manager::getCropInterface(set.CP);
+
+        newOrgan = ci->hasNewOrgan();
+        printf("New organ count for coupling point %s: %d\n", cpIDToStr(set.CP).c_str(), newOrgan);
+
+        // If the number of new organs is greater than 0, create an organ with the
+        // corresponding data and index in the crop interface.
+        if (newOrgan > 0) {
+            set.organs.emplace_back(set.CP, cloudsP, newOrgan, Manager::getCropInterface(set.CP)->getOrganArea(newOrgan));
+        }
     }
 
     // These could be moved into the convert block below instead of adding to memory
-    cloudPValue = cloud->getValue();
-    cloudFvalue = cloud->getCloudF()->getValue();
+    //cloudPValue = cloud->getValue();
+    //cloudFvalue = cloud->getCloudF()->getValue();
 
+    /*
     std::ostringstream convert;
     //Plant, YearDoy, TotalArea, Senesced, Diseased, VisibleArea, InvisibleArea, TotalLesions, CloudO, CloudP, CloudF
     convert << ID << "," << Basic::getWeather()->getYearDoy() << "," << totalArea << "," << senescenceArea << "," << diseaseArea << "," 
@@ -78,6 +130,7 @@ void Plant::integration() {
             << Utilities::formatfloat(cloudOValue) << "," << Utilities::formatfloat(cloudPValue) << "," 
             << Utilities::formatfloat(cloudFvalue);
     Basic::output.push_back(convert.str());
+    */
 }
 
 void Plant::output() {
@@ -92,36 +145,14 @@ void Plant::output() {
     //    std::cout << Basic::output[i] << std::endl;
     //}
 
-    Organ *o;
-    for (unsigned int i = 0; i < organs.size(); i++) {
-        o = &organs[i];
-        o->output();
-    }
-
-    CloudP *cp;
-    for (unsigned int i = 0; i < cloudsP.size(); i++) {
-        cp = &cloudsP[i];
-        cp->output();
-    }
-}
-
-void Plant::rate() {
-    Organ *o;
-    totalArea = 0;
-    for (unsigned int i = 0; i < organs.size(); i++) {
-        o = &organs[i];
-        totalArea += o->getTotalArea();
-    }
-    
-    for (unsigned int i = 0; i < organs.size(); i++) {
-        o = &organs[i];
-        if(o->getSenescenceArea() < o->getTotalArea()) {
-            if(totalArea > 0) {
-                o->setProportionFromTotalArea(o->getTotalArea()/totalArea);
-            } else {
-                o->setProportionFromTotalArea(0);
-            }
-            o->rate();
+    // Iterate through the organs and output
+    for (auto& set : organSets) {
+        for (auto& organ : set.organs) {
+            organ.output();
         }
+    }
+    // Iterate through the plant clouds and output
+    for (auto& cloudP : cloudsP) {
+        cloudP.output();
     }
 }

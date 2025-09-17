@@ -52,9 +52,10 @@ protected:
     std::vector<LesionCohort> lesionCohorts;
     std::vector<CloudO> cloudsO;
     static int firstOutputCall;
+    CouplingPointID organCP;
 
 public:
-    Organ(std::vector<CloudP>& cloudsP, int organNumber, float totalArea) {
+    Organ(CouplingPointID cp, std::vector<CloudP>& cloudsP, int organNumber, float totalArea) : organCP(cp) {
         //Basic::output.push_back("Organ, YearDoy, TotalArea, Senesced, Diseased, VisibleArea, InvisibleArea, LesionDensity, Age, NewLesions, TotalLesions, CloudO, CloudP, CloudF, HealthAreaProportion");
         this->organNumber = organNumber;
         this->totalArea = totalArea;

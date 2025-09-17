@@ -19,14 +19,7 @@
 #include <iostream>
 #include <vector>
 
-const std::string Util::BASE52_CODING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const std::string Util::INCLUDES_CODE = 
-    "#ifdef _WIN32\n"
-    "#include <windows.h>\n"
-    "#else\n"
-    "#include <dlfcn.h>\n"
-    "#endif\n";
-
+const std::string Util::BASE52_CODING = "abcdefghijklmnopqrstuvwxyzABCEFGHIJKLMNOPQRSTUVWXYZ";
 
 std::string Util::trim(std::string str)
 {
@@ -354,25 +347,4 @@ int Util::checkDate(int dateReadFormat, std::vector<std::string> &dtidentfied, s
 
     }
 
-}
-
-std::string Util::base52Encode(size_t hashValue) {
-    if (hashValue == 0) {
-        return "0";
-    }
-
-    std::string encodedResult;
-    while (hashValue > 0) {
-        encodedResult = Util::BASE52_CODING[hashValue % 52] + encodedResult;
-        hashValue /= 52;
-    }
-    return encodedResult;
-}
-
-void Util::writeInjectedCode(const std::string& code, const std::string& filename) {
-    std::ofstream out(filename);
-    out << Util::INCLUDES_CODE;
-    out << code;
-    out.close();
-    std::cout << Util::INCLUDES_CODE << code;
 }

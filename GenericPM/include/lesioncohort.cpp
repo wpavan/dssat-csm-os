@@ -87,12 +87,12 @@ void LesionCohort::rate() {
 
     dailyInvisibleAreaGrow *= lesionsInThisCohort;
 
-    /*std::cout << "growthFunction: " << util.growthFunction(disease->getInvisibleGrowthFunction(), getPhysiologicalDaysAcumm()) << 
+    /*std::cout << "growthFunction: " << util.growthFunction(getPhysiologicalDaysAcumm(), disease->getInvisibleGrowthFunction()) << 
               " lesionsInThisCohort: " << lesionsInThisCohort <<
               " dailyInvisibleAreaGrow: " << dailyInvisibleAreaGrow <<
               " HostFactor: " << disease->getHostFactor() << 
               " totalArea: " << totalArea << " HealthAreaProportion: " << 
-              getOrganHealthAreaProportion() << std::endl; */
+              getOrganHealthAreaProportion() << std::endl;*/
     /*dailyVisibleAreaGrow    = util.growthFunction(disease->getVisibleGrowthFunction(), 
                                                   getPhysiologicalDaysAcumm()) 
                               * disease->getHostFactor()

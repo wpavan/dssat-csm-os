@@ -16,7 +16,6 @@
 #include <cmath>
 #include <iostream>
 
-//extern FlexibleIO *flexibleio;
 void Cloud::integration() {
     int qtd = 0;
     if (sporesToBeRemoved > 0) {
@@ -29,23 +28,21 @@ void Cloud::integration() {
 
 float Cloud::getValue() {
     float sum = 0;
-    for (unsigned int i = 0; i < values.size(); i++) {
-        sum += values[i];
+    for (auto& value : values) {
+        sum += value;
     }
     return sum;
 }
 
 void Cloud::removeSporesCloud(float toBeRemoved) {
     float total = getValue();
-    for (unsigned int i = 0; i < values.size() && total > 0; i++) {
-        values[i] -= (toBeRemoved * (values[i] / total));
+    for (auto& value : values) {
+        value -= (toBeRemoved * (value / total));
     }
 }
 
 void Cloud::removeSporesCloudByRain(float percent) {
-    float oldValue = 0;
-    for (unsigned int i = 0; i < values.size(); i++) {
-        oldValue = values[i];
-        values[i] = (oldValue * percent);
+    for (auto& value : values) {
+        value *= percent;
     }
 }

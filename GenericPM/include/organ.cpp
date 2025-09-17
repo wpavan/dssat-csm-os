@@ -25,6 +25,63 @@
 
 int Organ::firstOutputCall = 0;
 
+void Organ::rate() {
+    Manager *manager = Manager::getInstance();
+    // Get the crop interface that refers to this type of organs specifically
+    CropInterface *cropinterface = manager->getCropInterface(organCP);
+
+    // Calculate the ratio due senescence based on previous day
+    float actualDisease = 0, ratioSenescence = this->senescenceArea / this->totalArea;
+
+    // Update the senescence area for the current day
+    // NOTE: Is this routing of simulator -> cropinterface -> getSenescenceOrganArea needed? 
+    //       We could maybe change the senescenceArea of the organ to be held in the organ object itself.
+    this->senescenceArea = cropinterface->getSenescenceOrganArea(organNumber);
+
+    // Recalculate the ratio due senescence and take the difference from previous ratio
+    ratioSenescence = (this->senescenceArea / this->totalArea) - ratioSenescence;
+
+    // Update the total organ area (current day)
+    this->totalArea = cropinterface->getOrganArea(organNumber);
+    
+    if (!suceptible && this->totalArea > 0) {
+        suceptible = true;
+    }
+
+    if (!isAlive()) {
+        return;
+    }
+
+    CloudO *cloudo;
+    LesionCohort *lc;
+    //printf("OrganNumber: %i OrganTotalArea: %f healthAreaProportion: %f \n",this->organNumber, this->totalArea,healthAreaProportion);
+    for (unsigned int i = 0; i < lesionCohorts.size(); i++) {
+        lc = &lesionCohorts[i];
+        // Must affect the disease area related with senescent area
+        if (ratioSenescence > 0) {
+            //printf("ID: %i Age: %i VisibleArea: %f InvisibleArea: %f RatioDueDefoliation: %f\n", lc->getID(), lc->getAge(), lc->getVisibleArea(),lc->getInvisibleArea(),CropInterface::getInstance()->getRatioDueDefoliation(1));
+            lc->setVisibleArea(lc->getVisibleArea() * (1-ratioSenescence));
+            lc->setInvisibleArea(lc->getInvisibleArea() * (1-ratioSenescence));
+            lc->setTotalArea(lc->getVisibleArea()+lc->getInvisibleArea());
+            //printf("ID: %i Age: %i VisibleArea: %f InvisibleArea: %f \n", lc->getID(), lc->getAge(), lc->getVisibleArea(),lc->getInvisibleArea());
+        }
+        actualDisease += lc->getTotalArea();
+    }
+
+    // Updating the disease amount on organ
+    setDiseaseArea(actualDisease);
+    // Calculating the health area proportion
+    healthAreaProportion = Utilities::getHealthAreaProportion(getDiseaseArea(), 
+                                                              getTotalArea(), 
+                                                              getSenescenceArea());
+
+    for (unsigned int i = 0; i < lesionCohorts.size(); i++) {
+        lc = &lesionCohorts[i];
+        lc->setOrganHealthAreaProportion(healthAreaProportion);
+        lc->rate();
+    }
+}
+
 void Organ::integration() {
     if (!isAlive()) {
         return;
@@ -59,20 +116,21 @@ void Organ::integration() {
             cloudPValue = cloudo->getCloudP()->getValue();
             cloudFvalue = cloudo->getCloudP()->getCloudF()->getValue();
 
+            // The number of lesions that will be created on any given organ is proportional to that organ's exposed surface area.
+            // NOTE: Should this organ get lesions proportional to total organ area or organ set area?
             newLesionsFromOrgan = cloudo->getDisease()->newLesions(cloudOValue,healthAreaProportion);
             newLesionsFromPlant = cloudo->getDisease()->newLesions(cloudPValue,healthAreaProportion) * 
-                                  getProportionFromTotalArea();
-            //std::cout << "cloudF Antes: " << cloudFvalue << std::endl;
+                                  getProportionFromTotalArea(); 
             newLesionsFromField = cloudo->getDisease()->newLesions(cloudFvalue,healthAreaProportion) *
-                                  getProportionFromTotalArea();
-            //std::cout << "cloudF: " << cloudFvalue << std::endl;
-            //std::cout << "cloudP: " << cloudPValue << std::endl;
-            //std::cout << "cloudO: " << cloudOValue << std::endl;
-            //std::cout << "healthAreaProportion " << healthAreaProportion << " getProportionFromTotalArea " << getProportionFromTotalArea() <<
-            //" newLesionsFromField " << newLesionsFromField << std::endl;
+                                  getProportionFromTotalArea(); // NOTE: Same as above
             
-            // NOTE: This hardcoded physiological life should be replaced by a dynamic threshold 
-            //       in the .json file.
+            // Uncomment the following line to debug this step
+            
+            
+            // NOTE: This hardcoded physiological life should be 
+            //       replaced by a dynamic threshold in the .yaml file.
+            //       We could also modulate the number of lesions 
+            //       created based on some dynamic age factor.
             if ((newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField) > 0 && physiologicalLife >= 5) {
                 newLesions = newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField;
                 //std::cout << "Organ: " << organNumber << "\tnew lesions: " << newLesions << std::endl;
@@ -150,15 +208,15 @@ void Organ::integration() {
 }
 
 void Organ::cloudIntegration() {
-    for (unsigned int i = 0; i < cloudsO.size(); i++) {
-        (&cloudsO[i])->integration();
+    for (auto& cloudO : cloudsO) {
+        cloudO.integration();
     }
 }
 
 float Organ::cloudAmount() {
     float cloudOValue=0;
-    for (unsigned int i = 0; i < cloudsO.size(); i++) {
-        cloudOValue += (&cloudsO[i])->getValue();
+    for (auto& cloudO : cloudsO) {
+        cloudOValue += cloudO.getValue();
     }
     return cloudOValue;
 }
@@ -188,57 +246,6 @@ void Organ::output() {
     //}
 }
 
-void Organ::rate() {
-    Manager *manager = Manager::getInstance();
-    CropInterface *cropinterface = CropInterface::getInstance();
-    // Calculate the ratio due senescence based on previous day
-    float actualDisease = 0, ratioSenescence = this->senescenceArea / this->totalArea;
-
-    // Update the senescence area for the current day
-    // NOTE: Is this routing of simulator -> cropinterface -> getSenescenceOrganArea needed? 
-    //       We could maybe change the senescenceArea of the organ to be held in the organ object itself.
-    this->senescenceArea = cropinterface->getSenescenceOrganArea(organNumber);
-
-    // Recalculate the ratio due senescence and take the difference from previous ratio
-    ratioSenescence = (this->senescenceArea / this->totalArea) - ratioSenescence;
-
-    // Update the total organ area (current day)
-    this->totalArea = cropinterface->getOrganArea(organNumber);
-    
-    if (!suceptible && this->totalArea > 0) {
-        suceptible = true;
-    }
-
-    if (!isAlive()) {
-        return;
-    }
-
-    CloudO *cloudo;
-    LesionCohort *lc;
-    //printf("OrganNumber: %i OrganTotalArea: %f healthAreaProportion: %f \n",this->organNumber, this->totalArea,healthAreaProportion);
-    for (unsigned int i = 0; i < lesionCohorts.size(); i++) {
-        lc = &lesionCohorts[i];
-        // Must affect the disease area related with senescent area
-        if (ratioSenescence > 0) {
-            //printf("ID: %i Age: %i VisibleArea: %f InvisibleArea: %f RatioDueDefoliation: %f\n", lc->getID(), lc->getAge(), lc->getVisibleArea(),lc->getInvisibleArea(),CropInterface::getInstance()->getRatioDueDefoliation(1));
-            lc->setVisibleArea(lc->getVisibleArea() * (1-ratioSenescence));
-            lc->setInvisibleArea(lc->getInvisibleArea() * (1-ratioSenescence));
-            lc->setTotalArea(lc->getVisibleArea()+lc->getInvisibleArea());
-            //printf("ID: %i Age: %i VisibleArea: %f InvisibleArea: %f \n", lc->getID(), lc->getAge(), lc->getVisibleArea(),lc->getInvisibleArea());
-        }
-        actualDisease += lc->getTotalArea();
-    }
-
-    // Updating the disease amount on organ
-    setDiseaseArea(actualDisease);
-    // Calculating the health area proportion
-    healthAreaProportion = Utilities::getHealthAreaProportion(getDiseaseArea(), 
-                                                              getTotalArea(), 
-                                                              getSenescenceArea());
-
-    for (unsigned int i = 0; i < lesionCohorts.size(); i++) {
-        lc = &lesionCohorts[i];
-        lc->setOrganHealthAreaProportion(healthAreaProportion);
-        lc->rate();
-    }
+void printCloudValues(int CloudFValue, int CloudPValue, int CloudOValue) {
+    printf("Cloud Field: %d\nCloud Plant: %d\nCloud Organ: %d\n", CloudFValue, CloudPValue, CloudOValue);
 }

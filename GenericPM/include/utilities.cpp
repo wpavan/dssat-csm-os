@@ -17,6 +17,8 @@
 #include <iomanip>
 #include <iostream>
 
+const std::string Utilities::BASE52_CODING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
 float Utilities::trapezoidalFunction(float value, float v[]) {
     if (value >= v[1] && value <= v[2]) {
         return 1;
@@ -86,4 +88,17 @@ int Utilities::addOneDay(int yearDoy) {
 
 bool Utilities::isLeapYear(int year) {
     return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+}
+
+std::string Utilities::base52Encode(size_t hashValue) {
+    if (hashValue == 0) {
+        return "0";
+    }
+
+    std::string encodedResult;
+    while (hashValue > 0) {
+        encodedResult = Utilities::BASE52_CODING[hashValue % 52] + encodedResult;
+        hashValue /= 52;
+    }
+    return encodedResult;
 }

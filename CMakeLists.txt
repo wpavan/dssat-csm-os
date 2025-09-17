@@ -117,11 +117,13 @@ set(
     source_list
     	"${OSDefinitions}"
         "GenericPM/cinterface.cpp"
+        "GenericPM/finterface.f90"
         "GenericPM/TinyExpr/tinyexpr.c"
         "GenericPM/include/cloud.cpp"
         "GenericPM/include/cloudf.cpp"
         "GenericPM/include/cloudo.cpp"
         "GenericPM/include/cloudp.cpp"
+        "GenericPM/include/coupling.cpp"
         "GenericPM/include/cropinterface.cpp"
         "GenericPM/include/disease.cpp"
         "GenericPM/include/initialcondition.cpp"

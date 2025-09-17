@@ -49,35 +49,19 @@ float CLWp, SLAp, SDWTp, cloudFp;
 // Declare variables used for FHB modifications:
 float SW, SL1, SLL1, SSAT1, SDUL1, FSEED, first;
 
-
 // Coupling Functions Implementation 
-int couplingInit(int *YRDOY, int *YRPLT) {
-    Manager *manager = Manager::newInstance();
-    CropInterface *cropinterface = CropInterface::getInstance();
 
-    // Create the simulator objects here
-    manager->readYAMLFile();
+// couplingInit refers to the seasonal initialization of the GDM
+int couplingInit(int *YRDOY, int *YRPLT) {
+    Manager *manager = Manager::getInstance();
+    CouplingData *couplingData = CouplingData::getInstance();
 
     // Initialize the simulators with relevant data
     manager->setCurrentSimDate(*YRDOY);
-    cropinterface->setPlantingDate(*YRPLT);
-
-    // Set the start day for Disease Model
-    // Get an instance of Simulator
-    ///Simulator *s = Simulator::newInstance();
-    // Set the start day for Disease Model
-    ///s->setCurrentYearDoy(*YRDOY);
-    // Set the sowing/planting date
-    ///s->getCropInterface()->setPlantingDate(*YRPLT);
-
-    CLWp=0; SLAp=0; SDWTp=0; cloudFp=0;
-
-    // Set the initial values for the variables used in the coupling with the FHB model
-    FSEED = 0; first = 0;
+    manager->setPlantingDate(*YRPLT);
 
     return (1);
 }
-
 
 int couplingRate(int *YRDOY,
         float *AREALF, float *CLW, float *CSW, float *PCLMT, float *PCSTMD,
@@ -88,66 +72,67 @@ int couplingRate(int *YRDOY,
         float *CLAI, float *CLFM, float *CSTEM, float *DISLA, float *DISLAP,
         float *LAIDOT, float *WSIDOT, float *SDWT, 
         float *WSDD, float *PSDD, int *DAS, int *YRPLT) {
-
-    // Temporary variable used for computations 
-    float temp = 0, newOrgan = 0;
-    float CloudField = 0;
-
-    float SW = 0, SL1 = 0, SLL1 = 0, SSAT1 = 0, SDUL1 = 0, TAVG = 0;
-
-    // Get necessary instances for speed
+    // Get necessary instances for future operations
     FlexibleIO *fio = FlexibleIO::getInstance();
     Manager *manager = Manager::getInstance();
-    // multiple instances of simulator to ensure multiple diseases can be run
+    CouplingData *couplingData = CouplingData::getInstance();
 
-    newOrgan = manager->getCropInterface()->getOrgansQtd()+1;
-    
+    couplingData->setCouplingValue(CouplingPointID::AREALF, AREALF);
+    couplingData->setCouplingValue(CouplingPointID::CLW, CLW);
+    couplingData->setCouplingValue(CouplingPointID::CSW, CSW);
+    couplingData->setCouplingValue(CouplingPointID::PCLMT, PCLMT);
+    couplingData->setCouplingValue(CouplingPointID::PCSTMD, PCSTMD);
+    couplingData->setCouplingValue(CouplingPointID::PDLA, PDLA);
+    couplingData->setCouplingValue(CouplingPointID::PLFAD, PLFAD);
+    couplingData->setCouplingValue(CouplingPointID::PLFMD, PLFMD);
+    couplingData->setCouplingValue(CouplingPointID::PSTMD, PSTMD);
+    couplingData->setCouplingValue(CouplingPointID::PVSTGD, PVSTGD);
+    couplingData->setCouplingValue(CouplingPointID::SLA, SLA);
+    couplingData->setCouplingValue(CouplingPointID::SLDOT, SLDOT);
+    couplingData->setCouplingValue(CouplingPointID::SSDOT, SSDOT);
+    couplingData->setCouplingValue(CouplingPointID::STMWT, STMWT);
+    couplingData->setCouplingValue(CouplingPointID::TDLA, TDLA);
+    couplingData->setCouplingValue(CouplingPointID::VSTGD, VSTGD);
+    couplingData->setCouplingValue(CouplingPointID::WLFDOT, WLFDOT);
+    couplingData->setCouplingValue(CouplingPointID::WSTMD, WSTMD);
+    couplingData->setCouplingValue(CouplingPointID::WTLF, WTLF);
+    couplingData->setCouplingValue(CouplingPointID::TLFAD, TLFAD);
+    couplingData->setCouplingValue(CouplingPointID::TLFMD, TLFMD);
+    couplingData->setCouplingValue(CouplingPointID::VSTAGE, VSTAGE);
+    couplingData->setCouplingValue(CouplingPointID::WLIDOT, WLIDOT);
+    couplingData->setCouplingValue(CouplingPointID::CLAI, CLAI);
+    couplingData->setCouplingValue(CouplingPointID::CLFM, CLFM);
+    couplingData->setCouplingValue(CouplingPointID::CSTEM, CSTEM);
+    couplingData->setCouplingValue(CouplingPointID::DISLA, DISLA);
+    couplingData->setCouplingValue(CouplingPointID::DISLAP, DISLAP);
+    couplingData->setCouplingValue(CouplingPointID::LAIDOT, LAIDOT);
+    couplingData->setCouplingValue(CouplingPointID::WSIDOT, WSIDOT);
+    couplingData->setCouplingValue(CouplingPointID::SDWT, SDWT);
+    couplingData->setCouplingValue(CouplingPointID::WSDD, WSDD);
+    couplingData->setCouplingValue(CouplingPointID::PSDD, PSDD);
+
+    // Multiple instances of simulator to ensure multiple diseases can be run.
+    // Because each simulator might couple with different coupling points,
+    // we need to have a crop interface for each simulator.
+
     // Set the sowing/planting date
-    if(manager->getCropInterface()->getPlantingDate() < 0) {
-        manager->getCropInterface()->setPlantingDate(*YRPLT);
-    }  
-    TAVG = fio->getReal("PEST", "TAVG");
+    if(manager->getPlantingDate() < 0) {
+        manager->setPlantingDate(*YRPLT);
+    }
 
-    manager->getCropInterface()->showData();
-    
     for (auto& s : manager->getSimulators()) {
         // Set the current YearDOY for next Disease step computation
         s->updateCurrentYearDoy(*YRDOY);
-        fio->setIntegerMemory("PEST", "YRDOY", *YRDOY);
     }
-    
-    if(*SDWT-SDWTp > 0){
-        if(first == 0){
-            FSEED = *YRDOY;
-            fio->setIntegerMemory("PEST", "FSEED", FSEED);
-            first = 1;
-        }
+    fio->setIntegerMemory("PEST", "YRDOY", *YRDOY);
 
-        // NOTE: Unsure if this line is needed for the other module as well.
-        manager->getCropInterface()->setOrganArea(newOrgan, (*SDWT-SDWTp));
+    Weather::getInstance()->update();
 
-        if(s->getPlants().size()>0) {
-            // Run rate function from yaml...
-            SL1 = fio->getReal("PEST", "SL1");
-            SLL1 = fio->getReal("PEST", "SLL1");
-            SDUL1 = fio->getReal("PEST", "SDUL1");
-            SSAT1 = fio->getReal("PEST", "SSAT1");
-
-            SW = std::min(100.0f, std::max(0.0f, (SL1-SLL1)/(SSAT1-SLL1)*100));
-            CloudField = Utilities::runExpressionFunction(SW, s->getPlants()[0].getCloudsP()[0].getDisease()->getSWF()); 
-            // 0.0000005*exp(0.20*x) 
-
-            s->getPlants()[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
-        }         
-        SDWTp = *SDWT;
-
-        // Feed the Disease Model with weather information
-        Weather::getInstance()->update();
-        // Disease Simulator Rate
-        // NOTE: If it makes more sense to have the rate function in the Simulator class, we can move it there.
-        //       that way, more of the disease variables can be accessed directly.
-        s->rate();
+    if (*YRPLT == *YRDOY) {
+        Plant::newInstance();
     }
+
+    manager->rate();         
     return (1);
 }
 
@@ -161,40 +146,12 @@ int couplingIntegration(int *YRDOY,
         float *CLAI, float *CLFM, float *CSTEM, float *DISLA, float *DISLAP,
         float *LAIDOT, float *WSIDOT, float *SDWT, 
         float *WSDD, float *PSDD, int *DAS) {
-    // Temporary variable used for computations 
-    float dArea = 0, tArea=0, sArea=0;
-    int seedAge = 0;
-    
     Manager *manager = Manager::getInstance();
+    CouplingData *couplingData = CouplingData::getInstance();
 
-    for (auto& s : manager->getSimulators()) {
-        // Call the Disease Model Integration function
-        s->integration();
-        //printf("YRDOY: %i Plant size: %d Organ size: %f\n", *YRDOY, s->getPlants().size(),s->getPlants()[0].getOrgans().size());
-        //std::cout<<"s->getPlants().size() "<<s->getPlants().size()<<std::endl;
-        //std::cout<<s->getPlants()[0].getOrgans().size()<<std::endl;
-        if(s->getPlants().size() > 0 && s->getPlants()[0].getOrgans().size() > 0) {
-            dArea = s->getPlants()[0].getDiseaseArea();
-            tArea = s->getPlants()[0].getTotalArea();
-            sArea = s->getPlants()[0].getSenescenceArea();
-            seedAge = s->getPlants()[0].getOrgans().size();
-            //pDArea = (dArea/(tArea-sArea)*100);
-            //printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
-            //*PSDD = (dArea/tArea*5);
-            // NOTE: This needs to be recalibrated to remove hardcoded 
-            //       values. And to only happen once because as it 
-            //       currently stands, only the last value of PSDD will
-            //       get sent back to DSSAT.
-            if(tArea > 0) {
-                *PSDD = ((dArea/tArea)*15);
-            } else {
-                *PSDD = 0;
-            }        
-            //printf("ORIGINAL YRDOY: %i CloudF: %f PSDD %f\n",*YRDOY, s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue(), PSDD);
-            //printf("YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f AREALF: %f PDLA: %f PLFAD: %f\n", *YRDOY, tArea,dArea,sArea,*AREALF,*PDLA,*PLFAD);
-            //printf("YRDOY: %i SDWT: %f PSDD: %f\n", *YRDOY, *SDWT, *PSDD);
-        }
-    }
+    manager->integration();
+    couplingData->updatePrevValues();
+    
     return (1);
 }
 
@@ -204,5 +161,13 @@ int couplingOutput(int *doy) {
     // Simulator *s = Simulator::getInstance();
     // Request disease outputs to be written in files
     // NOTE: Is this actually done here?
+    Manager *manager = Manager::getInstance();
+    manager->output();
+    
     return (1);
+}
+
+// This is the entry point for the standalone GDM
+int mainStandalone() {
+    return 0;
 }

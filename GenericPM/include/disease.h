@@ -13,6 +13,7 @@
 
 #include "basic.h"
 #include "utilities.h"
+#include "coupling.h"
 
 #include <cstring>
 #include <string>
@@ -31,6 +32,8 @@ protected:
     std::string cropModel = "CRGRO";
     std::string description = "Soybean Leaf Rust";
     std::string sporeModule = "GenericPM-Spores";
+    CouplingPointID organCP = CouplingPointID::SDWT;
+    CouplingPointID damageCP = CouplingPointID::PSDD; 
 
     // NOTE: Units for all of these values would be great to include in the documentation.
     float infectionEfficiency = 0.17;
@@ -138,6 +141,23 @@ public:
 
     void setSWF(std::string SWF) {
         this->SWF = SWF;
+    }
+
+    CouplingPointID getOrganCP() {
+        return organCP;
+    }
+
+    // TODO: Implement this in yaml file.
+    void setOrganCP(CouplingPointID organCouplingPoint) {
+        this->organCP = organCouplingPoint;
+    }
+
+    CouplingPointID getDamageCP() {
+        return damageCP;
+    }
+
+    void setDamageCP(CouplingPointID damageCouplingPoint) {
+        this->damageCP = damageCouplingPoint; // Default coupling point for the organ cloud.
     }
 
     std::string getSporeModule() {

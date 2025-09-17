@@ -41,8 +41,8 @@ void CloudO::integration() {
 
     std::ostringstream convert;
     convert << Basic::getWeather()->getYearDoy() << "," << getValue();
-    for (unsigned int i = 0; i < values.size(); i++) {
-        convert << "," << values[i];
+    for (auto& value : values) {
+        convert << "," << value;
     }
     Basic::output.push_back(convert.str());
 }

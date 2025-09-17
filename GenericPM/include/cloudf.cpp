@@ -18,6 +18,11 @@ int CloudF::qtd = 0;
 int CloudF::firstOutputCall = 0;
 
 void CloudF::integration() {
+    if (firstSporeCloud > 0) {
+        values.push_back(firstSporeCloud);
+        firstSporeCloud = 0;
+    }
+
     Cloud::integration();
     if (values.size() > (unsigned) disease->getVectorSizeCloudF()) {
         values.erase(values.begin());
@@ -32,8 +37,8 @@ void CloudF::integration() {
 
     std::ostringstream convert;
     convert << Basic::getWeather()->getYearDoy() << "," << getValue();
-    for (unsigned int i = 0; i < values.size(); i++) {
-        convert << "," << values[i];
+    for (auto& value : values) {
+        convert << "," << value;
     }
     Basic::output.push_back(convert.str());
 }

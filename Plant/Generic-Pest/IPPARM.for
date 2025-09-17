@@ -135,6 +135,7 @@ C----------------------------------------------------------------------
       !WRITE(*,*) "IPPARM", FILEP, IPESTID, ISECT
       INQUIRE (FILE = FILEP,EXIST = FEXIST)
       IF (FEXIST) THEN
+         WRITE(*,*) "READPEST called inside IPPARM | FILEP: ", FILEP
          CALL READPEST(FILEP, IPESTID, ISECT)
          IF (ISECT .EQ. -1) CALL ERROR(ERRKEY,ERRNUM,FILEP,0) 
       ENDIF

@@ -33,6 +33,7 @@ void InitialCondition::integration() {
         //       be getting the disease from a disease object or simulator object instead 
         //       of the current implementation?
         if (acumulateFavorability >= cloudf.getDisease()->getAcumulateFavorability()) {
+            printf("Accumulated Favorability reached: %.2f on day %d\n", acumulateFavorability, Basic::getWeather()->getDoy());
             cloudf.setFirstSporeCloud(cloudf.getDisease()->getInitialInoculum());
             stop = true;
         }

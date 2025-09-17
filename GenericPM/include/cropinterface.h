@@ -11,29 +11,42 @@
 #ifndef RINTERFACE_H
 #define RINTERFACE_H
 
+#include "coupling.h"
+
 #include <vector>
 #include <cmath>
 #include <iostream>
+struct OrganData {
+    float totalArea;        // cm2/m2
+    float senescenceArea;   // cm2/m2
+    float previousArea;     // cm2/m2
+    float previousSenescenceArea; // cm2/m2
+    float ratioDueDefoliation; // ratio of area reduction due to defoliation (0-1)
+
+    OrganData() = default;
+    OrganData(float t, float s, float p, float ps, float r)
+        : totalArea(t), senescenceArea(s), previousArea(p),
+          previousSenescenceArea(ps), ratioDueDefoliation(r) {}
+};
 
 class CropInterface {
 protected:
-    CropInterface();
-    static CropInterface *instance;
+    CouplingPointID organCP;
     int lastOrgan = 0;
     int plantingDate = 0;
     float newDailySenescenceArea = 0;
     bool newOrgan = false;
-    std::vector<std::vector<float>> data;
+    // NOTE: I should make this not a vector but an ordered map or something similar for quick indexing by organ number. 
+    std::vector<OrganData> data;
 
 public:
-    static CropInterface* getInstance();
-    static CropInterface* newInstance();
+    CropInterface(CouplingPointID CP) : organCP(CP) {};
 
     void start() {
         lastOrgan = 0;
         plantingDate = 0;
         newOrgan = false;
-        data.clear();
+        data = {OrganData(0.0, 0.0, 0.0, 0.0, 0.0)};
     }
 
     int hasNewOrgan() {
@@ -44,63 +57,69 @@ public:
         return 0;
     }
 
+    CouplingPointID getOrganCP() {
+        return organCP;
+    }
+
+    void setOrganCP(CouplingPointID organCP) {
+        this->organCP = organCP;
+    }
+
     int getOrgansQtd() {
         return data.size();
     }
 
     float getOrganArea(int organ) {
-        return data[organ - 1][0];
+        return data[organ - 1].totalArea;
     }
 
     float getSenescenceOrganArea(int organ) {
         //std::cout << "Getting Senescence Organ Area: " << organ << std::endl;
         //std::cout << "= " << data[organ - 1][1] << std::endl;
-        return data[organ - 1][1];
+        return data[organ - 1].senescenceArea;
     }
 
-    float getPreviewsOrganArea(int organ) {
-        return data[organ - 1][2];
+    float getPreviousOrganArea(int organ) {
+        return data[organ - 1].previousArea;
     }
 
-    float getPreviewsSenescenceOrganArea(int organ) {
-        return data[organ - 1][3];
+    float getPreviousSenescenceOrganArea(int organ) {
+        return data[organ - 1].previousSenescenceArea;
     }
 
     float getRatioDueDefoliation(int organ) const {
-        return data[organ - 1][4];
+        return data[organ - 1].ratioDueDefoliation;
     }
 
     void setOrganArea(int organ, float area) {
         //std::cout << "Setting Organ Area: " << organ << " set to " << area << std::endl;
         if (organ > data.size()) {
-            std::vector<float> vetLine;
-            vetLine.push_back(area); // Organ Area
-            vetLine.push_back(0); // Senescence Area
-            vetLine.push_back(area); // Previews Organ Area
-            vetLine.push_back(0); // Previews Senescence Area
-            vetLine.push_back(1); // Ratio Reduction Due Defoliation
-            data.push_back(vetLine);
+            // area Organ Area
+            // 0    Senescence Area
+            // area Previous Organ Area
+            // 0    Previous Senescence Area
+            // 1    Ratio Reduction Due Defoliation
+            data.emplace_back(area, 0, area, 0, 1);
             newOrgan = true;
 
         } else {
-            data[organ - 1][2] = data[organ - 1][0];
-            data[organ - 1][0] = area;
+            data[organ - 1].previousArea = data[organ - 1].totalArea;
+            data[organ - 1].totalArea = area;
         }
     }
 
     void setSenescenceOrganArea(int organ, float area) {
         if (organ > data.size()) {
-            std::vector<float> vetLine;
-            vetLine.push_back(0); // Organ Area
-            vetLine.push_back(area); // Senescence Area
-            vetLine.push_back(0); // Previews Organ Area
-            vetLine.push_back(0); // Previews Senescence Area
-            vetLine.push_back(1); // Ratio Reduction Due Defoliation
-            data.push_back(vetLine);
+            // 0    Organ Area
+            // area Senescence Area
+            // 0    Previous Organ Area
+            // area Previous Senescence Area
+            // 1    Ratio Reduction Due Defoliation
+            data.emplace_back(0, area, 0, area, 1);
             newOrgan = true;
         } else {
-            data[organ - 1][3] = data[organ - 1][1];
-            data[organ - 1][1] = area;
+            data[organ - 1].previousSenescenceArea = data[organ - 1].senescenceArea;
+            data[organ - 1].senescenceArea = area;
         }
     }
 
@@ -110,33 +129,16 @@ public:
     void setDailySenescenceArea(float area) {
         newDailySenescenceArea = area;
         float diff=0;
-        for (unsigned int i = 0; i < data.size(); i++) {
+        for (auto& organData : data) {
             // set the senescence area to each organ and just call organ rate if it has area to be affected 
-            if(data[i][1] < data[i][0]) { // senescence < Organ Area
-                if(newDailySenescenceArea>0) { // we need to set senescence area to organ
-                    diff = fmin(data[i][0] - data[i][1],newDailySenescenceArea);
-                    newDailySenescenceArea = newDailySenescenceArea-diff;
-                    data[i][1] = data[i][1]+diff;
+            if(organData.senescenceArea < organData.totalArea) {
+                if(newDailySenescenceArea > 0) { // then we need to set senescence area to organ
+                    diff = fmin(organData.totalArea - organData.senescenceArea, newDailySenescenceArea);
+                    newDailySenescenceArea = newDailySenescenceArea - diff;
+                    organData.senescenceArea += diff;
                 }
             }
         }
-        /*
-        for (unsigned int i = 0; i < organs.size(); i++) {
-        o = &organs[i];
-        // set the senescence area to each organ and just call organ rate if it has area to be affected 
-        if(o->getSenescenceArea() < o->getTotalArea()) {
-            if(Simulator::getInstance()->getCropInterface()->getDailySenescenceArea()>0) { // we need to set senescence area to organ
-                diff = std::min(o->getTotalArea() - o->getSenescenceArea(),Simulator::getInstance()->getCropInterface()->getDailySenescenceArea());
-                printf("Organ: %d TotalArea: %f SenescenceArea: %f DailySenesc: %f diff: %f\n",o->getOrganNumber(),o->getTotalArea(),o->getSenescenceArea(),Simulator::getInstance()->getCropInterface()->getDailySenescenceArea(),diff);
-                Simulator::getInstance()->getCropInterface()->setDailySenescenceArea(Simulator::getInstance()->getCropInterface()->getDailySenescenceArea()-diff);
-                o->setSenescenceArea(o->getSenescenceArea()+diff);
-            }
-            if(o->getSenescenceArea() < o->getTotalArea()) {
-                o->rate();
-            }
-        }
-    }
-        */
     }
 
     /* Return the senescence area (cm2/m2) set (DSSAT - PEST - SLDOT)
@@ -148,36 +150,30 @@ public:
 
     void setRatioDueDefoliation(int organ, float ratio) {
         if (organ > data.size()) {
-            std::vector<float> vetLine;
-            vetLine.push_back(0); // Organ Area
-            vetLine.push_back(0); // Senescence Area
-            vetLine.push_back(0); // Previews Organ Area
-            vetLine.push_back(0); // Previews Senescence Area
-            vetLine.push_back(ratio); // Ratio Reduction Due Defoliation
-            data.push_back(vetLine);
+            // 0    Organ Area
+            // 0    Senescence Area
+            // 0    Previous Organ Area
+            // 0    Previous Senescence Area
+            // ratioRatio Reduction Due Defoliation
+            data.emplace_back(0, 0, 0, 0, ratio);
             newOrgan = true;
         } else {
-            data[organ - 1][4] = ratio; // Ratio Reduction Due Defoliation
+            data[organ - 1].ratioDueDefoliation = ratio; // Ratio Reduction Due Defoliation
         }
-    }
-
-    void setPlantingDate(int plantingDate) {
-        this->plantingDate = plantingDate;
-    }
-
-    int getPlantingDate() const {
-        return plantingDate;
     }
 
     void showData() {
         std::cout << "CropInterface Data:" << std::endl;
-        for (unsigned int i = 0; i < data.size(); i++) {
-            std::cout << "Organ " << (i + 1) << ": Area: " << data[i][0] 
-                      << ", Senescence Area: " << data[i][1] 
-                      << ", Previous Area: " << data[i][2] 
-                      << ", Previous Senescence Area: " << data[i][3] 
-                      << ", Ratio Due Defoliation: " << data[i][4] 
+        // Initialize an index counter
+        size_t index = 0; 
+        for (auto& organData : data) {
+            std::cout << "Organ " << (index + 1) << ": Area: " << organData.totalArea
+                      << ", Senescence Area: " << organData.senescenceArea
+                      << ", Previous Area: " << organData.previousArea
+                      << ", Previous Senescence Area: " << organData.previousSenescenceArea
+                      << ", Ratio Due Defoliation: " << organData.ratioDueDefoliation
                       << std::endl;
+            index++;
         }
     }
 };

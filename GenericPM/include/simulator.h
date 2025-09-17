@@ -24,14 +24,16 @@ private:
 
 protected:
     int currentYearDoy = 0;
-    //Injection *rateInj;
-    //Injection *integrationInj;
     InitialCondition initialCondition;
-    std::vector<Plant> plants;
+    Plant *plant = Plant::getInstance();
+    Disease *disease;
+    CropInterface *cropinterface;
 
 public:
     Simulator();
-    Simulator(Disease *disease) : initialCondition(disease){
+    Simulator(Disease *dis, CropInterface *ci) : initialCondition(dis), disease(dis), cropinterface(ci) {
+        cropinterface->start();
+
         // Compile and load injections ?
         //Injection* rateInjection = getRateInjection();
         //rateInjection->compile("RATE.cpp", "RATE.dll");
@@ -46,8 +48,8 @@ public:
     void updateCurrentYearDoy(int yearDoy);
     bool allPlantsSenesced();
 
-    std::vector<Plant>& getPlants() {
-        return plants;
+    Plant* getPlant() {
+        return plant;
     }
 
     InitialCondition* getInitialCondition() {
@@ -62,6 +64,25 @@ public:
     int getCurrentYearDoy() const {
         return currentYearDoy;
     }
+
+    Disease* getDisease() {
+        return disease;
+    }
+
+    void setDisease(Disease *disease) {
+        this->disease = disease;
+        initialCondition = InitialCondition(disease);
+    }
+
+    CropInterface* getCropInterface() {
+        return cropinterface;
+    }
+
+    /*void resetCropInterface() {
+        delete cropinterface;
+        cropinterface = new CropInterface();
+        cropinterface->start();
+    }*/
 
     /*void setRateInjection(Injection *inj) {
         rateInj = inj;

@@ -26,9 +26,16 @@ protected:
     int ID = ++qtd;
     float firstSporeCloud = 0;
     static int firstOutputCall;
+    Disease* disease;
 
 public:
-    CloudF(Disease *disease) {
+    CloudF(Disease *dis): disease(dis){}
+
+    Disease* getDisease() {
+        return disease;
+    }
+
+    void setDisease(Disease *disease) {
         this->disease = disease;
     }
 
