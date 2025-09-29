@@ -211,7 +211,7 @@ void Simulator::rate() {
         plants[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
     }*/
     
-    CouplingPointID organCP = initialCondition.getCloud()->getDisease()->getOrganCP();
+    CouplingPointID organCP = this->disease->getOrganCP();
     float *organCPVal = couplingData->getCouplingValue(organCP);
     float organCPValPrev = couplingData->getCouplingValuePrev(organCP); 
 
@@ -223,11 +223,15 @@ void Simulator::rate() {
             fio->setIntegerMemory("PEST", "FSEED", FSEED);
             first = 1;
         }*/
-        // std::cout << "New organ growth detected:\nOrgan number: " << newOrgan 
-        //     << "\nValue: " << *organCPVal 
-        //     << "\nPrevious Value: " << organCPValPrev 
-        //     << "\nGrowth: " << (*organCPVal - organCPValPrev) 
-        //     << std::endl;
+        
+        #ifdef DEBUG
+        std::cout << "New organ growth detected: " 
+                  << "Disease: " << this->disease->getDescription() 
+                  << " Coupling Point: " << cpIDToStr(organCP) 
+                  << " Organ number: " << newOrgan 
+                  << " Growth: " << (*organCPVal - organCPValPrev) 
+                  << std::endl;
+        #endif // DEBUG
         cropinterface->setOrganArea(newOrgan, (*organCPVal - organCPValPrev));
         organCPValPrev = *organCPVal;
     }

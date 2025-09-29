@@ -53,12 +53,18 @@ float SW, SL1, SLL1, SSAT1, SDUL1, FSEED, first;
 
 // couplingInit refers to the seasonal initialization of the GDM
 int couplingInit(int *YRDOY, int *YRPLT) {
+    std::cout << "Running SEASINIT for year: " << *YRDOY / 1000 << std::endl;
     Manager *manager = Manager::getInstance();
     CouplingData *couplingData = CouplingData::getInstance();
 
     // Initialize the simulators with relevant data
     manager->setCurrentSimDate(*YRDOY);
     manager->setPlantingDate(*YRPLT);
+
+    // Reset existing crop interface data year to year
+    for (auto& s : manager->getSimulators()) {
+        s->getCropInterface()->start();
+    }
 
     return (1);
 }

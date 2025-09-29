@@ -44,41 +44,38 @@ void Organ::rate() {
     // Update the total organ area (current day)
     this->totalArea = cropinterface->getOrganArea(organNumber);
     
+    // If the organ was not previously susceptible and now has area, set it to susceptible
     if (!suceptible && this->totalArea > 0) {
         suceptible = true;
     }
 
+    // If the organ is not alive, skip the rest of the calculations
     if (!isAlive()) {
         return;
     }
 
-    CloudO *cloudo;
-    LesionCohort *lc;
-    //printf("OrganNumber: %i OrganTotalArea: %f healthAreaProportion: %f \n",this->organNumber, this->totalArea,healthAreaProportion);
-    for (unsigned int i = 0; i < lesionCohorts.size(); i++) {
-        lc = &lesionCohorts[i];
+    // Use the lesion cohorts to update the diseased area based on the senescence
+    for (auto& lc : lesionCohorts) {
         // Must affect the disease area related with senescent area
         if (ratioSenescence > 0) {
-            //printf("ID: %i Age: %i VisibleArea: %f InvisibleArea: %f RatioDueDefoliation: %f\n", lc->getID(), lc->getAge(), lc->getVisibleArea(),lc->getInvisibleArea(),CropInterface::getInstance()->getRatioDueDefoliation(1));
-            lc->setVisibleArea(lc->getVisibleArea() * (1-ratioSenescence));
-            lc->setInvisibleArea(lc->getInvisibleArea() * (1-ratioSenescence));
-            lc->setTotalArea(lc->getVisibleArea()+lc->getInvisibleArea());
-            //printf("ID: %i Age: %i VisibleArea: %f InvisibleArea: %f \n", lc->getID(), lc->getAge(), lc->getVisibleArea(),lc->getInvisibleArea());
+            lc.setVisibleArea(lc.getVisibleArea() * (1-ratioSenescence));
+            lc.setInvisibleArea(lc.getInvisibleArea() * (1-ratioSenescence));
+            lc.setTotalArea(lc.getVisibleArea()+lc.getInvisibleArea());
         }
-        actualDisease += lc->getTotalArea();
+        actualDisease += lc.getTotalArea();
     }
 
     // Updating the disease amount on organ
     setDiseaseArea(actualDisease);
+
     // Calculating the health area proportion
     healthAreaProportion = Utilities::getHealthAreaProportion(getDiseaseArea(), 
                                                               getTotalArea(), 
                                                               getSenescenceArea());
 
-    for (unsigned int i = 0; i < lesionCohorts.size(); i++) {
-        lc = &lesionCohorts[i];
-        lc->setOrganHealthAreaProportion(healthAreaProportion);
-        lc->rate();
+    for (auto& lc : lesionCohorts) {
+        lc.setOrganHealthAreaProportion(healthAreaProportion);
+        lc.rate();
     }
 }
 
@@ -107,21 +104,20 @@ void Organ::integration() {
     newLesions = 0;
 
     if (suceptible) {
-        for (unsigned int i = 0; i < cloudsO.size(); i++) {
-            cloudo = &cloudsO[i];
+        for (auto& cloudo : cloudsO) {
             physiologicalLife += Utilities::trapezoidalFunction(Basic::getWeather()->getTMean(), 
-                                                                cloudo->getDisease()->getCardinalTempPhysiologicalLife());
+                                                                cloudo.getDisease()->getCardinalTempPhysiologicalLife());
 
             cloudOValue = cloudAmount();
-            cloudPValue = cloudo->getCloudP()->getValue();
-            cloudFvalue = cloudo->getCloudP()->getCloudF()->getValue();
+            cloudPValue = cloudo.getCloudP()->getValue();
+            cloudFvalue = cloudo.getCloudP()->getCloudF()->getValue();
 
             // The number of lesions that will be created on any given organ is proportional to that organ's exposed surface area.
             // NOTE: Should this organ get lesions proportional to total organ area or organ set area?
-            newLesionsFromOrgan = cloudo->getDisease()->newLesions(cloudOValue,healthAreaProportion);
-            newLesionsFromPlant = cloudo->getDisease()->newLesions(cloudPValue,healthAreaProportion) * 
+            newLesionsFromOrgan = cloudo.getDisease()->newLesions(cloudOValue,healthAreaProportion);
+            newLesionsFromPlant = cloudo.getDisease()->newLesions(cloudPValue,healthAreaProportion) * 
                                   getProportionFromTotalArea(); 
-            newLesionsFromField = cloudo->getDisease()->newLesions(cloudFvalue,healthAreaProportion) *
+            newLesionsFromField = cloudo.getDisease()->newLesions(cloudFvalue,healthAreaProportion) *
                                   getProportionFromTotalArea(); // NOTE: Same as above
             
             // Uncomment the following line to debug this step
@@ -135,28 +131,27 @@ void Organ::integration() {
                 newLesions = newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField;
                 //std::cout << "Organ: " << organNumber << "\tnew lesions: " << newLesions << std::endl;
                 
-                lesionCohorts.emplace_back(newLesions, cloudo);
+                lesionCohorts.emplace_back(newLesions, &cloudo);
                 totalLesions += newLesions;
 
                 // Add Spores that will be removed because were used to infect the tissue
-                cloudo->addSporesToBeRemoved(newLesionsFromOrgan);
-                cloudo->getCloudP()->addSporesToBeRemoved(newLesionsFromPlant);
-                cloudo->getCloudP()->getCloudF()->addSporesToBeRemoved(newLesionsFromField);
+                cloudo.addSporesToBeRemoved(newLesionsFromOrgan);
+                cloudo.getCloudP()->addSporesToBeRemoved(newLesionsFromPlant);
+                cloudo.getCloudP()->getCloudF()->addSporesToBeRemoved(newLesionsFromField);
             } 
             newLesionsFromOrgan = newLesionsFromPlant = newLesionsFromField = 0;            
         }
     }
 
-    for (unsigned int i = 0; i < lesionCohorts.size(); i++) {
-        lc = &lesionCohorts[i];
-        lc->integration();
-        diseaseArea += lc->getTotalArea();
-        latentDiseaseArea += lc->getLatentArea();
-        infectionDiseaseArea += lc->getInfectionArea();
-        necroticDiseaseArea += lc->getNecroticArea();
-        visibleLesions += lc->getVisibleLesions();
-        visibleDiseaseArea += lc->getVisibleArea();
-        invisibleDiseaseArea += lc->getInvisibleArea();
+    for (auto& lc : lesionCohorts) {
+        lc.integration();
+        diseaseArea += lc.getTotalArea();
+        latentDiseaseArea += lc.getLatentArea();
+        infectionDiseaseArea += lc.getInfectionArea();
+        necroticDiseaseArea += lc.getNecroticArea();
+        visibleLesions += lc.getVisibleLesions();
+        visibleDiseaseArea += lc.getVisibleArea();
+        invisibleDiseaseArea += lc.getInvisibleArea();
     }
 
     cloudIntegration();
@@ -233,12 +228,10 @@ void Organ::output() {
     //    std::cout << Basic::output[i] << std::endl;
     //}
 
-    CloudO *cloudo;
-    for (unsigned int i = 0; i < cloudsO.size(); i++) {
-        cloudo = &cloudsO[i];
-        cloudo->output();
+    for (auto& cloudo : cloudsO) {
+        cloudo.rate();
     }
-    
+
     //LesionCohort *lc;
     //for (unsigned int i = 0; i < lesionCohorts.size(); i++) {
     //    lc = &lesionCohorts[i];

@@ -121,7 +121,8 @@
                 "cwd": "${workspaceRoot}/build"
             },
             "type": "shell",
-            "dependsOn": "dssat-csm: CMake RELEASE"
+            "dependsOn": "dssat-csm: CMake RELEASE",
+            "problemMatcher": []
         },
         {
             "label": "dssat-csm: clean",

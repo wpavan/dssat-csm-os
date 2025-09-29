@@ -60,9 +60,8 @@ public:
         this->organNumber = organNumber;
         this->totalArea = totalArea;
         CloudP *cloud;
-        for (unsigned int i = 0; i < cloudsP.size(); i++) {
-            cloud = &cloudsP[i];
-            this->cloudsO.emplace_back(cloud->getDisease(), cloud);
+        for (auto& cloud : cloudsP) {
+            this->cloudsO.emplace_back(cloud.getDisease(), &cloud);
         }
     }
 

@@ -4,6 +4,7 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <memory>
 
 #include "coupling.h"
 #include "simulator.h"
@@ -15,7 +16,11 @@ class Manager : virtual public BasicInterface {
         static Manager* instance;
         static std::vector<Simulator*> simulators;
         static int plantingDate;
-        static std::vector<CropInterface> cropInterfaces;
+
+
+        static std::vector<std::unique_ptr<CropInterface>> cropInterfaces;
+        
+        
         static std::vector<CouplingPointID> couplingPointIDs;
 
     public:
@@ -33,17 +38,17 @@ class Manager : virtual public BasicInterface {
         static void addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci);
 
         static void addCropInterface(CouplingPointID cp) {
-            cropInterfaces.emplace_back(cp);
+            cropInterfaces.emplace_back(std::make_unique<CropInterface>(cp));
         }
 
-        static std::vector<CropInterface>& getCropInterfaces() {
+        static std::vector<std::unique_ptr<CropInterface>>& getCropInterfaces() {
             return cropInterfaces;
         }
 
         static CropInterface* getCropInterface(CouplingPointID cp) {
             for (auto& ci : cropInterfaces) {
-                if (ci.getOrganCP() == cp) {
-                    return &ci;
+                if (ci->getOrganCP() == cp) {
+                    return ci.get();
                 }
             }
             return nullptr;

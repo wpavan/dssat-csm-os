@@ -17,16 +17,22 @@
 #include <cmath>
 #include <iostream>
 struct OrganData {
-    float totalArea;        // cm2/m2
-    float senescenceArea;   // cm2/m2
-    float previousArea;     // cm2/m2
-    float previousSenescenceArea; // cm2/m2
-    float ratioDueDefoliation; // ratio of area reduction due to defoliation (0-1)
+    float totalArea{0.0f};             // cm2/m2
+    float senescenceArea{0.0f};        // cm2/m2
+    float previousArea{0.0f};          // cm2/m2
+    float previousSenescenceArea{0.0f}; // cm2/m2
+    float ratioDueDefoliation{0.0f};   // ratio of area reduction due to defoliation (0-1)
 
+    // Default constructor - all members already initialized above
     OrganData() = default;
+
+    // Parameterized constructor using member initializer list
     OrganData(float t, float s, float p, float ps, float r)
-        : totalArea(t), senescenceArea(s), previousArea(p),
-          previousSenescenceArea(ps), ratioDueDefoliation(r) {}
+        : totalArea(t)
+        , senescenceArea(s)
+        , previousArea(p)
+        , previousSenescenceArea(ps)
+        , ratioDueDefoliation(r) {}
 };
 
 class CropInterface {
@@ -43,10 +49,17 @@ public:
     CropInterface(CouplingPointID CP) : organCP(CP) {};
 
     void start() {
-        lastOrgan = 0;
-        plantingDate = 0;
-        newOrgan = false;
-        data = {OrganData(0.0, 0.0, 0.0, 0.0, 0.0)};
+        this->lastOrgan = 0;
+        this->plantingDate = 0;
+        this->newOrgan = false;
+        try {
+            this->data.clear();
+            // Initialize with one element to avoid empty vector issues
+            this->data.emplace_back(0.0f, 0.0f, 0.0f, 0.0f, 0.0f); // Use float literals to match OrganData's type
+        } catch (const std::bad_alloc& e) {
+            std::cerr << "Memory allocation failed in CropInterface::start(): " << e.what() << std::endl;
+            throw; // Re-throw the exception after logging
+        }
     }
 
     int hasNewOrgan() {
@@ -101,7 +114,6 @@ public:
             // 1    Ratio Reduction Due Defoliation
             data.emplace_back(area, 0, area, 0, 1);
             newOrgan = true;
-
         } else {
             data[organ - 1].previousArea = data[organ - 1].totalArea;
             data[organ - 1].totalArea = area;

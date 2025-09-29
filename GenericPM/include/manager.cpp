@@ -22,7 +22,7 @@ extern "C" int readPestYaml(char *filePST, int *FOUND);
 Manager* Manager::instance = nullptr;
 std::vector<Simulator*> Manager::simulators;
 int Manager::plantingDate = -99;
-std::vector<CropInterface> Manager::cropInterfaces;
+std::vector<std::unique_ptr<CropInterface>> Manager::cropInterfaces;
 std::vector<CouplingPointID> Manager::couplingPointIDs;
 
 Manager::Manager() {}
@@ -122,6 +122,11 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
   // - V. L. Covert 4/1/2025
   disease->setSWF(diseaseData["SWF"]);
 
+  // Added new parameters for input and output coupling points
+  // - V. L. Covert 9/22/2025
+  disease->setOrganCP(strToCPID(diseaseData["ORGAN_AREA_CP"]));
+  disease->setOrganCP(strToCPID(diseaseData["ORGAN_AREA_CP"]));
+
   disease->printDisease();
 
   std::cout << "Crop Interface size in Manager::addSimulator: " << ci->getOrgansQtd() << std::endl;
@@ -215,7 +220,7 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_ma
         // NOTE: Necessary to find the proper pathing here. 
         // std::string filename = paramName + ".cpp";
         //Util::writeInjectedCode(valueNode["VALUE"].as<std::string>(), filename);
-      } 
+      }
       diseaseData[paramName] = valueNode["VALUE"].as<std::string>();
       break;
 
@@ -352,13 +357,20 @@ int readPestYaml(char *filePST, int *FOUND) {
         CropInterface *ciPtr = nullptr;
         
         tempCP = strToCPID(diseaseData.at("ORGAN_AREA_CP"));
-        if (std::find(uniqueCPs.begin(), uniqueCPs.end(), tempCP) == uniqueCPs.end()) {
-          uniqueCPs.push_back(tempCP);
-          // NOTE: This is where all of the CropInterfaces are created.
-          manager->addCropInterface(tempCP);
-        } 
+        
+        // Only create a new CropInterface if we haven't seen this coupling point before
+        if (tempCP == CouplingPointID::VALUE || 
+            std::find(uniqueCPs.begin(), uniqueCPs.end(), tempCP) == uniqueCPs.end()) {
+            
+            std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
+            uniqueCPs.push_back(tempCP);
+            manager->addCropInterface(tempCP);
+        } else {
+            std::cout << "Using existing CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
+        }
         
         ciPtr = manager->getCropInterface(tempCP);
+        std::cout << "getCropInterface -> " << (ciPtr ? "valid " : "NULL ") << cpIDToStr(ciPtr->getOrganCP()) << std::endl;
         manager->addSimulator(diseaseData, ciPtr);
       }
     }

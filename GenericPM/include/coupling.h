@@ -3,6 +3,8 @@
 
 #include <string>
 #include <unordered_map>
+#include <stdexcept>
+#include <iostream>
 
 enum class Direction {
     INPUT,      // Coupling point information coming from DSSAT to the GDM
@@ -24,6 +26,7 @@ enum class OrganType {
 };
 
 enum class CouplingPointID{
+    VALUE,      // Input - Total and constant value; special case for direct float values
     AREALF,     // Input - Area of leaves (one side) per unit ground area (cm2[leaf] / m2[ground])
     CLW,        // Input - Cumulative leaf growth (g[leaf]/m2)
     CSW,        // Input - Cumulative stem growth (g[stem]/m2)
@@ -226,7 +229,11 @@ class CouplingPoint {
 
         static CouplingPointTrait getTrait(CouplingPointID cpID) {
             initTraits();
-            return traits.at(cpID);
+            try{
+                return traits.at(cpID);
+            } catch(const std::exception& e) {
+                std::cerr << e.what() << '\n';
+            }
         }
 };
 

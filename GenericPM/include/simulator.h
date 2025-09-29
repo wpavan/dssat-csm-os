@@ -32,7 +32,7 @@ protected:
 public:
     Simulator();
     Simulator(Disease *dis, CropInterface *ci) : initialCondition(dis), disease(dis), cropinterface(ci) {
-        cropinterface->start();
+        //cropinterface->start();
 
         // Compile and load injections ?
         //Injection* rateInjection = getRateInjection();

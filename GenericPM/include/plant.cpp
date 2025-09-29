@@ -34,8 +34,8 @@ Plant::Plant() {
     //       simulators. This is a good start, but we need to make it 
     //       such that it only creates one per unique disease type (WB
     //       preseason and in-season should be combined).
-    for (unsigned int i = 0; i < simulators.size(); i++) {
-        cloudsP.emplace_back(simulators[i]->getDisease(), simulators[i]->getInitialCondition()->getCloud());
+    for (auto& simulatorPtr : simulators) {
+        cloudsP.emplace_back(simulatorPtr->getDisease(), simulatorPtr->getInitialCondition()->getCloud());
     }
 }
 

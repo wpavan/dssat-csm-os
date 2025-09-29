@@ -29,7 +29,10 @@ Weather* Weather::getInstance() {
 
 bool Weather::update() {
     try {
-        yearDoy = Manager::getInstance()->getSimulator(0)->getCurrentYearDoy();
+        FlexibleIO *fio = FlexibleIO::getInstance();
+        yearDoy = fio->getInteger("PEST", "YRDOY");
+        //std::cout << "Weather::update YRDOY from PEST group: " << yearDoy << std::endl;
+        
         year = yearDoy / 1000;
         doy = yearDoy - (year * 1000);
         

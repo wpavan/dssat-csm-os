@@ -2,9 +2,26 @@
 
 #include <stdexcept>
 
+bool isConvertibleToFloat(const std::string& str) {
+    try {
+        size_t pos;
+        std::stof(str, &pos); // Attempt conversion, store position of first unconverted char
+        return pos == str.length(); // Check if the entire string was converted
+    } catch (const std::invalid_argument& e) {
+        return false; // Not a valid float format
+    } catch (const std::out_of_range& e) {
+        return false; // Value is out of float range
+    }
+}
+
 // NOTE: Maybe create a dynamic way to add in new coupling points 
-//       or alaises to coupling points 
+//       or aliases to coupling points 
 CouplingPointID strToCPID(const std::string& str) {
+    if (str.empty()) {
+        throw std::invalid_argument("Empty string cannot be converted to CouplingPointID");
+    } else if (isConvertibleToFloat(str)) {
+        return CouplingPointID::VALUE; // Special case for direct float values
+    }
     if (str == "AREALF") return CouplingPointID::AREALF;
     if (str == "CLW") return CouplingPointID::CLW;
     if (str == "CSW") return CouplingPointID::CSW;
@@ -76,6 +93,7 @@ std::string cpIDToStr(CouplingPointID cp) {
         case CouplingPointID::SDWT: return "SDWT";
         case CouplingPointID::WSDD: return "WSDD";
         case CouplingPointID::PSDD: return "PSDD";
+        case CouplingPointID::VALUE: return "VALUE";
         default:
             throw std::invalid_argument("Invalid CouplingPoint");
     }
