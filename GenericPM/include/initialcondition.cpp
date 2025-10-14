@@ -16,33 +16,48 @@
 
 int InitialCondition::qtd = 0;
 
+/*
+ * Disease variables must come from different locations in memory to 
+ * accomodate multiple diseases. Temperature and wetness favorability
+ * are shared within the cloud, but the favorability threshold and 
+ * initial inoculum added are specific to the diseases in the yaml file
+ */
+
 void InitialCondition::rate() {
-    if (!stop) {
+    if (!favorabilityAccumulated) {
         dailyFavorability = Utilities::temperatureFavorability(Basic::getWeather()->getTMean(),
-                                                               cloudf.getDisease()->getTemperatureFavorabilitySet()) 
+                                                               cloudF->getDisease()->getTemperatureFavorabilitySet()) 
                             * Utilities::wetnessFavorability(Basic::getWeather()->getWetDur(), 
-                                                             cloudf.getDisease()->getWetnessFunction());
+                                                             cloudF->getDisease()->getWetnessFunction());
     }
-    cloudf.rate();
+
+    // Run the cloud rate only once per day (handled by cloudF)
+    cloudF->rate();
 }
 
 void InitialCondition::integration() {
-    if (!stop) {
+    integration(cloudF->getDisease());
+}
+
+void InitialCondition::integration(Disease *disease) {
+    if (!favorabilityAccumulated) {
         acumulateFavorability += dailyFavorability;
         // NOTE: If we have one simulator for each disease, should the line below
         //       be getting the disease from a disease object or simulator object instead 
         //       of the current implementation?
-        if (acumulateFavorability >= cloudf.getDisease()->getAcumulateFavorability()) {
+        if (acumulateFavorability >= disease->getAcumulateFavorability()) {
             printf("Accumulated Favorability reached: %.2f on day %d\n", acumulateFavorability, Basic::getWeather()->getDoy());
-            cloudf.setFirstSporeCloud(cloudf.getDisease()->getInitialInoculum());
-            stop = true;
+            cloudF->setFirstSporeCloud(disease->getInitialInoculum());
+            favorabilityAccumulated = true;
         }
 
         std::ostringstream convert;
         convert << Basic::getWeather()->getYearDoy() << "," << acumulateFavorability;
         Basic::output.push_back(convert.str());
     }
-    cloudf.integration();
+    
+    // Run the cloud integration only once per day (handled by cloudF)
+    cloudF->integration();
 }
 
 void InitialCondition::output() {
@@ -51,10 +66,13 @@ void InitialCondition::output() {
     Basic::getOutput(convert.str());
 
     // Speedup the model removing outputs
-    //std::cout << "\nInitialCondition " << getID() << ":";
-    //for(unsigned int i=0; i<Basic::output.size(); i++)
-    //{
-    //    std::cout << Basic::output[i] << std::endl;
-    //}
-    cloudf.output();
+    #ifdef OUTPUT
+    std::cout << "\nInitialCondition " << getID() << ":";
+    for(unsigned int i=0; i<Basic::output.size(); i++) {
+       std::cout << Basic::output[i] << std::endl;
+    }
+    #endif
+
+    // Run the cloud integration only once per day (handled by cloudF)
+    cloudF->output();
 }

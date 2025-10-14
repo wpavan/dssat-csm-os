@@ -6,23 +6,24 @@
 #include <string>
 #include <memory>
 
+#include "basicinterface.h"
 #include "coupling.h"
-#include "simulator.h"
+#include "cloudf.h"
 #include "cropinterface.h"
+
+class Simulator;
 
 class Manager : virtual public BasicInterface {
     protected:
         Manager();
         static Manager* instance;
         static std::vector<Simulator*> simulators;
-        static int plantingDate;
-
-
-        static std::vector<std::unique_ptr<CropInterface>> cropInterfaces;
-        
-        
+        static int plantingDate;     
+        static std::vector<std::string> families;   
         static std::vector<CouplingPointID> couplingPointIDs;
-
+        static std::vector<std::unique_ptr<CropInterface>> cropInterfaces;
+        static std::vector<std::unique_ptr<CloudF>> cloudsF;
+        
     public:
         static Manager* getInstance();
         static Manager* newInstance();
@@ -37,8 +38,25 @@ class Manager : virtual public BasicInterface {
         }
         static void addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci);
 
+        static void addCloudF(std::string family) {
+            cloudsF.emplace_back(std::make_unique<CloudF>(family));
+        }
+
+        static CloudF* getCloudF(std::string family) {
+            for (auto& cF : cloudsF) {
+                if (cF->getFamily() == family) {
+                    return cF.get();
+                }
+            }
+            return nullptr;
+        }
+
         static void addCropInterface(CouplingPointID cp) {
             cropInterfaces.emplace_back(std::make_unique<CropInterface>(cp));
+        }
+
+        static void addCropInterface(CouplingPointID cp, float value) {
+            cropInterfaces.emplace_back(std::make_unique<CropInterface>(cp, value));
         }
 
         static std::vector<std::unique_ptr<CropInterface>>& getCropInterfaces() {
@@ -71,6 +89,16 @@ class Manager : virtual public BasicInterface {
         }
 
         static void setCurrentSimDate(int yearDoy);
+
+        static void addUniqueFamily(std::string fam) {
+            families.push_back(fam);
+        }
+
+        static std::vector<std::string> getFamilies() {
+            return families;
+        }
+
+        static void createCloudsF();
 };
 
 #endif // MANAGER_H

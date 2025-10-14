@@ -23,159 +23,6 @@
 #include <string>
 #include <cstring>
 
-// This is the placeholder to interact with the groups dedicated to GDM 2.
-// NOTE: This name must be changed to properly replace the previous version.
-void Simulator::inputPST_FromYaml() {
-    // This check ensures that diseases are only entered on the first year
-    // of a multi-year simulation.
-    if (Disease::getDisease().size() == 0) {
-        FlexibleIO *flexibleio = FlexibleIO::getInstance();
-        std::string str;
-        float f; 
-        float arraysize3[3], arraysize4[4];
-
-        // Get group names from PST group.
-        int maxDiseases = flexibleio->getInteger("PEST", "MAXDISEASES");
-        std::vector<std::string> diseaseHashes;
-        std::string storedHash;
-        std::istringstream iss(flexibleio->getCharArray("PEST", "DISEASES", std::to_string(maxDiseases)));
-        while (iss >> storedHash) {
-          diseaseHashes.push_back(storedHash);
-        }
-
-        for (std::string groupName : diseaseHashes) {
-            if (groupName != "-99"){
-                Disease *disease = new Disease();
-
-                // NOTE: The disease ID situation needs to be resolved.
-                // NOTE: Description also does not exist, so this should return a -99?
-                disease->setDescription(flexibleio->getChar(groupName, "PESTID"));
-                
-                disease->setDailySporeProductionPerLesion((float) flexibleio->getReal(groupName, "DSPL"));
-                
-                f = flexibleio->getRealIndex(groupName, "SPE", 1);
-                arraysize4[0] = (float) f;
-                f = flexibleio->getRealIndex(groupName, "SPE", 2);
-                arraysize4[1] = (float) f;
-                f = flexibleio->getRealIndex(groupName, "SPE", 3);
-                arraysize4[2] = (float) f;
-                f = flexibleio->getRealIndex(groupName, "SPE", 4);
-                arraysize4[3] = (float) f;
-                disease->setCohortAgeSet(arraysize4);
-
-                f = flexibleio->getRealIndex(groupName, "SCF", 1);
-                arraysize3[0] = (float) f;
-                f = flexibleio->getRealIndex(groupName, "SCF", 2);
-                arraysize3[1] = (float) f;
-                f = flexibleio->getRealIndex(groupName, "SCF", 3);
-                arraysize3[2] = (float) f;
-                disease->setSporulationCrowdingFactorsSet(arraysize3);
-                
-                disease->setMaxSporeCloudsDensity((float) flexibleio->getReal(groupName, "MSCD"));
-                
-                disease->setProportionFromOrganToPlantCloud((float) flexibleio->getReal(groupName, "SPO2P"));
-                
-                disease->setProportionFromPlantToFieldCloud((float) flexibleio->getReal(groupName, "SPP2F"));
-                
-                disease->setVectorSizeCloudF(flexibleio->getIntegerIndex(groupName, "CCFPO", 1));
-                
-                disease->setVectorSizeCloudP(flexibleio->getIntegerIndex(groupName, "CCFPO", 2));
-                
-                disease->setVectorSizeCloudO(flexibleio->getIntegerIndex(groupName, "CCFPO", 3));
-                
-                disease->setMRRS(flexibleio->getInteger(groupName, "MRRS"));
-                
-                disease->setInitialInoculum((float) flexibleio->getReal(groupName, "II"));
-                
-                disease->setAcumulateFavorability((float) flexibleio->getReal(groupName, "AFII"));    
-                
-                f = flexibleio->getRealIndex(groupName, "TFS", 1);
-                arraysize3[0] = (float) f;
-                f = flexibleio->getRealIndex(groupName, "TFS", 2);
-                arraysize3[1] = (float) f;
-                f = flexibleio->getRealIndex(groupName, "TFS", 3);
-                arraysize3[2] = (float) f;
-                disease->setTemperatureFavorabilitySet(arraysize3);
-                
-                disease->setInfectionEfficiency((float) flexibleio->getReal(groupName, "IE"));
-                
-                disease->setInitialPustuleSize((float) flexibleio->getReal(groupName, "IPS"));
-                
-                disease->setLatentPeriod(flexibleio->getInteger(groupName, "LP"));
-                
-                disease->setInfectionPeriod(flexibleio->getInteger(groupName, "IP"));
-                
-                disease->setWetnessThreshold((float) flexibleio->getReal(groupName, "WT"));
-                
-                disease->setHostFactor((float) flexibleio->getReal(groupName, "HF"));
-                
-                disease->setInvisibleGrowthFunction(flexibleio->getChar(groupName, "IGF"));
-                
-                disease->setVisibleGrowthFunction(flexibleio->getChar(groupName, "VGF"));
-
-                disease->setWetnessFunction(flexibleio->getChar(groupName, "WF"));
-
-                disease->setDispersionFrequency(flexibleio->getChar(groupName, "DRE"));
-
-                disease->setRhFactor(flexibleio->getChar(groupName, "RHFac"));
-
-                // Added new parameter called sporeModule to the disease class
-                // - V. L. Covert 4/1/2025
-                disease->setSporeModule(flexibleio->getChar(groupName, "SPOREMODULE"));
-
-                // Added SWF parameter which was previously unused.
-                // - V. L. Covert 4/1/2025
-                disease->setSWF(flexibleio->getChar(groupName, "SWF"));
-
-                disease->printDisease();
-            }
-        }
-    }
-}
-
-void Simulator::inputPST() {
-    inputPST_FromYaml();
-}
-
-void Simulator::integration() {
-    float dArea = 0, tArea=0, sArea=0;
-    int seedAge = 0;
-
-    initialCondition.integration();
-
-    CouplingData *couplingData = CouplingData::getInstance();
-    CouplingPointID cp = initialCondition.getCloud()->getDisease()->getDamageCP();
-
-    plant->integration();
-
-    if (plant != nullptr && plant->getOrgans().size() > 0) {
-        dArea = plant->getDiseaseArea();
-        tArea = plant->getTotalArea();
-        sArea = plant->getSenescenceArea();
-        seedAge = plant->getOrgans().size();
-        //pDArea = (dArea/(tArea-sArea)*100);
-        //printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
-        //*PSDD = (dArea/tArea*5);
-        // NOTE: This needs to be recalibrated to remove hardcoded 
-        //       values. And to only happen once because as it 
-        //       currently stands, only the last value of PSDD will
-        //       get sent back to DSSAT.
-        if (tArea > 0) {
-            couplingData->overwriteCouplingValue(cp, (dArea/tArea)*15);
-        } else {
-            couplingData->overwriteCouplingValue(cp, 0);
-        }        
-        //printf("ORIGINAL YRDOY: %i CloudF: %f PSDD %f\n",*YRDOY, s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue(), PSDD);
-        //printf("YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f AREALF: %f PDLA: %f PLFAD: %f\n", *YRDOY, tArea,dArea,sArea,*AREALF,*PDLA,*PLFAD);
-        //printf("YRDOY: %i SDWT: %f PSDD: %f\n", *YRDOY, *SDWT, *PSDD);
-    }
-}
-
-void Simulator::output() {
-    initialCondition.output();
-    plant->output();
-}
-
 /**
  * Simulator rate function
  * 
@@ -210,30 +57,41 @@ void Simulator::rate() {
 
         plants[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
     }*/
-    
-    CouplingPointID organCP = this->disease->getOrganCP();
-    float *organCPVal = couplingData->getCouplingValue(organCP);
-    float organCPValPrev = couplingData->getCouplingValuePrev(organCP); 
 
-    // This should generically perform the organ addition step regardless of the coupling point.
-    if (*organCPVal - organCPValPrev > 0) {
-        // NOTE: Ask Dr. Pavan about this following commented code:
-        /*if(first == 0){
-            FSEED = *YRDOY;
-            fio->setIntegerMemory("PEST", "FSEED", FSEED);
-            first = 1;
-        }*/
-        
-        #ifdef DEBUG
-        std::cout << "New organ growth detected: " 
-                  << "Disease: " << this->disease->getDescription() 
-                  << " Coupling Point: " << cpIDToStr(organCP) 
-                  << " Organ number: " << newOrgan 
-                  << " Growth: " << (*organCPVal - organCPValPrev) 
-                  << std::endl;
-        #endif // DEBUG
-        cropinterface->setOrganArea(newOrgan, (*organCPVal - organCPValPrev));
-        organCPValPrev = *organCPVal;
+    CouplingPointID organCP = this->disease->getOrganCP();
+    if (organCP != CouplingPointID::VALUE) {
+        float *organCPVal = couplingData->getCouplingValue(organCP);
+        float organCPValPrev = couplingData->getCouplingValuePrev(organCP);
+    
+        // This should generically perform the organ addition step regardless of the coupling point.
+        if (*organCPVal - organCPValPrev > 0) {
+            // NOTE: Ask Dr. Pavan about this following commented code:
+            /*if(first == 0){
+                FSEED = *YRDOY;
+                fio->setIntegerMemory("PEST", "FSEED", FSEED);
+                first = 1;
+            }*/
+            
+            #ifdef DEBUGX
+            std::cout << "New organ growth detected: " 
+                    << "Disease: " << this->disease->getDescription() 
+                    << " Coupling Point: " << cpIDToStr(organCP) 
+                    << " Organ number: " << newOrgan 
+                    << " Growth: " << (*organCPVal - organCPValPrev) 
+                    << std::endl;
+            #endif // DEBUG
+
+            cropinterface->setOrganArea(newOrgan, (*organCPVal - organCPValPrev));
+            organCPValPrev = *organCPVal;
+        }
+    } else {
+        #ifdef DEBUGX
+            std::cout << "Constant value organ: " 
+                    << "Disease: " << this->disease->getDescription() 
+                    << " Coupling Point: " << cpIDToStr(organCP) 
+                    << " Value: " << cropinterface->getConstValue()
+                    << std::endl;
+            #endif // DEBUG
     }
 
     /** For each Initial Condition call the rate function */
@@ -241,6 +99,46 @@ void Simulator::rate() {
 
     /** Call the rate function for the Plant */
     plant->rate();
+}
+
+
+void Simulator::integration() {
+    float dArea = 0, tArea=0, sArea=0;
+    int seedAge = 0;
+
+    initialCondition.integration(disease);
+
+    CouplingData *couplingData = CouplingData::getInstance();
+    CouplingPointID cp = initialCondition.getCloud()->getDisease()->getDamageCP();
+
+    plant->integration();
+
+    if (plant != nullptr && plant->getOrgans().size() > 0) {
+        dArea = plant->getDiseaseArea();
+        tArea = plant->getTotalArea();
+        sArea = plant->getSenescenceArea();
+        seedAge = plant->getOrgans().size();
+        //pDArea = (dArea/(tArea-sArea)*100);
+        //printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
+        //*PSDD = (dArea/tArea*5);
+        // NOTE: This needs to be recalibrated to remove hardcoded 
+        //       values. And to only happen once because as it 
+        //       currently stands, only the last value of PSDD will
+        //       get sent back to DSSAT.
+        if (tArea > 0) {
+            couplingData->overwriteCouplingValue(cp, (dArea/tArea)*15);
+        } else {
+            couplingData->overwriteCouplingValue(cp, 0);
+        }        
+        //printf("ORIGINAL YRDOY: %i CloudF: %f PSDD %f\n",*YRDOY, s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue(), PSDD);
+        //printf("YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f AREALF: %f PDLA: %f PLFAD: %f\n", *YRDOY, tArea,dArea,sArea,*AREALF,*PDLA,*PLFAD);
+        //printf("YRDOY: %i SDWT: %f PSDD: %f\n", *YRDOY, *SDWT, *PSDD);
+    }
+}
+
+void Simulator::output() {
+    initialCondition.output();
+    plant->output();
 }
 
 /**

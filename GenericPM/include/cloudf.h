@@ -22,17 +22,31 @@
  */
 class CloudF : public Cloud, virtual public BasicInterface {
 protected:
-    static int qtd;
+    std::string family;
+    int qtd;
     int ID = ++qtd;
     float firstSporeCloud = 0;
     static int firstOutputCall;
-    Disease* disease;
+    Disease* disease = nullptr;
+    int lastRate = -99;
+    int lastIntegration = -99;
+    int lastOutput = -99;
 
 public:
-    CloudF(Disease *dis): disease(dis){}
+    CloudF(std::string fam) : family(fam) {
+        Basic::output.push_back("Day of Simulation, Total Spores in CloudF");
+    }
 
     Disease* getDisease() {
         return disease;
+    }
+
+    std::string getFamily() {
+        return family;
+    }
+
+    void setFamily(std::string family) {
+        this->family = family;
     }
 
     void setDisease(Disease *disease) {
@@ -62,9 +76,7 @@ public:
      * This method is responsible for calculating rates of change pertaining to the field cloud.
      * This method is an extension of the Cloud class rate method.
      */
-    void rate() {
-        Cloud::rate();
-    }
+    void rate();
 
     /**
      * Integration of the field cloud
@@ -86,13 +98,14 @@ public:
     void addSporesCreated(float sporesCreated) {
         this->sporesCreated += sporesCreated;
     }
+
     void setSporesCreated(float sporesCreated) {
         values.clear();
         values.push_back(sporesCreated);
     }
 
     void setFirstSporeCloud(float firstSporeCloud) {
-        this->firstSporeCloud = firstSporeCloud;
+        this->firstSporeCloud += firstSporeCloud;
     }
 };
 

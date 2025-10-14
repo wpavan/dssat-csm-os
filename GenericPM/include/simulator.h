@@ -31,7 +31,7 @@ protected:
 
 public:
     Simulator();
-    Simulator(Disease *dis, CropInterface *ci) : initialCondition(dis), disease(dis), cropinterface(ci) {
+    Simulator(Disease *dis, CropInterface *ci) : initialCondition(dis->getFamily()), disease(dis), cropinterface(ci) {
         //cropinterface->start();
 
         // Compile and load injections ?
@@ -71,7 +71,7 @@ public:
 
     void setDisease(Disease *disease) {
         this->disease = disease;
-        initialCondition = InitialCondition(disease);
+        initialCondition = InitialCondition(disease->getFamily());
     }
 
     CropInterface* getCropInterface() {

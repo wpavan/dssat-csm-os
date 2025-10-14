@@ -16,9 +16,10 @@ SUBROUTINE READPESTGDM(FILEPST, FOUND)
     interface
         subroutine readPstGdm(FILEPST, FOUND)&
             bind(C, name='readPestYaml')
-        import :: c_char
-        CHARACTER, dimension(*) :: FILEPST
-        INTEGER :: FOUND
+            
+            import :: c_char
+            CHARACTER, dimension(*) :: FILEPST
+            INTEGER :: FOUND
         end subroutine readPstGdm
     end interface
 

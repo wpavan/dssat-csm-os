@@ -30,6 +30,7 @@ class Disease : public Basic {
 protected:
     int id;
     std::string cropModel = "CRGRO";
+    std::string family = "RUST";
     std::string description = "Soybean Leaf Rust";
     std::string sporeModule = "GenericPM-Spores";
     CouplingPointID organCP = CouplingPointID::SDWT;
@@ -133,6 +134,14 @@ public:
         std::cout << "Host Factor: " << hostFactor << std::endl;
         std::cout << "Cardinal Temp Physiological Life: " << cardinalTempPhysiologicalLife[0] << " " << cardinalTempPhysiologicalLife[1] << " " << cardinalTempPhysiologicalLife[2] << " " << cardinalTempPhysiologicalLife[3] << std::endl;
         std::cout << "Rh Factor: " << rhFactor << std::endl;
+    }
+
+    std::string getFamily() {
+        return family;
+    }
+
+    void setFamily(std::string family) {
+        this->family = family;
     }
 
     std::string getSWF() {

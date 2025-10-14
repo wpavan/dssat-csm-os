@@ -108,7 +108,6 @@ void Plant::integration() {
         CropInterface *ci = Manager::getCropInterface(set.CP);
 
         newOrgan = ci->hasNewOrgan();
-        printf("New organ count for coupling point %s: %d\n", cpIDToStr(set.CP).c_str(), newOrgan);
 
         // If the number of new organs is greater than 0, create an organ with the
         // corresponding data and index in the crop interface.
@@ -139,11 +138,12 @@ void Plant::output() {
     this->firstOutputCall++;
 
     // Speedup the model removing outputs
-    //std::cout << "\nPlant " << getID() << ":\n";
-    //for(unsigned int i=0; i<Basic::output.size(); i++)
-    //{
-    //    std::cout << Basic::output[i] << std::endl;
-    //}
+    #ifdef OUTPUT
+    std::cout << "\nPlant " << getID() << ":\n";
+    for(unsigned int i=0; i<Basic::output.size(); i++) {
+       std::cout << Basic::output[i] << std::endl;
+    }
+    #endif // OUTPUT
 
     // Iterate through the organs and output
     for (auto& set : organSets) {

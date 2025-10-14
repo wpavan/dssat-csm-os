@@ -13,17 +13,48 @@
 #include <yaml-cpp/yaml.h>
 
 #include "manager.h"
+#include "simulator.h"
 
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
 extern "C" int readPestYaml(char *filePST, int *FOUND);
 
+// Define a struct for easily comparing parameters (clouds purpose)
+struct CloudFParamHolder {
+  std::unordered_map<std::string, std::string> params;
+
+  bool operator==(const CloudFParamHolder& other) const {
+    for (const auto& param : params) {
+      auto it = other.params.find(param.first);
+      if (it == other.params.end() || it->second != param.second) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool operator!=(const CloudFParamHolder& other) const {
+    return !(*this == other);
+  }
+};
+
+// Define a struct that holds the families and their parameters
+struct UniqueFamilies {
+  std::unordered_map<std::string, CloudFParamHolder> families;
+
+  bool contains(const std::string& fam) const {
+    return families.find(fam) != families.end();
+  }
+};
+
 // Define all static members
 Manager* Manager::instance = nullptr;
 std::vector<Simulator*> Manager::simulators;
 int Manager::plantingDate = -99;
-std::vector<std::unique_ptr<CropInterface>> Manager::cropInterfaces;
+std::vector<std::string> Manager::families;
 std::vector<CouplingPointID> Manager::couplingPointIDs;
+std::vector<std::unique_ptr<CropInterface>> Manager::cropInterfaces;
+std::vector<std::unique_ptr<CloudF>> Manager::cloudsF;
 
 Manager::Manager() {}
 
@@ -125,15 +156,36 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
   // Added new parameters for input and output coupling points
   // - V. L. Covert 9/22/2025
   disease->setOrganCP(strToCPID(diseaseData["ORGAN_AREA_CP"]));
-  disease->setOrganCP(strToCPID(diseaseData["ORGAN_AREA_CP"]));
+  disease->setDamageCP(strToCPID(diseaseData["ORGAN_DAMAGE_CP"]));
 
+  // Added new parameter for sharing spore clouds between diseases
+  // - V. L. Covert 9/22/2025
+  disease->setFamily(diseaseData["FAMILY"]);
+  // if the family is new, then create a new CloudF object and associate it with the disease.
+  // if the family is not new, then find the existing CloudF object and associate it with the disease.
+  
+  #ifdef DEBUG
   disease->printDisease();
 
   std::cout << "Crop Interface size in Manager::addSimulator: " << ci->getOrgansQtd() << std::endl;
+  #endif
 
   // Use the *disease to find a new slot in the simulators 
   // vector and then initialize a new Simulator inside it.
   simulators.push_back(new Simulator(disease, ci));
+}
+
+void Manager::createCloudsF() {
+  for (const auto& fam : families) {
+    addCloudF(fam);
+    CloudF *cloudFPtr = getCloudF(fam);
+    for (const auto& sim : simulators) {
+      if (sim->getDisease()->getFamily() == fam) {
+          cloudFPtr->setDisease(sim->getDisease());
+          sim->getInitialCondition()->setCloud(cloudFPtr);
+      }
+    }
+  }
 }
 
 void Manager::setCurrentSimDate(int yearDoy) {
@@ -254,6 +306,7 @@ int readPestYaml(char *filePST, int *FOUND) {
 
   CouplingPointID tempCP;
   std::vector<CouplingPointID> uniqueCPs;
+  UniqueFamilies uniqueFamilies;
   std::vector<YAML::Node> diseases;
 
   // Try to read the input YAML file and throw an error if it doesn't work.
@@ -309,6 +362,7 @@ int readPestYaml(char *filePST, int *FOUND) {
       }
 
       std::unordered_map<std::string, std::string> diseaseData;
+      CloudFParamHolder cloudParams;
 
       // Step 2 is to load the disease into memory.
         for (auto it=disease.begin(); it!=disease.end(); ++it) {
@@ -325,8 +379,8 @@ int readPestYaml(char *filePST, int *FOUND) {
             // These will include all of the metadata for the disease.
             // NOTE: -99 conversions to NA should be done here and checked top-level.
             case 2: // YAML::NodeType::Scalar:
-              // Add important metadata to FlexibleIO.
-              if (key == "PESTID" || key == "DISEASE") {
+              // Add important metadata to DiseaseData map.
+              if (key == "PESTID" || key == "DISEASE" || key == "FAMILY") {
                 diseaseData[key] = value.as<std::string>();
               }
               break;
@@ -338,6 +392,10 @@ int readPestYaml(char *filePST, int *FOUND) {
             // Every functional disease parameter must fit into this category.
             case 4: // YAML::NodeType::Map:
               addPestParam(key, value, diseaseData);
+              // Handle if the node is a CLOUD_PARAM:
+              if (value["CLOUD_PARAM"] && value["CLOUD_PARAM"].as<bool>()) {
+                cloudParams.params[key] = diseaseData[key];
+              }
               break;          
 
             // Unknown where this would come up, need to check documentation. 
@@ -354,28 +412,71 @@ int readPestYaml(char *filePST, int *FOUND) {
 
         // Now the diseaseData is fully populated with the disease parameters.
         // Step 3 is to add the disease to the manager.
+        // Step 3a is to init the CropInterface if needed.
         CropInterface *ciPtr = nullptr;
-        
+        #ifdef DEBUG
+          std::cout << "ORGAN_AREA_CP: " << diseaseData.at("ORGAN_AREA_CP") << std::endl << "Running strToCPID..." << std::endl;
+        #endif
         tempCP = strToCPID(diseaseData.at("ORGAN_AREA_CP"));
-        
+         
         // Only create a new CropInterface if we haven't seen this coupling point before
-        if (tempCP == CouplingPointID::VALUE || 
-            std::find(uniqueCPs.begin(), uniqueCPs.end(), tempCP) == uniqueCPs.end()) {
-            
-            std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
-            uniqueCPs.push_back(tempCP);
-            manager->addCropInterface(tempCP);
+        if (tempCP == CouplingPointID::VALUE) {
+          #ifdef DEBUG
+          std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
+          #endif // DEBUG
+          manager->addCropInterface(tempCP, std::stof(diseaseData.at("ORGAN_AREA_CP")));
+        } else if (std::find(uniqueCPs.begin(), uniqueCPs.end(), tempCP) == uniqueCPs.end()) {
+          #ifdef DEBUG
+          std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
+          #endif // DEBUG
+          uniqueCPs.push_back(tempCP);
+          manager->addCropInterface(tempCP);
         } else {
-            std::cout << "Using existing CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
+          #ifdef DEBUG
+          std::cout << "Using existing CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
+          #endif // DEBUG
         }
         
         ciPtr = manager->getCropInterface(tempCP);
         std::cout << "getCropInterface -> " << (ciPtr ? "valid " : "NULL ") << cpIDToStr(ciPtr->getOrganCP()) << std::endl;
+
+        // Step 3b is to handle family grouping.
+        std::string family = diseaseData["FAMILY"];
+
+        CloudF *cloudFPtr = nullptr;
+        
+        if (!uniqueFamilies.contains(family)) {
+          std::cout << "Will create new CloudF for disease family: " << family << std::endl;
+          uniqueFamilies.families[family] = cloudParams;
+          
+          #ifdef DEBUG
+          std::cout << "Cloud parameters for this family: " << family << std::endl;
+          for (const auto& param : cloudParams.params) {
+            std::cout << "  " << param.first << ": " << param.second << std::endl;
+          }
+          #endif // DEBUG
+
+          manager->addUniqueFamily(family);
+        } else {
+          std::cout << "Will use existing CloudF for shared inoculum: " << cpIDToStr(tempCP) << std::endl;
+
+          #ifdef DEBUG
+          std::cout << "Cloud parameters for this family: " << family << std::endl;
+          for (const auto& param : cloudParams.params) {
+            std::cout << "  " << param.first << ": " << param.second << std::endl;
+          }
+          #endif // DEBUG
+
+          if (cloudParams != uniqueFamilies.families[family]) {
+            throw std::runtime_error("Error: Cloud parameters for family " + family + " do not match previous definition.");
+          }
+        }
         manager->addSimulator(diseaseData, ciPtr);
       }
     }
   }
   manager->setCouplingPointIDs(uniqueCPs);
+  manager->createCloudsF();
   // No more diseases found in the YAML file.
   return 1;
 } 

@@ -38,6 +38,7 @@ struct OrganData {
 class CropInterface {
 protected:
     CouplingPointID organCP;
+    float constValue = 0;
     int lastOrgan = 0;
     int plantingDate = 0;
     float newDailySenescenceArea = 0;
@@ -47,6 +48,7 @@ protected:
 
 public:
     CropInterface(CouplingPointID CP) : organCP(CP) {};
+    CropInterface(CouplingPointID CP, float value) : organCP(CP), constValue(value) {};
 
     void start() {
         this->lastOrgan = 0;
@@ -76,6 +78,10 @@ public:
 
     void setOrganCP(CouplingPointID organCP) {
         this->organCP = organCP;
+    }
+
+    int getConstValue() {
+        return constValue;
     }
 
     int getOrgansQtd() {

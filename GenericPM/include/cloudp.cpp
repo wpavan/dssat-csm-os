@@ -54,9 +54,12 @@ void CloudP::output() {
     this->firstOutputCall++;
 
     // Speedup the model removing outputs
-    //std::cout << "\nCloudP" << getID() << ":";
-    //for(unsigned int i=0; i<Basic::output.size(); i++)
-    //    std::cout << Basic::output[i] << std::endl;
+    #ifdef OUTPUT
+    std::cout << "\nCloudP" << getID() << ":";
+    for(unsigned int i=0; i<Basic::output.size(); i++) {
+       std::cout << Basic::output[i] << std::endl;
+    }
+    #endif // OUTPUT
 }
 
 void CloudP::addSporesCreated(float sporesCreated) {

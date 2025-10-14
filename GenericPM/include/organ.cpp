@@ -222,21 +222,19 @@ void Organ::output() {
     Basic::getOutput("Cpp_Organ.txt",this->firstOutputCall);
     this->firstOutputCall++;
     // Speedup the model removing outputs
-    //std::cout << "\nOrgan " << getID() << ":";
-    //for(unsigned int i=0; i<Basic::output.size(); i++)
-    //{
-    //    std::cout << Basic::output[i] << std::endl;
-    //}
+    #ifdef OUTPUT
+    for(unsigned int i=0; i<Basic::output.size(); i++) {
+        std::cout << Basic::output[i] << std::endl;
+    }
+    #endif // OUTPUT
 
     for (auto& cloudo : cloudsO) {
-        cloudo.rate();
+        cloudo.output();
     }
 
-    //LesionCohort *lc;
-    //for (unsigned int i = 0; i < lesionCohorts.size(); i++) {
-    //    lc = &lesionCohorts[i];
-    //    lc->output();
-    //}
+    for (auto& lc : lesionCohorts) {
+        lc.output();
+    }
 }
 
 void printCloudValues(int CloudFValue, int CloudPValue, int CloudOValue) {

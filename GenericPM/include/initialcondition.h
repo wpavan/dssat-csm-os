@@ -16,17 +16,18 @@
 
 class InitialCondition : public Basic, virtual public BasicInterface {
 private:
-    CloudF cloudf;
+    CloudF *cloudF = nullptr;
 
 protected:
     float acumulateFavorability = 0, dailyFavorability = 0;
-    bool stop = false;
+    bool favorabilityAccumulated = false;
     int doc = Basic::getWeather()->getDoy();
     static int qtd;
     int ID = ++qtd;
+    std::string family;
 
 public:
-    InitialCondition(Disease *disease) : cloudf{disease} {
+    InitialCondition(std::string family) : family(family){
         Basic::output.push_back("Day of Simulation, Acumulated Favorability");
     }
 
@@ -35,7 +36,15 @@ public:
     }
 
     CloudF* getCloud() {
-        return &cloudf;
+        return cloudF;
+    }
+
+    void setCloud(CloudF *cloudF) {
+        this->cloudF = cloudF;
+    }
+
+    std::string getFamily() {
+        return family;
     }
 
     int getDoc() {
@@ -58,6 +67,7 @@ public:
      * pre-determinated value, stop the process.
      */
     void integration();
+    void integration(Disease *disease);
 
     void output();
 };
