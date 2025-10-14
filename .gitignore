@@ -67,4 +67,6 @@ Plant/ORYZA
 .vs/*
 .history/*
 Resources/R*
+# Added by V.L.Covert
 Notes_Ignore/
+rebuild.bat
