@@ -19,7 +19,7 @@ int CloudF::firstOutputCall = 0;
 void CloudF::rate() {
     if (lastRate != Basic::getWeather()->getDoy()) {
         Cloud::rate();
-        #ifdef DEBUG
+        #ifdef DEBUGX        
         std::cout << "YEARDOY: " << weather->getYearDoy() << "\n\t- CloudF family: " << family << "\n\t- Total Spores in CloudF: " << getValue() << std::endl;
         #endif // DEBUG
 

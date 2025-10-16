@@ -164,7 +164,7 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
   // if the family is new, then create a new CloudF object and associate it with the disease.
   // if the family is not new, then find the existing CloudF object and associate it with the disease.
   
-  #ifdef DEBUG
+  #ifdef DEBUGX  
   disease->printDisease();
 
   std::cout << "Crop Interface size in Manager::addSimulator: " << ci->getOrgansQtd() << std::endl;
@@ -414,25 +414,25 @@ int readPestYaml(char *filePST, int *FOUND) {
         // Step 3 is to add the disease to the manager.
         // Step 3a is to init the CropInterface if needed.
         CropInterface *ciPtr = nullptr;
-        #ifdef DEBUG
-          std::cout << "ORGAN_AREA_CP: " << diseaseData.at("ORGAN_AREA_CP") << std::endl << "Running strToCPID..." << std::endl;
+        #ifdef DEBUGX
+        std::cout << "ORGAN_AREA_CP: " << diseaseData.at("ORGAN_AREA_CP") << std::endl << "Running strToCPID..." << std::endl;
         #endif
         tempCP = strToCPID(diseaseData.at("ORGAN_AREA_CP"));
          
         // Only create a new CropInterface if we haven't seen this coupling point before
         if (tempCP == CouplingPointID::VALUE) {
-          #ifdef DEBUG
+          #ifdef DEBUGX
           std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
           #endif // DEBUG
           manager->addCropInterface(tempCP, std::stof(diseaseData.at("ORGAN_AREA_CP")));
         } else if (std::find(uniqueCPs.begin(), uniqueCPs.end(), tempCP) == uniqueCPs.end()) {
-          #ifdef DEBUG
+          #ifdef DEBUGX 
           std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
           #endif // DEBUG
           uniqueCPs.push_back(tempCP);
           manager->addCropInterface(tempCP);
         } else {
-          #ifdef DEBUG
+          #ifdef DEBUGX          
           std::cout << "Using existing CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
           #endif // DEBUG
         }
@@ -449,7 +449,7 @@ int readPestYaml(char *filePST, int *FOUND) {
           std::cout << "Will create new CloudF for disease family: " << family << std::endl;
           uniqueFamilies.families[family] = cloudParams;
           
-          #ifdef DEBUG
+          #ifdef DEBUGX          
           std::cout << "Cloud parameters for this family: " << family << std::endl;
           for (const auto& param : cloudParams.params) {
             std::cout << "  " << param.first << ": " << param.second << std::endl;
@@ -460,7 +460,7 @@ int readPestYaml(char *filePST, int *FOUND) {
         } else {
           std::cout << "Will use existing CloudF for shared inoculum: " << cpIDToStr(tempCP) << std::endl;
 
-          #ifdef DEBUG
+          #ifdef DEBUGX          
           std::cout << "Cloud parameters for this family: " << family << std::endl;
           for (const auto& param : cloudParams.params) {
             std::cout << "  " << param.first << ": " << param.second << std::endl;
@@ -475,6 +475,7 @@ int readPestYaml(char *filePST, int *FOUND) {
       }
     }
   }
+
   manager->setCouplingPointIDs(uniqueCPs);
   manager->createCloudsF();
   // No more diseases found in the YAML file.

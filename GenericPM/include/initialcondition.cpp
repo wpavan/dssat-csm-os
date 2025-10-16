@@ -71,7 +71,7 @@ void InitialCondition::output() {
     for(unsigned int i=0; i<Basic::output.size(); i++) {
        std::cout << Basic::output[i] << std::endl;
     }
-    #endif
+    #endif // OUTPUT
 
     // Run the cloud integration only once per day (handled by cloudF)
     cloudF->output();
