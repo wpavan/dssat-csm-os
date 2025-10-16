@@ -62,69 +62,69 @@ class Utilities {
         
 };
 
-typedef float (*InjectionFunction)();
+// typedef float (*InjectionFunction)();
 
-struct Injection {
-    HMODULE dllHandle = nullptr;
-    InjectionFunction injectedFunc = nullptr;
+// struct Injection {
+//     HMODULE dllHandle = nullptr;
+//     InjectionFunction injectedFunc = nullptr;
 
-    int compile(const std::string& cpp_file, const std::string& dll){
-        #ifdef _WIN32
-            // Use the name of the file or some checksum to make sure
-            // the DLL is not recompiled unnecessarily.
-            // Use the linux server for testing to make sure it is compatible.
-            // Potentially use the sed profiler.
-            std::string cmd = "g++ -shared -o " + dll + " " + cpp_file;
-            int result = std::system(cmd.c_str());
-            return result;
-        #else
-            std::cerr << "Compilation is only supported on Windows." << std::endl;
-            return -1;
-        #endif
-    }
+//     int compile(const std::string& cpp_file, const std::string& dll){
+//         #ifdef _WIN32
+//             // Use the name of the file or some checksum to make sure
+//             // the DLL is not recompiled unnecessarily.
+//             // Use the linux server for testing to make sure it is compatible.
+//             // Potentially use the sed profiler.
+//             std::string cmd = "g++ -shared -o " + dll + " " + cpp_file;
+//             int result = std::system(cmd.c_str());
+//             return result;
+//         #else
+//             std::cerr << "Compilation is only supported on Windows." << std::endl;
+//             return -1;
+//         #endif
+//     }
     
-    int load(const std::string& dll) {
-        dllHandle = LoadLibraryA(dll.c_str());
-        if (dllHandle == nullptr) {
-            std::cerr << "Error loading DLL: " << dll << std::endl;
-            std::cerr << "Error code: " << GetLastError() << std::endl;
-            return -1;
-        }
+//     int load(const std::string& dll) {
+//         dllHandle = LoadLibraryA(dll.c_str());
+//         if (dllHandle == nullptr) {
+//             std::cerr << "Error loading DLL: " << dll << std::endl;
+//             std::cerr << "Error code: " << GetLastError() << std::endl;
+//             return -1;
+//         }
 
-        injectedFunc = (InjectionFunction)GetProcAddress(dllHandle, "RATE");
-        if (injectedFunc == nullptr) {
-            std::cerr << "Error finding function in DLL: " << dll << std::endl;
-            std::cerr << "Error code: " << GetLastError() << std::endl;
-            FreeLibrary(dllHandle);
-            dllHandle = nullptr;
-            return -1;
-        }
-        return 0;
-    }
+//         injectedFunc = (InjectionFunction)GetProcAddress(dllHandle, "RATE");
+//         if (injectedFunc == nullptr) {
+//             std::cerr << "Error finding function in DLL: " << dll << std::endl;
+//             std::cerr << "Error code: " << GetLastError() << std::endl;
+//             FreeLibrary(dllHandle);
+//             dllHandle = nullptr;
+//             return -1;
+//         }
+//         return 0;
+//     }
 
-    float exec() const {
-        if (injectedFunc != nullptr) {
-            return injectedFunc();
-        } else {
-            std::cerr << "Injection function is not loaded." << std::endl;
-            return -99.0f;
-        }
-    }
+//     float exec() const {
+//         if (injectedFunc != nullptr) {
+//             return injectedFunc();
+//         } else {
+//             std::cerr << "Injection function is not loaded." << std::endl;
+//             return -99.0f;
+//         }
+//     }
 
-    void unload() {
-        if (dllHandle == nullptr) {
-            std::cerr << "DLL is not loaded." << std::endl;
-            return;
-        } else {
-            FreeLibrary(dllHandle);
-            dllHandle = nullptr;
-            injectedFunc = nullptr;
-        }
-    }
+//     void unload() {
+//         if (dllHandle == nullptr) {
+//             std::cerr << "DLL is not loaded." << std::endl;
+//             return;
+//         } else {
+//             FreeLibrary(dllHandle);
+//             dllHandle = nullptr;
+//             injectedFunc = nullptr;
+//         }
+//     }
 
-    ~Injection() {
-        unload();
-    }
-};
+//     ~Injection() {
+//         unload();
+//     }
+// };
 
 #endif // UTILITIES_H
