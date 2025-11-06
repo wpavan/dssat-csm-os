@@ -9,11 +9,13 @@
 
 #include <sstream>
 #include <regex>
+#include <variant>
 
 #include <yaml-cpp/yaml.h>
 
 #include "manager.h"
 #include "simulator.h"
+#include "injection.h"
 
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
@@ -49,7 +51,7 @@ struct UniqueFamilies {
 
 // Define all static members
 Manager* Manager::instance = nullptr;
-std::vector<Simulator*> Manager::simulators;
+std::vector<std::unique_ptr<Simulator>> Manager::simulators;
 int Manager::plantingDate = -99;
 std::vector<std::string> Manager::families;
 std::vector<CouplingPointID> Manager::couplingPointIDs;
@@ -59,25 +61,25 @@ std::vector<std::unique_ptr<CloudF>> Manager::cloudsF;
 Manager::Manager() {}
 
 Manager* Manager::getInstance() {
-    if (instance == nullptr) {
-        instance = new Manager();
-    }
-    return instance;
+  if (instance == nullptr) {
+      instance = new Manager();
+  }
+  return instance;
 }
 
 Manager* Manager::newInstance() {
-    instance = nullptr;
-    return getInstance();
+  instance = nullptr;
+  return getInstance();
 }
 
 Simulator* Manager::getSimulator(int index) {
-    if (index < 0 || index >= simulators.size()) {
-        return nullptr; // or throw an exception
-    }
-    return simulators[index];
+  if (index < 0 || index >= simulators.size()) {
+      return nullptr; // or throw an exception
+  }
+  return simulators[index].get();
 }
 
-void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci) {
+void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci, InjectionHolder rateInjections, InjectionHolder integrationInjections) {
   if (ci == nullptr) {
     std::cerr << "Error: CropInterface pointer is null in Manager::addSimulator" << std::endl;
     return;
@@ -164,6 +166,14 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
   // if the family is new, then create a new CloudF object and associate it with the disease.
   // if the family is not new, then find the existing CloudF object and associate it with the disease.
   
+  for (auto& injection : rateInjections.injections) {
+    disease->addRateInjection(Injection(std::get<0>(injection), std::get<1>(injection), std::get<2>(injection)));
+  }
+
+  for (auto& injection : integrationInjections.injections) {
+    disease->addIntegrationInjection(Injection(std::get<0>(injection), std::get<1>(injection), std::get<2>(injection)));
+  }
+
   #ifdef DEBUGX  
   disease->printDisease();
 
@@ -172,16 +182,28 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
 
   // Use the *disease to find a new slot in the simulators 
   // vector and then initialize a new Simulator inside it.
-  simulators.push_back(new Simulator(disease, ci));
+  simulators.emplace_back(std::make_unique<Simulator>(disease, ci));
 }
 
 void Manager::createCloudsF() {
+  Disease* diseasePtr;
+
   for (const auto& fam : families) {
     addCloudF(fam);
     CloudF *cloudFPtr = getCloudF(fam);
+    if (cloudFPtr == nullptr) {
+      std::cout << "Error: CloudF pointer is null in Manager::createCloudsF for family " << fam << std::endl;
+      continue;
+    }
     for (const auto& sim : simulators) {
+      std::cout << "Family for this simulator: " << sim->getDisease()->getFamily() << std::endl;
       if (sim->getDisease()->getFamily() == fam) {
-          cloudFPtr->setDisease(sim->getDisease());
+          diseasePtr = sim->getDisease();
+          if (diseasePtr == nullptr) {
+            std::cout << "Error: Disease pointer is null in Manager::createCloudsF for family " << fam << std::endl;
+            continue;
+          }
+          cloudFPtr->setDisease(diseasePtr);
           sim->getInitialCondition()->setCloud(cloudFPtr);
       }
     }
@@ -191,6 +213,14 @@ void Manager::createCloudsF() {
 void Manager::setCurrentSimDate(int yearDoy) {
     for (auto& simulator : simulators) {
         simulator->setCurrentYearDoy(yearDoy);
+    }
+}
+
+int Manager::getCurrentSimDate() {
+    if (simulators.size() > 0) {
+        return simulators[0]->getCurrentYearDoy();
+    } else {
+        return -99;
     }
 }
 
@@ -261,7 +291,8 @@ std::string replacePlaceholders(std::string originalValue, std::string originalT
 void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_map<std::string, std::string> &diseaseData) {
   int sequenceIndex = 1;
   std::string dataLabel;
-
+  // Handle paramNames {RATE, INTEGRATION} differently to allow for 
+  // code injection with a streamlined format.
   switch (valueNode["VALUE"].Type()) {
     case 1: // YAML::NodeType::Null:
       diseaseData[paramName] = "-99";
@@ -357,11 +388,12 @@ int readPestYaml(char *filePST, int *FOUND) {
               std::string originalType = value["TYPE"].as<std::string>();
               value["VALUE"][i] = replacePlaceholders(originalValue, originalType, disease);
             }
-          }
+          } // NOTE: Here we are effectively excluding the injection sections because of their alternate format.
         }
       }
 
       std::unordered_map<std::string, std::string> diseaseData;
+      InjectionHolder rateInjections, integrationInjections;
       CloudFParamHolder cloudParams;
 
       // Step 2 is to load the disease into memory.
@@ -391,12 +423,66 @@ int readPestYaml(char *filePST, int *FOUND) {
             
             // Every functional disease parameter must fit into this category.
             case 4: // YAML::NodeType::Map:
-              addPestParam(key, value, diseaseData);
-              // Handle if the node is a CLOUD_PARAM:
-              if (value["CLOUD_PARAM"] && value["CLOUD_PARAM"].as<bool>()) {
-                cloudParams.params[key] = diseaseData[key];
+              if (key == "RATE") {
+                // Iterate through each injection endpoint in RATE
+                for (auto injIt = value.begin(); injIt != value.end(); ++injIt) {
+                  std::string endpointName = injIt->first.as<std::string>();
+                  YAML::Node injectionData = injIt->second;
+                  std::cout << injectionData << std::endl;
+                  
+                  // Validate that this injection has required fields
+                  if (!injectionData["EXPRESSION"] || !injectionData["MODIFICATION"]) {
+                    std::cout << "Warning: Rate injection " << endpointName 
+                              << " missing EXPRESSION or MODIFICATION field" << std::endl;
+                    continue;
+                  }
+                  
+                  try {
+                    std::string expression = injectionData["EXPRESSION"].as<std::string>();
+                    std::string modification = injectionData["MODIFICATION"].as<std::string>();
+                    
+                    // Create the injection
+                    rateInjections.add(endpointName, expression, modification);
+                    
+                  } catch (const YAML::Exception& e) {
+                    std::cout << "Error parsing rate injection " << endpointName 
+                              << ": " << e.what() << std::endl;
+                  }
+                }
+                
+              } else if (key == "INTEGRATION") {
+                // Similar logic for INTEGRATION injections
+                for (auto injIt = value.begin(); injIt != value.end(); ++injIt) {
+                  std::string endpointName = injIt->first.as<std::string>();
+                  YAML::Node injectionData = injIt->second;
+                  
+                  // Validate that this injection has required fields
+                  if (!injectionData["EXPRESSION"] || !injectionData["MODIFICATION"]) {
+                    std::cout << "Warning: Integration injection " << endpointName 
+                              << " missing EXPRESSION or MODIFICATION field" << std::endl;
+                    continue;
+                  }
+                  
+                  try {
+                    std::string expression = injectionData["EXPRESSION"].as<std::string>();
+                    std::string modification = injectionData["MODIFICATION"].as<std::string>();
+                    
+                    // Create the injection
+                    integrationInjections.add(endpointName, expression, modification);
+                    
+                  } catch (const YAML::Exception& e) {
+                    std::cout << "Error parsing integration injection " << endpointName 
+                              << ": " << e.what() << std::endl;
+                  }
+                }
+              } else {
+                addPestParam(key, value, diseaseData);
+                // Handle if the node is a CLOUD_PARAM:
+                if (value["CLOUD_PARAM"] && value["CLOUD_PARAM"].as<bool>() && typeid(diseaseData[key]) == typeid(std::string)) {
+                  cloudParams.params[key] = diseaseData[key];
+                }
               }
-              break;          
+              break;      
 
             // Unknown where this would come up, need to check documentation. 
             // May only be if user breaks yaml file
@@ -471,7 +557,7 @@ int readPestYaml(char *filePST, int *FOUND) {
             throw std::runtime_error("Error: Cloud parameters for family " + family + " do not match previous definition.");
           }
         }
-        manager->addSimulator(diseaseData, ciPtr);
+        manager->addSimulator(diseaseData, ciPtr, rateInjections, integrationInjections);
       }
     }
   }

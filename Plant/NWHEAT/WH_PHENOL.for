@@ -46,6 +46,7 @@
 C-----------------------------------------------------------------------
       USE ModuleDefs
       USE WH_module
+      USE flexibleio ! To push data into GDM's scope. 
       IMPLICIT  NONE
       EXTERNAL GETLUN, FIND, ERROR, IGNORE, WARNING, SNOWFALL, WH_COLD, 
      &  StageFlags, nwheats_germn
@@ -703,6 +704,13 @@ cbak  ears that is not included in lai calculation.
 !         DYNAMIC = RATE OR INTEGRATE
 ! ---------------------------------------------------------------------
       ELSE    ! pass here only DYNAMIC = INTEGR
+
+! Storing daily ZSTAGE for GDM calculations
+!
+!            WRITE(*,'(A,I0,A,F8.2)') 
+!     &        'Setting ZSTAGE for YRDOY=', YRDOY, 
+!     &        ' value=', nwheats_dc_code
+          call fio%set("PEST","ZSTAGE",nwheats_dc_code)  
 !-----------------------------------------------------------------------
 !*!   Begin NWheats subroutine nwheats_crown_temp (tempcn, tempcx). 
 
@@ -1025,7 +1033,7 @@ cbak  ears that is not included in lai calculation.
 !*!          alternatively, could use TWILEN (DSSAT)
 !*!                  ppfac = 1. -   p1d * (20. - hrlt)**2
 !             nwheats_ppfac = 1. - PPSEN * (20. - DAYL)**2 
-!            n Apsim: The parameter “twilight?is set to the angle (degrees) the geometric centre of the sun is relative to the horizon, -6 degrees for APSIM crops being Civil twilight.  
+!            n Apsim: The parameter ï¿½twilight?is set to the angle (degrees) the geometric centre of the sun is relative to the horizon, -6 degrees for APSIM crops being Civil twilight.  
              nwheats_ppfac = 1. - PPSEN * (20. - TWILEN)**2 
         
 !             DSSAT and APSIM may calculate DAYL differently, thus affect DCCD slightly
@@ -1222,7 +1230,6 @@ cbak  ears that is not included in lai calculation.
 
               ! from nwheats_phase:                                             
               IF (sumstgdtt(endear) .LT. pgdd(endear)) RETURN
-
               STGDOY(ISTAGE) = YRDOY
 !*!           ISTAGE = 5
               grf_date = YRDOY  !*! from NWheat
@@ -1310,9 +1317,8 @@ cbak  ears that is not included in lai calculation.
 ! ----------------------------------------------------------------------
           ENDIF            ! End ISTAGE Loop
 ! ----------------------------------------------------------------------
-
-      ENDIF  ! End DYNAMIC STRUCTURE
-
+              
+      ENDIF  ! End DYNAMIC STRUCTURE 
       RETURN
 
 !-----------------------------------------------------------------------
@@ -1673,8 +1679,8 @@ C=====================================================================
 ! IDURP      Duration of ISTAGE 4, calendar days
 ! ISTAGE     Growth stage
 ! ISWWAT     Water balance switch (Y/N)
-! KVAL1       Pre-anthesis canopy light extinction coefficient for daily PAR
-! KVAL2       Post-anthesis canopy light extinction coefficient for daily PAR
+! KVAL1      Pre-anthesis canopy light extinction coefficient for daily PAR
+! KVAL2      Post-anthesis canopy light extinction coefficient for daily PAR
 ! LEAFNO     Number of oldest leaf per plant (same as XN)
 ! L          Loop counter
 ! L0         Temporary soil layer number

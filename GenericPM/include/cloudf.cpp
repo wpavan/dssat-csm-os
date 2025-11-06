@@ -43,7 +43,7 @@ void CloudF::integration() {
             Cloud::removeSporesCloud(getValue() - disease->getMaxSporeCloudsDensity());
         }
         if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
-            // Here we should parameterize the rain effect on the spores cloud
+            // NOTE: Here we should parameterize the rain effect on the spores cloud
             Cloud::removeSporesCloudByRain(1-exp(-0.035*Basic::getWeather()->getRain()));
         }
 

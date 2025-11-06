@@ -6,6 +6,8 @@
 #include <string>
 #include <memory>
 
+#include <yaml-cpp/yaml.h>
+
 #include "basicinterface.h"
 #include "coupling.h"
 #include "cloudf.h"
@@ -13,11 +15,31 @@
 
 class Simulator;
 
+template<typename T1, typename T2, typename T3>
+using triple = std::tuple<T1, T2, T3>;
+
+struct InjectionHolder {
+    // One injection is an endpoint, expression, and modification
+    std::vector<triple<std::string, std::string, std::string>> injections;
+
+    void add(std::string endpoint, std::string expression, std::string modification) {
+        injections.emplace_back(endpoint, expression, modification);
+    }
+
+    void add(YAML::Node injectionNode) {
+        for (const auto& injection : injectionNode) {
+            this->add(injection.first.as<std::string>(),
+                      injection["EXPRESSION"].as<std::string>(),
+                      injection["MODIFICATION"].as<std::string>());
+        }
+    }
+};
+
 class Manager : virtual public BasicInterface {
     protected:
         Manager();
         static Manager* instance;
-        static std::vector<Simulator*> simulators;
+        static std::vector<std::unique_ptr<Simulator>> simulators;
         static int plantingDate;     
         static std::vector<std::string> families;   
         static std::vector<CouplingPointID> couplingPointIDs;
@@ -33,10 +55,10 @@ class Manager : virtual public BasicInterface {
         void output();
 
         static Simulator* getSimulator(int index);
-        static std::vector<Simulator*>& getSimulators() {
+        static std::vector<std::unique_ptr<Simulator>>& getSimulators() {
             return simulators;
         }
-        static void addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci);
+        static void addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci, InjectionHolder rateInjections, InjectionHolder integrationInjections);
 
         static void addCloudF(std::string family) {
             cloudsF.emplace_back(std::make_unique<CloudF>(family));
@@ -89,6 +111,8 @@ class Manager : virtual public BasicInterface {
         }
 
         static void setCurrentSimDate(int yearDoy);
+
+        static int getCurrentSimDate();
 
         static void addUniqueFamily(std::string fam) {
             families.push_back(fam);

@@ -5,6 +5,9 @@
 #include <regex>
 #include <iostream>
 
+#ifndef INJECTION_H
+#define INJECTION_H
+
 /* Define a flexible flexibleIO getter for all flexibleIO variables
  * 
  * The user types something like this in the YAML file:
@@ -40,20 +43,84 @@
  *     return string_of(func_call)
  * }
  * 
- * Example inputs to be handled:
- * #{WTH:2024135:TMAX}
- * #{GROUP:SPORE_VALUE}
- * #{GROUP:VARNAME:INDEX}
+ * Reserved words for current simulation date:
+ * - CURRENT_YRDOY
+ * - CURRENT_DATE
+ * - SIMULATION_DATE
+ * - SIM_DATE
+ * - TODAY
+ * - YRDOY
+ * - YYYYJJJ 
+ * 
+ * The form of these reserved words should be: {FIRSTWORD{'_' | ' '}SECONDWORD}
+ * These should be replaced with the current simulation date.
+ * 
+ * ## Example inputs to be handled:
+ * - `#{WTH:2024135:TMAX}`
+ * - `#{WTH:CURRENT_YRDOY:TMAX}`
+ * - `#{PEST:SPORE_VALUE}`
+ * - `#{GROUP:VARNAME:INDEX}`
+ * 
+ * # Reading & Processing
+ * 
+ * Because the user could input a set of size n of these expressions, 
+ * we need to ensure that each one can be run dynamically and be used 
+ * to replace or modify a value. 
+ * 
+ * Each entry (taking the form: `DEST_VAR: "EXPRESSION"`) should be 
+ * parsed into an injection object that not only holds the raw 
+ * expression, but also a pointer to the destination variable. 
+ * 
+ * An `update` function could be implemented in the injection class 
+ * that results in the value being updated appropriately. 
  */
 
+// Define the modification types for injections.
+enum class ModificationType {
+    ADD,        // Effect will be the same as +=
+    SUBTRACT,   // Effect will be the same as -=
+    MULTIPLY,   // Effect will be the same as *=
+    DIVIDE,     // Effect will be the same as /=
+    ASSIGN      // Effect will be the same as =
+};
+
+enum class InjEndpoint {
+    INOCULUM_GEN,
+    INFECTION_BIOLOGICAL_FACTOR,
+    OUTPUT
+};
+
+// Function declarations
+ModificationType parseModification(std::string modifStr);
+InjEndpoint parseEndpoint(std::string endpointStr);
+
+/* Define a flexible flexibleIO getter for all flexibleIO variables
+ * [... your comment block ...]
+ */
 class Injection {
     protected:
         std::string rawExpression;
-
+        InjEndpoint endpoint;
+        ModificationType modification;
     public:
         Injection() : rawExpression("") {};
-        Injection(std::string expr) : rawExpression(expr) {};
+        Injection(std::string endpt, std::string expr, std::string modif) : rawExpression(expr) {
+            endpoint = parseEndpoint(endpt);
+            modification = parseModification(modif);
+        };
         
+        InjEndpoint getEndpoint() const {
+            return endpoint;
+        }
         std::string parse();
-        double eval();
+        float eval();
+        void apply(float& endpointValue);
 };
+
+/* NOTE: Create a bunch of handlers that will read in this information 
+ * from the yaml file in the first place. This will allow us to create 
+ * a unified modify function that points to the proper operation to 
+ * conduct.
+ */
+
+#endif // INJECTION_H

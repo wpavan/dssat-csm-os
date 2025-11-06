@@ -14,6 +14,7 @@
 #include "basic.h"
 #include "utilities.h"
 #include "coupling.h"
+#include "injection.h"
 
 #include <cstring>
 #include <string>
@@ -60,6 +61,7 @@ protected:
     float hostFactor = 1;
     static std::vector<Disease*> listDiseases;
     std::string rhFactor = "1*x";
+    float biologicalFactor = 1.0;
 
     /**
      * @var cohortAgeSet
@@ -96,9 +98,17 @@ protected:
      */
     float cardinalTempPhysiologicalLife[4] = {0, 28, 30, 40};
 
+    std::vector<Injection> rateInjections;
+
+    std::vector<Injection> integInjections;
+
 public:
     Disease() {
         listDiseases.push_back(this);
+    }
+
+    ~Disease() {
+        std::cout << "Disease destructor called for " << this << " family: " << family << std::endl;
     }
 
     static std::vector<Disease*>& getDisease() {
@@ -136,6 +146,18 @@ public:
         std::cout << "Rh Factor: " << rhFactor << std::endl;
     }
 
+    float getBiologicalFactor() {
+        return biologicalFactor;
+    }
+
+    float* getBiologicalFactorRef() {
+        return &biologicalFactor;
+    }
+
+    void setBiologicalFactor(float biologicalFactor) {
+        this->biologicalFactor = biologicalFactor;
+    }
+
     std::string getFamily() {
         return family;
     }
@@ -163,6 +185,22 @@ public:
 
     CouplingPointID getDamageCP() {
         return damageCP;
+    }
+
+    std::vector<Injection>& getRateInjections() {
+        return rateInjections;
+    }
+
+    void addRateInjection(Injection inj) {
+        rateInjections.push_back(inj);
+    }
+
+    std::vector<Injection>& getIntegrationInjections() {
+        return integInjections;
+    }
+
+    void addIntegrationInjection(Injection inj) {
+        integInjections.push_back(inj);
     }
 
     void setDamageCP(CouplingPointID damageCouplingPoint) {

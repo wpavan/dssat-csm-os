@@ -24,18 +24,19 @@ int Plant::firstOutputCall = 0;
 Plant* Plant::instance = nullptr;
 
 Plant::Plant() {
-    std::vector<Simulator*> simulators = Manager::getInstance()->getSimulators(); 
+    std::vector<std::unique_ptr<Simulator>>& simulators = Manager::getInstance()->getSimulators(); 
     std::vector<CouplingPointID> cps = Manager::getInstance()->getCouplingPointIDs();
 
     for (auto& cp : cps) {
         organSets.emplace_back(cp);
     }
+    
     // NOTE: This currently makes as many clouds as there are 
     //       simulators. This is a good start, but we need to make it 
     //       such that it only creates one per unique disease type (WB
     //       preseason and in-season should be combined).
     for (auto& simulatorPtr : simulators) {
-        cloudsP.emplace_back(simulatorPtr->getDisease(), simulatorPtr->getInitialCondition()->getCloud());
+        cloudsP.emplace_back(simulatorPtr.get()->getDisease(), simulatorPtr.get()->getInitialCondition()->getCloud());
     }
 }
 

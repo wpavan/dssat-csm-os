@@ -67,19 +67,6 @@ int couplingInit(int *YRDOY, int *YRPLT) {
         s->getCropInterface()->start();
     }
 
-    std::string test_expression = "#{PEST:SPORE_VALUE} * 1.5 + #{WTH:2024105:TMAX}"; 
-
-    FlexibleIO::getInstance()->setRealYrdoyMemory("WTH", "2024105", "TMAX", 25.0f);
-    FlexibleIO::getInstance()->setRealMemory("PEST", "SPORE_VALUE", 0.5f);
-    Injection inj = Injection(test_expression);
-    std::cout << "Parsed expression: " << inj.parse() << std::endl;
-    std::cout << "Evaluated expression: " << inj.eval() << std::endl;
-
-    FlexibleIO::getInstance()->setRealMemory("PEST", "SPORE_VALUE", 1);
-    inj = Injection(test_expression);
-    std::cout << "Parsed expression: " << inj.parse() << std::endl;
-    std::cout << "Evaluated expression: " << inj.eval() << std::endl;
-
     return (1);
 }
 
@@ -152,7 +139,7 @@ int couplingRate(int *YRDOY,
         Plant::newInstance();
     }
 
-    manager->rate();         
+    manager->rate();
     return (1);
 }
 

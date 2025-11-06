@@ -45,7 +45,7 @@ void InitialCondition::integration(Disease *disease) {
         // NOTE: If we have one simulator for each disease, should the line below
         //       be getting the disease from a disease object or simulator object instead 
         //       of the current implementation?
-        if (acumulateFavorability >= disease->getAcumulateFavorability()) {
+        if (acumulateFavorability >= disease->getAcumulateFavorability() && Basic::getWeather()->getDoy() >= 0) {
             printf("Accumulated Favorability reached: %.2f on day %d\n", acumulateFavorability, Basic::getWeather()->getDoy());
             cloudF->setFirstSporeCloud(disease->getInitialInoculum());
             favorabilityAccumulated = true;

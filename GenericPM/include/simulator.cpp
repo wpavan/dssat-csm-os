@@ -8,14 +8,16 @@
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
  */
 
+#include "../../FlexibleIO/Data/FlexibleIO.hpp"
+
 #include "simulator.h"
 #include "disease.h"
 #include "cropinterface.h"
 #include "initialcondition.h"
 #include "weather.h"
 #include "manager.h"
-#include "../../FlexibleIO/Data/FlexibleIO.hpp"
 #include "utilities.h"
+#include "coupling.h"
 
 #include <sstream>
 #include <vector>
@@ -30,6 +32,7 @@
  * rate functions. These calls propagate downwards (e.g. to organs).
  */
 void Simulator::rate() {
+
     CouplingData *couplingData = CouplingData::getInstance(); 
 
     InitialCondition *ic;
@@ -57,6 +60,32 @@ void Simulator::rate() {
 
         plants[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
     }*/
+    
+    /* GDM2 Implementation of spore generation
+     * 
+     * Steps required to get spores added into the corresponding CloudF:
+     * 1. Determine the amount of inoculum generated from injection obj.
+     * 2. Find the corresponding CloudF for the disease.
+     * 3. Add the inoculum to the CloudF.
+     */
+
+    // Load CouplingData instance for modification of damage values.
+    CouplingData *cpData = CouplingData::getInstance();
+
+    // Define float values for non-cp endpoints.
+    float inoculumGenerated;
+    float outputVal;
+
+    for (auto& injection : disease->getRateInjections()) {
+        if (injection.getEndpoint() == InjEndpoint::INOCULUM_GEN) {
+            injection.apply(inoculumGenerated);
+        } else if (injection.getEndpoint() == InjEndpoint::OUTPUT) {
+            
+        }
+    }
+    //std::cout << std::endl << "YRDOY: " << currentYearDoy << "\tCloud val: " << initialCondition.getCloud()->getValue() << std::endl;
+    initialCondition.getCloud()->addSporesCreated(inoculumGenerated);
+    //std::cout << "YRDOY: " << currentYearDoy << "\tCloud val: " << initialCondition.getCloud()->getValue() << std::endl << std::endl;
 
     CouplingPointID organCP = this->disease->getOrganCP();
     if (organCP != CouplingPointID::VALUE) {
@@ -98,7 +127,7 @@ void Simulator::rate() {
     initialCondition.rate();
 
     /** Call the rate function for the Plant */
-    plant->rate();
+    getPlant()->rate();
 }
 
 
@@ -106,18 +135,31 @@ void Simulator::integration() {
     float dArea = 0, tArea=0, sArea=0;
     int seedAge = 0;
 
-    initialCondition.integration(disease);
-
+    // Load CouplingData instance for modification of damage values.
     CouplingData *couplingData = CouplingData::getInstance();
     CouplingPointID cp = initialCondition.getCloud()->getDisease()->getDamageCP();
 
-    plant->integration();
+    // Define float values for non-cp endpoints.
+    float* biologicalFactor = disease->getBiologicalFactorRef();
+    float outputVal;
 
-    if (plant != nullptr && plant->getOrgans().size() > 0) {
-        dArea = plant->getDiseaseArea();
-        tArea = plant->getTotalArea();
-        sArea = plant->getSenescenceArea();
-        seedAge = plant->getOrgans().size();
+    for (auto& injection : disease->getIntegrationInjections()) {
+        if (injection.getEndpoint() == InjEndpoint::INFECTION_BIOLOGICAL_FACTOR) {
+            injection.apply(*biologicalFactor);
+        } else if (injection.getEndpoint() == InjEndpoint::OUTPUT) {
+            
+        }
+    }
+
+    initialCondition.integration(disease);
+
+    getPlant()->integration();
+
+    if (getPlant() != nullptr && getPlant()->getOrgans().size() > 0) {
+        dArea = getPlant()->getDiseaseArea();
+        tArea = getPlant()->getTotalArea();
+        sArea = getPlant()->getSenescenceArea();
+        seedAge = getPlant()->getOrgans().size();
         //pDArea = (dArea/(tArea-sArea)*100);
         //printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
         //*PSDD = (dArea/tArea*5);
@@ -138,7 +180,7 @@ void Simulator::integration() {
 
 void Simulator::output() {
     initialCondition.output();
-    plant->output();
+    getPlant()->output();
 }
 
 /**

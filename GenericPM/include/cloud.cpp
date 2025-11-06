@@ -27,8 +27,16 @@ void Cloud::integration() {
 }
 
 float Cloud::getValue() {
+    // Validate this pointer
+    // std::cout << "Cloud::getValue() called on " << this << std::endl;
+    // std::cout << "Expected Cloud object? " << (typeid(*this).name()) << std::endl;
+
     float sum = 0;
+    if (this->disease == nullptr) {
+        std::cout << "getValue() called on a cloud with a nullptr for disease." << std::endl;
+    }
     for (auto& value : values) {
+        // std::cout << "\tValue: " << value << std::endl;
         sum += value;
     }
     return sum;

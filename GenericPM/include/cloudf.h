@@ -50,6 +50,9 @@ public:
     }
 
     void setDisease(Disease *disease) {
+        if (disease == nullptr) {
+            std::cout << "Warning: Setting CloudF disease to nullptr for family: " << family << std::endl;
+        }
         this->disease = disease;
     }
 

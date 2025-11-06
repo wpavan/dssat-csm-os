@@ -26,27 +26,45 @@ int Disease::newLesions(float cloudDensity, float healthyAreaProportion) {
     Utilities util;
     float newLesions = 0;
     float fitWetnessThreshold = getWetnessThreshold();
+
     if (healthyAreaProportion > 0 && Basic::getWeather()->getWetDur() >= fitWetnessThreshold) {
+        // NOTE: newLesions is the equal to the dI/dt value * 1 day. We
+        //       only need to consider removing this equation if it 
+        //       doesn't work for FHB.
+        //       ******************************************************
+        //       dI/dt in Mauricio's code is:
+        //       (k_inf * W * is_rainy_day * anther_prop_t) - (k_rec * I)
+        //       *w/o recovery*
+        //
+        //       k_inf          => IE
+        //       W              => cloudDensity
+        //       is_rainy_day   => wetnessFavorability
+        //       anther_prop_t  => ??? (this could maybe be linked to a
+        //                         scaled coupling point value)
+        //       ???            => temperatureFavorability
+        //       ???            => healthyAreaProportion
+
         newLesions = fmax(0.0, (cloudDensity * healthyAreaProportion * getInfectionEfficiency() *
                 util.temperatureFavorability(Basic::getWeather()->getTMean(),
                                              getTemperatureFavorabilitySet()) *
                 util.wetnessFavorability(Basic::getWeather()->getWetDur(),
-                                         getWetnessFunction())));
+                                         getWetnessFunction()) *
+                biologicalFactor));
 
-            //std::cout << 
-            //" 1: " << newLesions << 
-            //" 2: " << cloudDensity << 
-            //" 3: " << healthyAreaProportion << 
-            //" 4: " << getInfectionEfficiency() <<
-            //" 5: " << util.temperatureFavorability(Basic::getWeather()->getTMean(),getTemperatureFavorabilitySet()) << 
-            //" 6: " <<
-            //    util.wetnessFavorability(Basic::getWeather()->getWetDur(),
-            //                             getWetnessFunction()) << 
-            //" 7: " << Basic::getWeather()->getWetDur()<< std::endl; 
-    //newLesions = newLesions * Utilities::runExpressionFunction(Basic::getWeather()->getRh(),getRhFactor());
-    //newLesions= newLesions *  Utilities::runExpressionFunction(Basic::getWeather()->getRh(),getRhFactor());
-    //std::cout<<"newLesions: "<<newLesions<<" getRH: "<<Basic::getWeather()->getRh() <<" getRhFactor()): "<< getRhFactor()<<" exp: "<<newLesions *  Utilities::runExpressionFunction(Basic::getWeather()->getRh(),getRhFactor()) <<std::endl; 
-    //std::cout<<"rhfacetor "<<getRhFactor()<<" RH : "<<Basic::getWeather()->getRh()<<std::endl;
+        //std::cout << 
+        //" 1: " << newLesions << 
+        //" 2: " << cloudDensity << 
+        //" 3: " << healthyAreaProportion << 
+        //" 4: " << getInfectionEfficiency() <<
+        //" 5: " << util.temperatureFavorability(Basic::getWeather()->getTMean(),getTemperatureFavorabilitySet()) << 
+        //" 6: " <<
+        //    util.wetnessFavorability(Basic::getWeather()->getWetDur(),
+        //                             getWetnessFunction()) << 
+        //" 7: " << Basic::getWeather()->getWetDur()<< std::endl; 
+        //newLesions = newLesions * Utilities::runExpressionFunction(Basic::getWeather()->getRh(),getRhFactor());
+        //newLesions= newLesions *  Utilities::runExpressionFunction(Basic::getWeather()->getRh(),getRhFactor());
+        //std::cout<<"newLesions: "<<newLesions<<" getRH: "<<Basic::getWeather()->getRh() <<" getRhFactor()): "<< getRhFactor()<<" exp: "<<newLesions *  Utilities::runExpressionFunction(Basic::getWeather()->getRh(),getRhFactor()) <<std::endl; 
+        //std::cout<<"rhfacetor "<<getRhFactor()<<" RH : "<<Basic::getWeather()->getRh()<<std::endl;
     }
     return newLesions;
 }

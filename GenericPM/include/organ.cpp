@@ -122,7 +122,6 @@ void Organ::integration() {
             
             // Uncomment the following line to debug this step
             
-            
             // NOTE: This hardcoded physiological life should be 
             //       replaced by a dynamic threshold in the .yaml file.
             //       We could also modulate the number of lesions 
@@ -155,9 +154,12 @@ void Organ::integration() {
     }
 
     cloudIntegration();
-    cloudOValue = cloudAmount();
-    cloudPValue = cloudo->getCloudP()->getValue();
-    cloudFvalue = cloudo->getCloudP()->getCloudF()->getValue();
+    if (!cloudsO.empty()) {
+        cloudOValue = cloudAmount();
+        cloudPValue = cloudsO[0].getCloudP()->getValue();
+        cloudFvalue = cloudsO[0].getCloudP()->getCloudF()->getValue();
+    }
+    
     
     dailyDiseaseArea = fmax(0,diseaseArea - dailyDiseaseArea);
     dailyVisibleDiseaseArea = fmax(0,visibleDiseaseArea - dailyVisibleDiseaseArea);

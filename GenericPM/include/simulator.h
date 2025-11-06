@@ -14,6 +14,7 @@
 #include "basicinterface.h"
 #include "cropinterface.h"
 #include "initialcondition.h"
+#include "injection.h"
 #include "plant.h"
 
 #include <vector>
@@ -25,7 +26,6 @@ private:
 protected:
     int currentYearDoy = 0;
     InitialCondition initialCondition;
-    Plant *plant = Plant::getInstance();
     Disease *disease;
     CropInterface *cropinterface;
 
@@ -49,7 +49,7 @@ public:
     bool allPlantsSenesced();
 
     Plant* getPlant() {
-        return plant;
+        return Plant::getInstance();
     }
 
     InitialCondition* getInitialCondition() {
