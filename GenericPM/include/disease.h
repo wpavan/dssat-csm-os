@@ -98,9 +98,7 @@ protected:
      */
     float cardinalTempPhysiologicalLife[4] = {0, 28, 30, 40};
 
-    std::vector<Injection> rateInjections;
-
-    std::vector<Injection> integInjections;
+    std::vector<Injection> rateInjections, integInjections, outputInjections;
 
 public:
     Disease() {
@@ -178,7 +176,6 @@ public:
         return organCP;
     }
 
-    // TODO: Implement this in yaml file.
     void setOrganCP(CouplingPointID organCouplingPoint) {
         this->organCP = organCouplingPoint;
     }
@@ -201,6 +198,14 @@ public:
 
     void addIntegrationInjection(Injection inj) {
         integInjections.push_back(inj);
+    }
+
+    std::vector<Injection>& getOutputInjections() {
+        return outputInjections;
+    }
+
+    void addOutputInjection(Injection inj) {
+        outputInjections.push_back(inj);
     }
 
     void setDamageCP(CouplingPointID damageCouplingPoint) {

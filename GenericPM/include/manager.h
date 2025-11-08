@@ -45,6 +45,8 @@ class Manager : virtual public BasicInterface {
         static std::vector<CouplingPointID> couplingPointIDs;
         static std::vector<std::unique_ptr<CropInterface>> cropInterfaces;
         static std::vector<std::unique_ptr<CloudF>> cloudsF;
+
+        static bool outputStatus;
         
     public:
         static Manager* getInstance();
@@ -58,7 +60,8 @@ class Manager : virtual public BasicInterface {
         static std::vector<std::unique_ptr<Simulator>>& getSimulators() {
             return simulators;
         }
-        static void addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci, InjectionHolder rateInjections, InjectionHolder integrationInjections);
+        static void addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci, 
+                                 InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections);
 
         static void addCloudF(std::string family) {
             cloudsF.emplace_back(std::make_unique<CloudF>(family));
@@ -100,6 +103,14 @@ class Manager : virtual public BasicInterface {
 
         static std::vector<CouplingPointID> getCouplingPointIDs() {
             return couplingPointIDs;
+        }
+
+        static void setOutputStatus(bool newStatus){
+            outputStatus = newStatus;
+        }
+
+        static bool getOutputStatus(){
+            return outputStatus;
         }
 
         static void setPlantingDate(int YRPLT) {

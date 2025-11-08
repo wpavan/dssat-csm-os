@@ -19,6 +19,11 @@
 
 #include <vector>
 
+struct Output {
+    std::string varName;
+    float value;
+};
+
 class Simulator : virtual public BasicInterface {
 private:
     Utilities util;
@@ -28,6 +33,7 @@ protected:
     InitialCondition initialCondition;
     Disease *disease;
     CropInterface *cropinterface;
+    std::vector<Output> loggedOutputs;
 
 public:
     Simulator();
@@ -47,6 +53,9 @@ public:
     void rate();
     void updateCurrentYearDoy(int yearDoy);
     bool allPlantsSenesced();
+
+    void clearOutputLog();
+    void logOutput(std::string varName, float value);
 
     Plant* getPlant() {
         return Plant::getInstance();

@@ -25,6 +25,14 @@
 #include <string>
 #include <cstring>
 
+void Simulator::clearOutputLog() {
+    this->loggedOutputs.clear();
+}
+
+void Simulator::logOutput(std::string varName, float value) {
+    this->loggedOutputs.emplace_back(varName, value);
+}
+
 /**
  * Simulator rate function
  * 
@@ -32,7 +40,6 @@
  * rate functions. These calls propagate downwards (e.g. to organs).
  */
 void Simulator::rate() {
-
     CouplingData *couplingData = CouplingData::getInstance(); 
 
     InitialCondition *ic;
@@ -72,15 +79,17 @@ void Simulator::rate() {
     // Load CouplingData instance for modification of damage values.
     CouplingData *cpData = CouplingData::getInstance();
 
-    // Define float values for non-cp endpoints.
-    float inoculumGenerated;
+    // Declare helpers for non-cp endpoints.
+    float inoculumGenerated = 0;
     float outputVal;
+    std::string outputVarName;
 
     for (auto& injection : disease->getRateInjections()) {
         if (injection.getEndpoint() == InjEndpoint::INOCULUM_GEN) {
             injection.apply(inoculumGenerated);
         } else if (injection.getEndpoint() == InjEndpoint::OUTPUT) {
-            
+            injection.apply(outputVal, outputVarName);
+            logOutput(outputVarName, outputVal);
         }
     }
     //std::cout << std::endl << "YRDOY: " << currentYearDoy << "\tCloud val: " << initialCondition.getCloud()->getValue() << std::endl;
@@ -181,6 +190,26 @@ void Simulator::integration() {
 void Simulator::output() {
     initialCondition.output();
     getPlant()->output();
+
+    // Do something to report the output.name and output.value on that day.
+    // For a useable long format, one file could be created per simulator that has:
+    // YEARDOY    OUTPUT_NAME    VALUE
+    // ...
+    // ...
+    // 
+    // This way, it's very simple to construct.
+
+    // First, report all injections that have the "OUTPUT" endpoint (from other steps)
+    for (auto& output : loggedOutputs) {
+        
+    }
+
+    // Then, compute and report all specifically "OUTPUT" step injections
+    for (auto& injection : disease->getIntegrationInjections()) {
+        if (injection.getEndpoint() == InjEndpoint::OUTPUT) {
+            
+        }
+    }
 }
 
 /**

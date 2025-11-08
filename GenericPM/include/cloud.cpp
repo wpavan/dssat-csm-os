@@ -32,9 +32,14 @@ float Cloud::getValue() {
     // std::cout << "Expected Cloud object? " << (typeid(*this).name()) << std::endl;
 
     float sum = 0;
+
+    #ifdef DEBUGX
     if (this->disease == nullptr) {
         std::cout << "getValue() called on a cloud with a nullptr for disease." << std::endl;
+        printf("Address of disease: %p\n", (void *)this->disease);
     }
+    #endif // DEBUGX
+    
     for (auto& value : values) {
         // std::cout << "\tValue: " << value << std::endl;
         sum += value;

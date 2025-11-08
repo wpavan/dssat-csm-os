@@ -84,6 +84,15 @@ enum class ModificationType {
     ASSIGN      // Effect will be the same as =
 };
 
+// Define regex patterns for each modification type
+struct ModificationRegex { 
+    static const std::regex addPattern;
+    static const std::regex subPattern;
+    static const std::regex multPattern;
+    static const std::regex divPattern;
+    static const std::regex asgnPattern;
+};
+
 enum class InjEndpoint {
     INOCULUM_GEN,
     INFECTION_BIOLOGICAL_FACTOR,
@@ -98,23 +107,30 @@ InjEndpoint parseEndpoint(std::string endpointStr);
  * [... your comment block ...]
  */
 class Injection {
+    private:
+        static const std::regex fioPattern_;
+        static const std::regex simDatePattern_;
     protected:
         std::string rawExpression;
+        std::string rawEndpoint;
         InjEndpoint endpoint;
         ModificationType modification;
     public:
         Injection() : rawExpression("") {};
-        Injection(std::string endpt, std::string expr, std::string modif) : rawExpression(expr) {
+        Injection(std::string endpt, std::string expr, std::string modif) : rawExpression(expr),  rawEndpoint(endpt){
             endpoint = parseEndpoint(endpt);
             modification = parseModification(modif);
         };
-        
+
         InjEndpoint getEndpoint() const {
             return endpoint;
         }
-        std::string parse();
-        float eval();
+        std::string parse(bool& missingVal);
+        double eval();
+
         void apply(float& endpointValue);
+        void apply(std::string& endpointVarName);
+        void apply(float& endpointValue, std::string& endpointVarName);
 };
 
 /* NOTE: Create a bunch of handlers that will read in this information 

@@ -24,6 +24,22 @@
 #include <cstring>
 #include <iostream>
 
+enum class Steps {
+    RATE,
+    INTEGRATION,
+    OUTPUT
+};
+
+class StepParser {
+    public:
+        static int parse(std::string stepName) {
+            if (stepName == "RATE") return (int)Steps::RATE;
+            if (stepName == "INTEGRATION") return (int)Steps::INTEGRATION;
+            if (stepName == "OUTPUT") return (int)Steps::OUTPUT;
+            return -1;
+        }
+};
+
 class Utilities {
     private:
         static const std::string BASE52_CODING;

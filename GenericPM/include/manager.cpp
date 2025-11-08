@@ -13,6 +13,7 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include "utilities.h"
 #include "manager.h"
 #include "simulator.h"
 #include "injection.h"
@@ -58,6 +59,8 @@ std::vector<CouplingPointID> Manager::couplingPointIDs;
 std::vector<std::unique_ptr<CropInterface>> Manager::cropInterfaces;
 std::vector<std::unique_ptr<CloudF>> Manager::cloudsF;
 
+bool Manager::outputStatus = false;
+
 Manager::Manager() {}
 
 Manager* Manager::getInstance() {
@@ -79,7 +82,8 @@ Simulator* Manager::getSimulator(int index) {
   return simulators[index].get();
 }
 
-void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci, InjectionHolder rateInjections, InjectionHolder integrationInjections) {
+void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci,
+                           InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections) {
   if (ci == nullptr) {
     std::cerr << "Error: CropInterface pointer is null in Manager::addSimulator" << std::endl;
     return;
@@ -172,6 +176,10 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
 
   for (auto& injection : integrationInjections.injections) {
     disease->addIntegrationInjection(Injection(std::get<0>(injection), std::get<1>(injection), std::get<2>(injection)));
+  }
+
+  for (auto& injection : outputInjections.injections) {
+    disease->addOutputInjection(Injection(std::get<0>(injection), std::get<1>(injection), std::get<2>(injection)));
   }
 
   #ifdef DEBUGX  
@@ -393,7 +401,7 @@ int readPestYaml(char *filePST, int *FOUND) {
       }
 
       std::unordered_map<std::string, std::string> diseaseData;
-      InjectionHolder rateInjections, integrationInjections;
+      InjectionHolder rateInjections, integrationInjections, outputInjections;
       CloudFParamHolder cloudParams;
 
       // Step 2 is to load the disease into memory.
@@ -423,12 +431,11 @@ int readPestYaml(char *filePST, int *FOUND) {
             
             // Every functional disease parameter must fit into this category.
             case 4: // YAML::NodeType::Map:
-              if (key == "RATE") {
-                // Iterate through each injection endpoint in RATE
+              if (key == "RATE" || key == "INTEGRATION" || key == "OUTPUT") {
+                // Iterate through each injection endpoint in the node
                 for (auto injIt = value.begin(); injIt != value.end(); ++injIt) {
                   std::string endpointName = injIt->first.as<std::string>();
                   YAML::Node injectionData = injIt->second;
-                  std::cout << injectionData << std::endl;
                   
                   // Validate that this injection has required fields
                   if (!injectionData["EXPRESSION"] || !injectionData["MODIFICATION"]) {
@@ -442,36 +449,22 @@ int readPestYaml(char *filePST, int *FOUND) {
                     std::string modification = injectionData["MODIFICATION"].as<std::string>();
                     
                     // Create the injection
-                    rateInjections.add(endpointName, expression, modification);
+                    switch (StepParser::parse(key)) {
+                      case -1:  // INVALID
+                        throw std::invalid_argument("The following string is not recognized as one of the three steps: " + key + "\nThe step options are:\n\tRATE\n\tINTEGRATION\n\tOUTPUT");
+                      case 0:   // RATE
+                        rateInjections.add(endpointName, expression, modification);
+                        break;
+                      case 1:   // INTEGRATION
+                        integrationInjections.add(endpointName, expression, modification);
+                        break;
+                      case 2:   // OUTPUT
+                        outputInjections.add(endpointName, expression, modification);
+                        break;
+                    }
                     
                   } catch (const YAML::Exception& e) {
                     std::cout << "Error parsing rate injection " << endpointName 
-                              << ": " << e.what() << std::endl;
-                  }
-                }
-                
-              } else if (key == "INTEGRATION") {
-                // Similar logic for INTEGRATION injections
-                for (auto injIt = value.begin(); injIt != value.end(); ++injIt) {
-                  std::string endpointName = injIt->first.as<std::string>();
-                  YAML::Node injectionData = injIt->second;
-                  
-                  // Validate that this injection has required fields
-                  if (!injectionData["EXPRESSION"] || !injectionData["MODIFICATION"]) {
-                    std::cout << "Warning: Integration injection " << endpointName 
-                              << " missing EXPRESSION or MODIFICATION field" << std::endl;
-                    continue;
-                  }
-                  
-                  try {
-                    std::string expression = injectionData["EXPRESSION"].as<std::string>();
-                    std::string modification = injectionData["MODIFICATION"].as<std::string>();
-                    
-                    // Create the injection
-                    integrationInjections.add(endpointName, expression, modification);
-                    
-                  } catch (const YAML::Exception& e) {
-                    std::cout << "Error parsing integration injection " << endpointName 
                               << ": " << e.what() << std::endl;
                   }
                 }
@@ -557,7 +550,7 @@ int readPestYaml(char *filePST, int *FOUND) {
             throw std::runtime_error("Error: Cloud parameters for family " + family + " do not match previous definition.");
           }
         }
-        manager->addSimulator(diseaseData, ciPtr, rateInjections, integrationInjections);
+        manager->addSimulator(diseaseData, ciPtr, rateInjections, integrationInjections, outputInjections);
       }
     }
   }
