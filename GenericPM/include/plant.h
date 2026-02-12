@@ -10,6 +10,8 @@
 #ifndef PLANT_H
 #define PLANT_H
 
+#define OUTPUT_PLANT 1
+
 #include "basic.h"
 #include "basicinterface.h"
 #include "cloudp.h"
@@ -21,13 +23,23 @@ struct OrganSet {
     std::vector<Organ> organs;  // The vector of all organs that belong to this coupling point.
     CouplingPointID CP;         // The coupling point ID associated with the organ set.
     float totalValue;           // The total area, mass, or node value associated with this organ set.
+    float healthyValue;
+    float growthQueue = 0.0f;
                                 /* The basis can be determined by calling:
                                  *     Basis b = CouplingPoint().getTrait(CP).basis;
                                  * where b is [Area | Mass | Nodes] and CP is the CouplingPointID 
                                  * from this OrganSet.
                                  */
+                            
+    void queueHealthyGrowth(float value) {
+        growthQueue += value;
+    }
 
-    OrganSet(CouplingPointID cp) : CP(cp), totalValue(0) {}
+    void clearGrowthQueue() {
+        growthQueue = 0.0f;
+    }
+
+    OrganSet(CouplingPointID cp) : CP(cp), totalValue(0), healthyValue(0) {}
 };
 
 class Plant : public Basic, virtual public BasicInterface {
@@ -39,9 +51,16 @@ protected:
     std::vector<CloudP> cloudsP;
     static int qtd;
     int ID = ++qtd;
-    float totalArea = 0, diseaseArea = 0, latentDiseaseArea = 0, infectionDiseaseArea = 0,
-            necroticDiseaseArea = 0, visibleDiseaseArea = 0, invisibleDiseaseArea = 0, visibleLesions = 0,
-            totalLesions = 0, senescenceArea = 0;
+
+    // Value partitions
+    float invisibleValue = 0, visibleValue = 0;
+    float healthyValue = 0;
+    // Previous value partitions
+    float invisibleValuePrev = 0, visibleValuePrev = 0;
+    float healthyValuePrev = 0;
+
+    // Lesion trackers
+    float totalLesions = 0, newLesions = 0, visibleLesions = 0;
     static int firstOutputCall;
 
     Plant();
@@ -67,12 +86,27 @@ public:
     void integration();
     void output();
 
-    float getTotalArea() {
-        return totalArea;
+    float getTotalValue() {
+        return healthyValue + invisibleValue + visibleValue;
     }
 
     int getDoc() {
         return doc;
+    }
+
+    void updatePrev() {
+        invisibleValuePrev = invisibleValue;
+        visibleValuePrev = visibleValue;
+        healthyValuePrev = healthyValue;
+    }
+
+    OrganSet& getOrganSet(CouplingPointID cp) {
+        for (auto& os : organSets) {
+            if (os.CP == cp) {
+                return os;
+            }
+        }
+        throw std::runtime_error("OrganSet with specified CouplingPointID not found.");
     }
 
     std::vector<OrganSet>& getOrgans() {
@@ -87,6 +121,7 @@ public:
         Organ *o = nullptr;
         for (auto& set : organSets) {
             if (set.organs.size() == 0) {
+                // should this be false?
                 return true;
             } else {
                 for (int i = set.organs.size() - 1; 1 >= 0; i--) {
@@ -100,28 +135,50 @@ public:
         return false;
     }
 
-    float getDiseaseArea() {
-        return diseaseArea;
+    float getDailyDiseaseValue() {
+        return (invisibleValue - invisibleValuePrev) + (visibleValue - visibleValuePrev);
     }
 
-    float getLatentDiseaseArea() {
-        return latentDiseaseArea;
+    float getDiseaseValue() {
+        return invisibleValue + visibleValue;
     }
 
-    float getInfectionDiseaseArea() {
-        return infectionDiseaseArea;
+    float getLatentValue() {
+        float val = 0;
+        for (auto& set : organSets) {
+            for (auto& organ : set.organs) {
+                val += organ.getLesionCohorts().size() > 0 ? organ.getLesionCohorts().back().getLatentValue() : 0;
+            }
+        }
+        return val;
     }
 
-    float getNecroticDiseaseArea() {
-        return necroticDiseaseArea;
+    float getInfectionValue() {
+        float val = 0;
+        for (auto& set : organSets) {
+            for (auto& organ : set.organs) {
+                val += organ.getLesionCohorts().size() > 0 ? organ.getLesionCohorts().back().getInfectionValue() : 0;
+            }
+        }
+        return val;
     }
 
-    float getVisibleDiseaseArea() {
-        return visibleDiseaseArea;
+    float getNecroticValue() {
+        float val = 0;
+        for (auto& set : organSets) {
+            for (auto& organ : set.organs) {
+                val += organ.getLesionCohorts().size() > 0 ? organ.getLesionCohorts().back().getNecroticValue() : 0;
+            }
+        }
+        return val;
     }
 
-    float getInvisibleDiseaseArea() {
-        return invisibleDiseaseArea;
+    float getVisibleValue() {
+        return visibleValue;
+    }
+
+    float getInvisibleValue() {
+        return invisibleValue;
     }
 
     float getVisibleLesions() {
@@ -130,12 +187,7 @@ public:
 
     float getTotalLesions() {
         return totalLesions;
-    }
-
-    float getSenescenceArea() {
-        return senescenceArea;
-    }
-    
+    }    
 };
 
 #endif // PLANT_H

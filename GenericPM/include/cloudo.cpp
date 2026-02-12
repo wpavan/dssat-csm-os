@@ -9,6 +9,7 @@
  */
 
 #include "cloudo.h"
+#include "project_config.h"
 //#include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
 #include <iostream>
@@ -22,22 +23,41 @@ int CloudO::qtd = 0;
 int CloudO::firstOutputCall = 0;
 
 void CloudO::integration() {
+    // Refactor
+    if (REMOVAL_METHOD == 1) {
+        if (values.size() == (unsigned) disease->getVectorSizeCloudO()) {
+            #if DIAG_SPORES
+            std::cout << "[DIAG] CloudO::integration queueing age removal (size==vectorSizeCloudO)" << std::endl;
+            #endif
+            queueAgeRemoval();
+        }
+    }
+
     Cloud::integration();
 
-    if (values.size() > (unsigned) disease->getVectorSizeCloudO()) {
-        values.erase(values.begin());
-    }
+    // Cloud::integration();
 
-    // NOTE: remove removeSporesCloudOByAge()
-    // Cloud::removeSporesCloudOByAge();
+    // if (REMOVAL_METHOD == 0) {
+    //     // This is the method that is used in the R code. This 
+    //     // method involves proportional removal of cloud spores each
+    //     // day based on constants k_g and k_d.
+    //     // Queue proportional removal instead of directly modifying values
+    //     addSporesToBeRemoved(getValue() * (K_G + K_D));
+    // } else if (REMOVAL_METHOD == 1) {
+    //     if (values.size() > (unsigned) disease->getVectorSizeCloudF()) {
+    //         values.erase(values.begin());
+    //     }
 
-    if (getValue() > disease->getMaxSporeCloudsDensity()) {
-        Cloud::removeSporesCloud(getValue() - disease->getMaxSporeCloudsDensity()); 
-    }
-    if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
-        // Here we should parameterize the rain effect on the spores cloud
-        Cloud::removeSporesCloudByRain(1-exp(-0.035*Basic::getWeather()->getRain()));
-    }
+    //     if (getValue() > disease->getMaxSporeCloudsDensity()) {
+    //         addSporesToBeRemoved(getValue() - disease->getMaxSporeCloudsDensity());
+    //     }
+
+    //     if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
+    //         float percent = 1 - exp(-0.035f * Basic::getWeather()->getRain());
+    //         float removed = getValue() - (getValue() * percent);
+    //         addSporesToBeRemoved(removed);
+    //     }
+    // }
 
     std::ostringstream convert;
     convert << Basic::getWeather()->getYearDoy() << "," << getValue();
@@ -65,6 +85,13 @@ void CloudO::output() {
 }
 
 void CloudO::addSporesCreated(float sporesCreated) {
-    Cloud::sporesCreated += (sporesCreated * (1 - disease->getProportionFromOrganToPlantCloud()));
-    cloudP->addSporesCreated(sporesCreated * disease->getProportionFromOrganToPlantCloud());
+    float toParent = sporesCreated * disease->getProportionFromOrganToPlantCloud();
+    float toSelf = sporesCreated - toParent;
+    #if DIAG_SPORES
+    std::cout << "[DIAG] CloudO::addSporesCreated total=" << sporesCreated << " toSelf=" << toSelf << " toParent=" << toParent << std::endl;
+    #endif
+    Cloud::sporesCreated += toSelf;
+    if (cloudP) {
+        cloudP->addSporesCreated(toParent);
+    }
 }

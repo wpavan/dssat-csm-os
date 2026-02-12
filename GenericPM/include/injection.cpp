@@ -1,5 +1,11 @@
+#include <random>
+
 #include "injection.h"
 #include "manager.h"
+
+static std::mt19937 rng(std::random_device{}());
+
+static const double inverse_sqrt_2pi = 0.3989422804014337;
 
 const std::regex Injection::fioPattern_(R"(#\{([A-Za-z\s]+):([A-Za-z0-9_\s]+):?([A-Za-z0-9\s]+)?\})");
 const std::regex Injection::simDatePattern_(R"((?:(?:CURRENT|SIMULATION|SIM)(?: |_))?(?:YRDOY|DATE|TODAY|YYYYJJJ|YYYYDDD|YYYYDOY))");
@@ -18,10 +24,112 @@ double min_func(double a, double b) {
     return (a < b) ? a : b;
 }
 
+double amp_gaussian_func(double x, double mean, double stddev, double amplitude) {
+    double a = (x - mean) / stddev;
+    return amplitude * std::exp(-0.5 * a * a);
+}
+
+double norm_gaussian_func(double x, double mean, double stddev) {
+    double a = (x - mean) / stddev;
+    return (inverse_sqrt_2pi * stddev) * std::exp(-0.5 * a * a);
+}
+
+double rand_unif_func(double min, double max) {
+    std::uniform_real_distribution<double> dist(min, max);
+    return dist(rng);
+}
+
+double rand_norm_func(double mean, double stddev) {
+    std::normal_distribution<double> dist(mean, stddev);
+    return dist(rng);
+}
+
+double bounded_beta_func(double x, double max, double opt, double min) {
+    if (x == -99 || max == -99.0 || opt == -99.0 || min == -99.0) {
+        return 0.0;
+    } else if (x < min || x > max) {
+        return 0.0;
+    } else if (min >= opt || opt >= max) {
+        return 1.0;
+    } else if (!std::isfinite(x) || !std::isfinite(min) || !std::isfinite(opt) || !std::isfinite(max)) {
+        return 0.0;
+    } else {
+        return fmin(fmax(std::pow((x - min) / (opt - min), (opt - min) / (max - min)) * std::pow((max - x) / (max - opt), (max - opt) / (max - min)), 0.0), 1.0);
+    }
+}
+
+double unit_beta_func(double x, double max, double opt, double min) {
+    double tf, a, b;
+
+    b = ((max - opt) / (opt - min));
+    a = (1 / ((opt - min) * pow(max - opt, b)));
+    if(x > max) {
+        x = max;
+    } else if(x < min) {
+        x = min;
+    }
+    tf = (a * (x - min) * pow(max - x, b));
+    return (fmax(0,tf));
+}
+
+double trapezoidal_func(double x, double max, double opt_max, double opt_min, double min) {
+    if (x <= min || x >= max) {
+        return 0.0;
+    } else if (x >= opt_min && x <= opt_max) {
+        return 1.0;
+    } else if (x > min && x < opt_min) {
+        return (x - min) / (opt_min - min);
+    } else { // x > c && x < d
+        return (max - x) / (max - opt_max);
+    }
+}
+
+double triangular_func(double x, double max, double opt, double min) {
+    if (x <= min || x >= max) {
+        return 0.0;
+    } else if (x == opt) {
+        return 1.0;
+    } else if (x > min && x < opt) {
+        return (x - min) / (opt - min);
+    } else { // x > b && x < c
+        return (max - x) / (max - opt);
+    }
+}
+
+double linear_func(double x, double x_at_max, double x_at_min) {
+    if (x_at_max > x_at_min) {
+        if (x <= x_at_min) {
+            return 0.0;
+        } else if (x >= x_at_max) {
+            return 1.0;
+        } else {
+            return (x - x_at_min) / (x_at_max - x_at_min);
+        }
+    } else {
+        if (x <= x_at_max) {
+            return 1.0;
+        } else if (x >= x_at_min) {
+            return 0.0;
+        } else {
+            return (x_at_min - x) / (x_at_min - x_at_max);
+        }
+    }
+}
+
 // Define custom functions for tinyexpr for the user.
 te_variable customFunctions[] = {
     {"max", (const void*)max_func, TE_FUNCTION2},
-    {"min", (const void*)min_func, TE_FUNCTION2}
+    {"min", (const void*)min_func, TE_FUNCTION2},
+    {"amp_gaussian", (const void*)amp_gaussian_func, TE_FUNCTION4},
+    {"gaussian", (const void*)amp_gaussian_func, TE_FUNCTION4},
+    {"gaussian", (const void*)norm_gaussian_func, TE_FUNCTION3},
+    {"norm_gaussian", (const void*)norm_gaussian_func, TE_FUNCTION3},
+    {"beta", (const void*)unit_beta_func, TE_FUNCTION4},
+    {"trapezoidal", (const void*)trapezoidal_func, TE_FUNCTION4},
+    {"triangular", (const void*)triangular_func, TE_FUNCTION3},
+    {"linear", (const void*)linear_func, TE_FUNCTION3},
+    {"rand_unif", (const void*)rand_unif_func, TE_FUNCTION2},
+    {"rand_norm", (const void*)rand_norm_func, TE_FUNCTION2}
 };
 
 std::string Injection::parse(bool& missingVal) {
@@ -78,13 +186,18 @@ std::string Injection::parse(bool& missingVal) {
     return result;
 }
 
-double Injection::eval() {
+std::string Injection::parse() {
     bool missingVal;
+    return parse(missingVal);
+}
+
+double Injection::eval() {
+    bool missingVal; 
     try {
         std::string parsedExpr = parse(missingVal);
         if (!missingVal) {
             int err = 0;
-            te_expr *n = te_compile(parsedExpr.c_str(), customFunctions, 2, &err);
+            te_expr *n = te_compile(parsedExpr.c_str(), customFunctions, sizeof(customFunctions) / sizeof(te_variable), &err);
             
             if (!n) {
                 throw std::runtime_error("Expression compilation failed at position " + 
@@ -97,7 +210,7 @@ double Injection::eval() {
             if (!std::isfinite(result)) {
                 throw std::runtime_error("Expression evaluation resulted in non-finite value");
             }
-            std::cout << "Evaluated expression: " << parsedExpr << " = " << result << std::endl;
+            // std::cout << "Evaluated expression: " << parsedExpr << " = " << result << std::endl;
             return result;
         } else {
             return -99.0f;
@@ -171,11 +284,11 @@ ModificationType parseModification(std::string modifStr) {
 }
 
 InjEndpoint parseEndpoint(std::string endpointStr) {
-    if (endpointStr == "INOCULUM_GENERATION") {
-        return InjEndpoint::INOCULUM_GEN;
+    if (endpointStr == "INOCULUM") {
+        return InjEndpoint::INOCULUM;
     } else if (endpointStr == "INFECTION_BIOLOGICAL_FACTOR") {
         return InjEndpoint::INFECTION_BIOLOGICAL_FACTOR;
     } else {
-        return InjEndpoint::OUTPUT;
+        return InjEndpoint::FIO;
     }
 }

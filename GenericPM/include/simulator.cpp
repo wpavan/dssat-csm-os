@@ -25,6 +25,24 @@
 #include <string>
 #include <cstring>
 
+bool diseaseHasOutput(Disease *disease) {
+    if (disease->getOutputInjections().size() > 0) {
+        return true;
+    } else {
+        for (const auto& inj : disease->getRateInjections()) {
+            if (inj.getEndpoint() == InjEndpoint::OUTPUT) {
+                return true;
+            }
+        }
+        for (const auto& inj : disease->getIntegrationInjections()) {
+            if (inj.getEndpoint() == InjEndpoint::OUTPUT) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void Simulator::clearOutputLog() {
     this->loggedOutputs.clear();
 }
@@ -40,6 +58,7 @@ void Simulator::logOutput(std::string varName, float value) {
  * rate functions. These calls propagate downwards (e.g. to organs).
  */
 void Simulator::rate() {
+    // std::cout << "=========== Simulator Rate YRDOY: " << currentYearDoy << std::endl;
     CouplingData *couplingData = CouplingData::getInstance(); 
 
     InitialCondition *ic;
@@ -81,47 +100,116 @@ void Simulator::rate() {
 
     // Declare helpers for non-cp endpoints.
     float inoculumGenerated = 0;
+    float inoculumRemoved = 0;
+    float newInoculum = initialCondition.getCloud()->getValue();
+    float inoculumDelta = 0;
+
+    float fioFloat = 0;
+    std::string fioString;
+
     float outputVal;
     std::string outputVarName;
 
     for (auto& injection : disease->getRateInjections()) {
-        if (injection.getEndpoint() == InjEndpoint::INOCULUM_GEN) {
+        if (injection.getEndpoint() == InjEndpoint::INOCULUM) {
             injection.apply(inoculumGenerated);
+            // Determine the difference
+            // inoculumDelta = newInoculum - initialCondition.getCloud()->getValue();
+
+            // // If there was an increase, put it in added. Otherwise, removed.
+            // if (inoculumDelta > 0) {
+            //     inoculumGenerated += inoculumDelta;
+            // } else {
+            //     inoculumRemoved += -inoculumDelta;
+            // }
         } else if (injection.getEndpoint() == InjEndpoint::OUTPUT) {
             injection.apply(outputVal, outputVarName);
             logOutput(outputVarName, outputVal);
+        } else if (injection.getEndpoint() == InjEndpoint::FIO) {
+            injection.apply(fioString);
+            fioFloat = fio->getReal("PEST", fioString);
+            if (fioFloat == -99.0f) {
+                std::cout << "Warning: FIO variable " << fioString << " has value -99.0f" << std::endl;
+                fioFloat = 0.0f;
+                std::cout << "  Using 0.0f instead..." << std::endl;
+            }
+            injection.apply(fioFloat);
+
+            // This choice to separate the "PEST" group from the 
+            // "PEST_INJ" group was done to isolate the protected 
+            // variables in FIO.
+            fio->setRealMemory("PEST", fioString.c_str(), fioFloat);
+            // std::cout << "Simulator Rate FIO Injection applied: " 
+            //           << "Variable: " << fioString 
+            //           << " Value: " << fioFloat 
+            //           << std::endl;
         }
     }
-    //std::cout << std::endl << "YRDOY: " << currentYearDoy << "\tCloud val: " << initialCondition.getCloud()->getValue() << std::endl;
+    // std::cout << std::endl << "YRDOY: " << currentYearDoy << "\tCloud val: " << initialCondition.getCloud()->getValue() << std::endl;
     initialCondition.getCloud()->addSporesCreated(inoculumGenerated);
-    //std::cout << "YRDOY: " << currentYearDoy << "\tCloud val: " << initialCondition.getCloud()->getValue() << std::endl << std::endl;
+    initialCondition.getCloud()->removeSporesVal(inoculumRemoved);
+    // std::cout << "YRDOY: " << currentYearDoy << "\tCloud val: " << initialCondition.getCloud()->getValue() << std::endl << std::endl;
 
     CouplingPointID organCP = this->disease->getOrganCP();
+    CouplingPointID damageCP = this->disease->getDamageCP();
     if (organCP != CouplingPointID::VALUE) {
+        // COUPLING POINT VALUE FOR ORGAN SET VALUE DIRECTLY
+        // 
+        // Since we cannot directly set the value without breaking 
+        // other aspects of the GDM logic, we instead calculate the 
+        // raw growth and use that to track the plant value.
+
         float *organCPVal = couplingData->getCouplingValue(organCP);
         float organCPValPrev = couplingData->getCouplingValuePrev(organCP);
-    
-        // This should generically perform the organ addition step regardless of the coupling point.
-        if (*organCPVal - organCPValPrev > 0) {
-            // NOTE: Ask Dr. Pavan about this following commented code:
-            /*if(first == 0){
-                FSEED = *YRDOY;
-                fio->setIntegerMemory("PEST", "FSEED", FSEED);
-                first = 1;
-            }*/
-            
+        float damageCPValPrev = couplingData->getCouplingValuePrev(damageCP);
+
+        float dssatDelta = *organCPVal - organCPValPrev + damageCPValPrev;
+
+        if (dssatDelta > 0) {
+            if (disease->getOrganMode() == OrganMode::COHORT) {
+                cropinterface->setOrganArea(newOrgan, (dssatDelta));
+            } else if (disease->getOrganMode() == OrganMode::SINGULAR) {
+                Plant::getInstance()->getOrganSet(organCP).queueHealthyGrowth(dssatDelta);
+            }
+            this->logOutput("NEW_GROWTH", dssatDelta);
+        } else {
             #ifdef DEBUGX
-            std::cout << "New organ growth detected: " 
+            std::cout << "No new organ growth detected: " 
                     << "Disease: " << this->disease->getDescription() 
                     << " Coupling Point: " << cpIDToStr(organCP) 
-                    << " Organ number: " << newOrgan 
-                    << " Growth: " << (*organCPVal - organCPValPrev) 
+                    << " Growth: " << dssatDelta 
                     << std::endl;
             #endif // DEBUG
-
-            cropinterface->setOrganArea(newOrgan, (*organCPVal - organCPValPrev));
-            organCPValPrev = *organCPVal;
         }
+
+        // OLD CODE THAT ASSUMES NEW GROWTH = DIFFERENCE IN COUPLING VALUE
+        //
+        // float *organCPVal = couplingData->getCouplingValue(organCP);
+        // float organCPValPrev = couplingData->getCouplingValuePrev(organCP);
+        //
+        // // This should generically perform the organ addition step regardless of the coupling point.
+        // if (*organCPVal - organCPValPrev > 0) {
+        //     // NOTE: Ask Dr. Pavan about this following commented code:
+        //     /*if(first == 0){
+        //         FSEED = *YRDOY;
+        //         fio->setIntegerMemory("PEST", "FSEED", FSEED);
+        //         first = 1;
+        //     }*/
+        //
+        //     #ifdef DEBUGX
+        //     std::cout << "New organ growth detected: " 
+        //             << "Disease: " << this->disease->getDescription() 
+        //             << " Coupling Point: " << cpIDToStr(organCP) 
+        //             << " Growth: " << (*organCPVal - organCPValPrev) 
+        //             << std::endl;
+        //     #endif // DEBUG
+        //     if (disease->getOrganMode() == OrganMode::COHORT) {
+        //         cropinterface->setOrganArea(newOrgan, (*organCPVal - organCPValPrev));
+        //     } else if (disease->getOrganMode() == OrganMode::SINGULAR) {
+        //         Plant::getInstance()->getOrganSet(organCP).queueHealthyGrowth((*organCPVal - organCPValPrev));
+        //     }
+        // }
+        
     } else {
         #ifdef DEBUGX
             std::cout << "Constant value organ: " 
@@ -135,40 +223,88 @@ void Simulator::rate() {
     /** For each Initial Condition call the rate function */
     initialCondition.rate();
 
+    // Orchestrate rate calls for all CloudOs, then CloudPs, then CloudFs.
+    Plant* plant = getPlant();
+    for (auto& OrganSet : plant->getOrgans()) {
+        for (auto& organ : OrganSet.organs) {
+            for (auto& cloudO : organ.getCloudsO()) {
+                if (cloudO.getDisease() == this->disease) {
+                    cloudO.rate();
+                }
+            }
+        }
+    }
+    for (auto& cloudP : plant->getCloudsP()) {
+        if (cloudP.getDisease() == this->disease) {
+            cloudP.rate();
+        }
+    }
+    initialCondition.getCloud()->rate();
+
     /** Call the rate function for the Plant */
-    getPlant()->rate();
+    plant->rate();
 }
 
 
 void Simulator::integration() {
-    float dArea = 0, tArea=0, sArea=0;
+    // Declare helper values for integration 
+    float diseaseValue = 0, totalValue=0, sArea=0;
     int seedAge = 0;
 
     // Load CouplingData instance for modification of damage values.
     CouplingData *couplingData = CouplingData::getInstance();
-    CouplingPointID cp = initialCondition.getCloud()->getDisease()->getDamageCP();
+    CouplingPointID damageCP = this->disease->getDamageCP();
 
-    // Define float values for non-cp endpoints.
+    // Declare helper values for non-cp endpoints.
     float* biologicalFactor = disease->getBiologicalFactorRef();
     float outputVal;
+    std::string outputVarName;
 
+    // Perform all integration injections.
     for (auto& injection : disease->getIntegrationInjections()) {
         if (injection.getEndpoint() == InjEndpoint::INFECTION_BIOLOGICAL_FACTOR) {
             injection.apply(*biologicalFactor);
         } else if (injection.getEndpoint() == InjEndpoint::OUTPUT) {
-            
+            injection.apply(outputVal, outputVarName);
+            logOutput(outputVarName, outputVal);
         }
     }
 
     initialCondition.integration(disease);
 
-    getPlant()->integration();
+    // Orchestrate rate calls for all CloudOs, then CloudPs, then CloudFs.
+    Plant* plant = getPlant();
+    for (auto& OrganSet : plant->getOrgans()) {
+        for (auto& organ : OrganSet.organs) {
+            for (auto& cloudO : organ.getCloudsO()) {
+                if (cloudO.getDisease() == this->disease) {
+                    cloudO.integration();
+                }
+            }
+        }
+    }
+    for (auto& cloudP : plant->getCloudsP()) {
+        if (cloudP.getDisease() == this->disease) {
+            cloudP.integration();
+        }
+    }
+    initialCondition.getCloud()->integration();
 
+    plant->integration();
+
+    // Debug statement to show total, disease, newDisease, and totalOrgan values.
+    // std::cout << "YEARDOY: " << currentYearDoy << 
+    // " Plant Total Value: " << plant->getTotalValue() << " Disease Value: " << plant->getDiseaseValue() << std::endl <<
+    // "-------- ------- Disease Diff: " << getPlant()->getDailyDiseaseValue() << std::endl <<
+    // "-------- ------- Organ Number: " << getPlant()->getOrgans()[0].organs.size() << std::endl;
     if (getPlant() != nullptr && getPlant()->getOrgans().size() > 0) {
-        dArea = getPlant()->getDiseaseArea();
-        tArea = getPlant()->getTotalArea();
-        sArea = getPlant()->getSenescenceArea();
+        diseaseValue = getPlant()->getDiseaseValue();
+        totalValue = getPlant()->getTotalValue();
         seedAge = getPlant()->getOrgans().size();
+
+        // NOTE: Testing out the use of daily disease value
+        float diseaseDailyValue = getPlant()->getDailyDiseaseValue();
+
         //pDArea = (dArea/(tArea-sArea)*100);
         //printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
         //*PSDD = (dArea/tArea*5);
@@ -176,10 +312,14 @@ void Simulator::integration() {
         //       values. And to only happen once because as it 
         //       currently stands, only the last value of PSDD will
         //       get sent back to DSSAT.
-        if (tArea > 0) {
-            couplingData->overwriteCouplingValue(cp, (dArea/tArea)*15);
+        if (totalValue > 0) {
+            float cp_val = *couplingData->getCouplingValue(damageCP);
+            //std::cout << "YRDOY: " << currentYearDoy << " CP Val:        " << cp_val << " Coupling Point: " << cpIDToStr(damageCP) << std::endl;
+            couplingData->overwriteCouplingValue(damageCP, diseaseDailyValue);
+            // couplingData->overwriteCouplingValue(damageCP, diseaseValue);
+            //std::cout << "YRDOY: " << currentYearDoy << " Disease Value: " << diseaseDailyValue << " Coupling Point: " << cpIDToStr(damageCP) << std::endl;
         } else {
-            couplingData->overwriteCouplingValue(cp, 0);
+            couplingData->overwriteCouplingValue(damageCP, 0);
         }        
         //printf("ORIGINAL YRDOY: %i CloudF: %f PSDD %f\n",*YRDOY, s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue(), PSDD);
         //printf("YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f AREALF: %f PDLA: %f PLFAD: %f\n", *YRDOY, tArea,dArea,sArea,*AREALF,*PDLA,*PLFAD);
@@ -199,19 +339,31 @@ void Simulator::output() {
     // 
     // This way, it's very simple to construct.
 
-    // First, report all injections that have the "OUTPUT" endpoint (from other steps)
-    for (auto& output : loggedOutputs) {
-        
-    }
+    if (loggedOutputs.size() > 0 || hasOutput) {
+        float outputVal;
+        std::string outputVarName;
 
-    // Then, compute and report all specifically "OUTPUT" step injections
-    for (auto& injection : disease->getIntegrationInjections()) {
-        if (injection.getEndpoint() == InjEndpoint::OUTPUT) {
-            
+        // First, compute all specifically "OUTPUT" step injections
+        for (auto& injection : disease->getIntegrationInjections()) {
+            if (injection.getEndpoint() == InjEndpoint::OUTPUT) {
+                injection.apply(outputVal, outputVarName);
+                logOutput(outputVarName, outputVal);
+            }
         }
+
+        // Then, report all injections that have the "OUTPUT" endpoint (from all steps)
+        outputFile.open("sim_" + disease->getDescription() + "_output.tsv", std::ios::app);
+        for (const auto& output : loggedOutputs) {
+            outputFile << currentYearDoy << "\t" << output.varName << "\t" << output.value << "\n";
+            std::cout << currentYearDoy << "\t" << output.varName << "\t" << output.value << "\n";
+        }
+        outputFile.close();
+
+        // Finally, clear the logged outputs for the next step.
+        clearOutputLog();
     }
 }
-
+    
 /**
  * Synchronize the current DSSAT and simulator dates
  * 
@@ -226,10 +378,11 @@ void Simulator::updateCurrentYearDoy(int yearDoy) {
     // std::cout << "- Updating current YEARDOY from " << getCurrentYearDoy() << " to " << yearDoy << std::endl;
     while(util.addOneDay(getCurrentYearDoy()) < yearDoy) {
         setCurrentYearDoy(util.addOneDay(getCurrentYearDoy()));
-        Weather::getInstance()->update();
+        Weather::getInstance()->update(getCurrentYearDoy());
+        // Weather::getInstance()->update();
         rate();
         integration();
+        std::cout << "YEARDOY updated to: " << getCurrentYearDoy() << std::endl;
     }
     setCurrentYearDoy(yearDoy);
-    // std::cout << "- Current YEARDOY is now " << getCurrentYearDoy() << std::endl;
 }

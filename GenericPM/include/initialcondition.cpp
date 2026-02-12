@@ -30,9 +30,6 @@ void InitialCondition::rate() {
                             * Utilities::wetnessFavorability(Basic::getWeather()->getWetDur(), 
                                                              cloudF->getDisease()->getWetnessFunction());
     }
-
-    // Run the cloud rate only once per day (handled by cloudF)
-    cloudF->rate();
 }
 
 void InitialCondition::integration() {
@@ -55,9 +52,6 @@ void InitialCondition::integration(Disease *disease) {
         convert << Basic::getWeather()->getYearDoy() << "," << acumulateFavorability;
         Basic::output.push_back(convert.str());
     }
-    
-    // Run the cloud integration only once per day (handled by cloudF)
-    cloudF->integration();
 }
 
 void InitialCondition::output() {

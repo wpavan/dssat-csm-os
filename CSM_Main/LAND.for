@@ -82,6 +82,7 @@ C-----------------------------------------------------------------------
       REAL, DIMENSION(0:NL) :: SomLitC
       REAL, DIMENSION(0:NL,NELEM) :: SomLitE
       REAL SL1, SLL1, SSAT1, SDUL1
+      REAL ZSTAGE
 
 C-----------------------------------------------------------------------
 C     Soil - Plant - Atmosphere Module Variables
@@ -245,7 +246,7 @@ C-----------------------------------------------------------------------
      &    STGDOY, SW, WEATHER,                            !Input
      &    YREND, FERTDATA, HARVFRAC, IRRAMT,              !Output
      &    MDATE, OMADATA, TILLVALS, YRPLT)                !Output
-
+      WRITE(*,*) "SEASINIT YRPLT: ", YRPLT
 C-----------------------------------------------------------------------
       IF (YRPLT < YRSIM .AND. CROP /= 'FA' .AND.
      &    INDEX('AF', IPLTI) == 0) THEN
@@ -302,11 +303,11 @@ C-----------------------------------------------------------------------
 
 C*********************************************************************** 
 
-      IF(ISWDIS.EQ.'Y') THEN
-          YRPLT = YRDOY
+c       IF(ISWDIS.EQ.'Y') THEN
+c          YRPLT = YRDOY
 c          CALL READPEST(FILEP, 'WH001', 0)
 c          call couplingInitSpore(YRDOY, YRPLT)
-      ENDIF
+c      ENDIF
 
 C***********************************************************************
 C***********************************************************************
@@ -320,11 +321,17 @@ C***********************************************************************
           SDUL1 = SOILPROP % DUL(1) !Drained upper limit, 1st layer
           SSAT1 = SOILPROP % SAT(1) !Upper limit, saturated,1st layer
                   
+          CALL fio%get("PEST", "ZSTAGE", ZSTAGE)
+
           CALL fio%set("PEST","SL1",SL1)
           CALL fio%set("PEST","SLL1",SLL1)
           CALL fio%set("PEST","SDUL1",SDUL1)
           CALL fio%set("PEST","SSAT1",SSAT1)
           CALL fio%set("PEST","TAVG",WEATHER % TAVG)
+          
+          CALL LOGGINGGDM(YRDOY, YRSIM, SL1, SLL1, SSAT1, 
+     &        WEATHER % TMAX, WEATHER % TMIN, WEATHER % RAIN, 
+     &        WEATHER % SRAD, ZSTAGE)
       ENDIF
 C-----------------------------------------------------------------------
 C     Call WEATHER Subroutine to input weather data and to

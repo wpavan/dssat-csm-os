@@ -9,6 +9,7 @@
  */
 
 #include "cloudf.h"
+#include "project_config.h"
 
 #include <iostream>
 #include <sstream>
@@ -25,35 +26,65 @@ void CloudF::rate() {
 
         // Ensure we only run this once per day
         lastRate = Basic::getWeather()->getDoy();
+
+        // Add the inoculum value into FlexibleIO
+        FlexibleIO *fio = FlexibleIO::getInstance();
+        fio->setRealMemory(family, "INOCULUM", getValue());
+        // std::cout << "Just set " << family << ":INOCULUM to " << getValue() << std::endl;
     }
 }
 
 void CloudF::integration() {
     if (lastIntegration != Basic::getWeather()->getDoy()) {
         if (firstSporeCloud > 0) {
-            values.push_back(firstSporeCloud);
-            firstSporeCloud = 0;
+                #if DIAG_SPORES
+                std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " CloudF::integration seeding firstSporeCloud=" << firstSporeCloud << std::endl;
+                #endif
+                values.push_back(firstSporeCloud);
+                firstSporeCloud = 0;
+        }
+
+        // Refactor
+        else if (REMOVAL_METHOD == 1) {
+            if (values.size() == (unsigned) disease->getVectorSizeCloudF()) {
+                #if DIAG_SPORES
+                std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " CloudF::integration queueing age removal (size==vectorSizeCloudF)" << std::endl;
+                #endif
+                queueAgeRemoval();
+            }
         }
 
         Cloud::integration();
-        if (values.size() > (unsigned) disease->getVectorSizeCloudF()) {
-            values.erase(values.begin());
-        }
-        if (getValue() > disease->getMaxSporeCloudsDensity()) {
-            Cloud::removeSporesCloud(getValue() - disease->getMaxSporeCloudsDensity());
-        }
-        if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
-            // NOTE: Here we should parameterize the rain effect on the spores cloud
-            Cloud::removeSporesCloudByRain(1-exp(-0.035*Basic::getWeather()->getRain()));
-        }
+        // Cloud::integration();
 
+        // if (REMOVAL_METHOD == 0) {
+        //     // This is the method that is used in the R code. This 
+        //     // method involves proportional removal of cloud spores each
+        //     // day based on constants k_g and k_d.
+        //     addSporesToBeRemoved(getValue() * (K_G + K_D));
+        // } else if (REMOVAL_METHOD == 1) {
+        //     if (values.size() > (unsigned) disease->getVectorSizeCloudF()) {
+        //         values.erase(values.begin());
+        //     }
+
+        //     if (getValue() > disease->getMaxSporeCloudsDensity()) {
+        //         addSporesToBeRemoved(getValue() - disease->getMaxSporeCloudsDensity());
+        //     }
+
+        //     if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
+        //         float percent = 1 - exp(-0.035f * Basic::getWeather()->getRain());
+        //         float removed = getValue() - (getValue() * percent);
+        //         addSporesToBeRemoved(removed);
+        //     }
+        // }
+        
         std::ostringstream convert;
         convert << Basic::getWeather()->getYearDoy() << "," << getValue();
         for (auto& value : values) {
             convert << "," << value;
         }
         Basic::output.push_back(convert.str());
-
+        
         // Ensure we only run this once per day
         lastIntegration = Basic::getWeather()->getDoy();
     }

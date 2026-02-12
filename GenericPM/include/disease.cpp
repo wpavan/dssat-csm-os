@@ -11,6 +11,7 @@
 #include "disease.h"
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 #include "./utilities.h"
+#include "./project_config.h"
 
 #include <cmath>
 #include <iostream>
@@ -22,12 +23,15 @@ float Disease::getSporulationCrowdingFactor(float proportionDiseaseArea) {
     return (fmin(a,1));
 }
 
-int Disease::newLesions(float cloudDensity, float healthyAreaProportion) {
+float Disease::newLesions(float cloudDensity, float healthyValue) {
+    FlexibleIO *fio = FlexibleIO::getInstance();
     Utilities util;
-    float newLesions = 0;
+    int newLesionsInt = 0;
+    float newLesionsFloat = 0.0f;
     float fitWetnessThreshold = getWetnessThreshold();
 
-    if (healthyAreaProportion > 0 && Basic::getWeather()->getWetDur() >= fitWetnessThreshold) {
+    // std::cout << " Healthy Area Proportion: " << healthyAreaProportion << " Dur | Threshold: " << Basic::getWeather()->getRain() << " | " << fitWetnessThreshold << std::endl;
+    if (healthyValue > 0) {
         // NOTE: newLesions is the equal to the dI/dt value * 1 day. We
         //       only need to consider removing this equation if it 
         //       doesn't work for FHB.
@@ -44,13 +48,38 @@ int Disease::newLesions(float cloudDensity, float healthyAreaProportion) {
         //       ???            => temperatureFavorability
         //       ???            => healthyAreaProportion
 
-        newLesions = fmax(0.0, (cloudDensity * healthyAreaProportion * getInfectionEfficiency() *
-                util.temperatureFavorability(Basic::getWeather()->getTMean(),
-                                             getTemperatureFavorabilitySet()) *
-                util.wetnessFavorability(Basic::getWeather()->getWetDur(),
-                                         getWetnessFunction()) *
-                biologicalFactor));
+        // newLesions = fmax(0.0, (cloudDensity * healthyAreaProportion * getInfectionEfficiency() *
+        //         util.temperatureFavorability(Basic::getWeather()->getTMean(),
+        //                                      getTemperatureFavorabilitySet()) *
+        //         util.wetnessFavorability(Basic::getWeather()->getWetDur(),
+        //                                  getWetnessFunction()) *
+        //         biologicalFactor));
 
+        // New version to represent lag phase (infection is in injection code stored in fio)
+        //std::cout << "INFECTIVE_SPORES (INIT): " << fio->getReal("PEST", "INFECTIVE_SPORES") << std::endl;
+        
+        if (!createdSpores) {
+            newLesionsFloat = fmax(0.0f, fio->getReal("PEST", "INFECTIVE_SPORES"));
+            fio->setRealMemory("PEST", "INFECTIVE_SPORES", 0.0f);
+            createdSpores = true;
+        } else {
+            newLesionsFloat = 0.0f;
+        }
+        //std::cout << "---------------- (END) : " << fio->getReal("PEST", "INFECTIVE_SPORES") << std::endl;
+
+        // R Code version
+        // newLesionsFloat = fmax(0.0f, K_INF * cloudDensity * biologicalFactor * util.temperatureFavorability(Basic::getWeather()->getTMean(),
+        //                                                         getTemperatureFavorabilitySet()));
+        
+        // std::cout <<
+        // " K_INF: " << K_INF << std::endl <<
+        // " cloudValue: " << cloudDensity << std::endl <<
+        // " bio_factor: " << biologicalFactor << std::endl <<
+        // " temp_factor: " << util.temperatureFavorability(Basic::getWeather()->getTMean(),
+        //                                                          getTemperatureFavorabilitySet()) << std::endl <<
+        // " ... newLesions: " << newLesionsFloat << std::endl;
+                                                                 
+        
         //std::cout << 
         //" 1: " << newLesions << 
         //" 2: " << cloudDensity << 
@@ -66,5 +95,7 @@ int Disease::newLesions(float cloudDensity, float healthyAreaProportion) {
         //std::cout<<"newLesions: "<<newLesions<<" getRH: "<<Basic::getWeather()->getRh() <<" getRhFactor()): "<< getRhFactor()<<" exp: "<<newLesions *  Utilities::runExpressionFunction(Basic::getWeather()->getRh(),getRhFactor()) <<std::endl; 
         //std::cout<<"rhfacetor "<<getRhFactor()<<" RH : "<<Basic::getWeather()->getRh()<<std::endl;
     }
-    return newLesions;
+    //newLesionsInt = static_cast<int>(newLesionsFloat);
+    // return newLesionsInt
+    return newLesionsFloat;
 }

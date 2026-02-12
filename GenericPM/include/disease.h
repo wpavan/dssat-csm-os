@@ -61,7 +61,11 @@ protected:
     float hostFactor = 1;
     static std::vector<Disease*> listDiseases;
     std::string rhFactor = "1*x";
-    float biologicalFactor = 1.0;
+    float biologicalFactor = 0.0;
+
+    OrganMode organMode = OrganMode::COHORT;
+
+    bool createdSpores = false;
 
     /**
      * @var cohortAgeSet
@@ -144,6 +148,14 @@ public:
         std::cout << "Rh Factor: " << rhFactor << std::endl;
     }
 
+    OrganMode getOrganMode() {
+        return organMode;
+    }
+
+    void setOrganMode(OrganMode organMode) {
+        this->organMode = organMode;
+    }
+
     float getBiologicalFactor() {
         return biologicalFactor;
     }
@@ -221,7 +233,7 @@ public:
     }
 
     float getSporulationCrowdingFactor(float proportionDiseaseArea);
-    int newLesions(float cloudDensity, float healthyAreaProportion);
+    float newLesions(float cloudDensity, float healthyAreaProportion);
 
     /**
      * Get proportion of spores from organ to plant cloud.

@@ -13,6 +13,7 @@
 #include "cloud.h"
 #include "basicinterface.h"
 #include "disease.h"
+#include "project_config.h"
 
 /**
  * Field cloud
@@ -27,7 +28,7 @@ protected:
     int ID = ++qtd;
     float firstSporeCloud = 0;
     static int firstOutputCall;
-    Disease* disease = nullptr;
+    // Disease* disease = nullptr;
     int lastRate = -99;
     int lastIntegration = -99;
     int lastOutput = -99;
@@ -37,9 +38,9 @@ public:
         Basic::output.push_back("Day of Simulation, Total Spores in CloudF");
     }
 
-    Disease* getDisease() {
-        return disease;
-    }
+    // Disease* getDisease() {
+    //     return disease;
+    // }
 
     std::string getFamily() {
         return family;
@@ -58,19 +59,6 @@ public:
 
     int getID() {
         return ID;
-    }
-
-    /**
-     * Value of the field cloud
-     * 
-     * This method is responsible for calculating the total value of the field spore cloud.
-     * This method is an extension of the Cloud class getValue method.
-     * 
-     * @return The total value of the field spore cloud.
-     */
-    float getValue() {
-        float total = Cloud::getValue();
-        return total;
     }
 
     /**
@@ -99,6 +87,9 @@ public:
     void output();
 
     void addSporesCreated(float sporesCreated) {
+#if DIAG_SPORES
+        std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " CloudF::addSporesCreated sporesCreated=" << sporesCreated << std::endl;
+#endif
         this->sporesCreated += sporesCreated;
     }
 

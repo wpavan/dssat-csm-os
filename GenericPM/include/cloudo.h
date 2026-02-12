@@ -35,7 +35,6 @@ public:
 
     void rate() {
         Cloud::rate();
-        cloudP->rate();
     }
 
     CloudP* getCloudP() {

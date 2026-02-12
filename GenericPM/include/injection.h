@@ -94,8 +94,9 @@ struct ModificationRegex {
 };
 
 enum class InjEndpoint {
-    INOCULUM_GEN,
+    INOCULUM,
     INFECTION_BIOLOGICAL_FACTOR,
+    FIO,
     OUTPUT
 };
 
@@ -126,6 +127,7 @@ class Injection {
             return endpoint;
         }
         std::string parse(bool& missingVal);
+        std::string parse();
         double eval();
 
         void apply(float& endpointValue);

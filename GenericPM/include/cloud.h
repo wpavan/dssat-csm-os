@@ -15,43 +15,80 @@
 #include "disease.h"
 
 #include <vector>
+#include <iostream>
+#include <sstream>
 
 class Cloud : public Basic, virtual public BasicInterface {
+private:
+    bool removeByAge = false;
+
 protected:
     std::vector<float> values;
     Disease *disease;
-    int sporesCreated = 0;
-    int sporesToBeRemoved = 0;
+    // Use float to avoid truncation and preserve fractional spores
+    float sporesCreated = 0.0f;
+    float sporesToBeRemoved = 0.0f;
     
 public:
+
+    void rate() {}
+    void integration();
+    void output() {}
+
     Disease* getDisease() {
         return disease;
     }
-    virtual void addSporesCreated(float sporesCreated) = 0;
-
-    void rate() {
-    }
     
-    void integration();
-
-    void output() {
+    void setDisease(Disease *disease) {
+        if (disease == nullptr) {
+            std::cout << "Warning: Setting Cloud disease to nullptr." << std::endl;
+        }
+        this->disease = disease;
     }
 
     float getValue();
-    
-    void removeSporesCloud(float toBeRemove);
-    void removeSporesCloudByRain(float percent);
 
-    int getSporesToBeRemoved() {
+    virtual void addSporesCreated(float sporesCreated) = 0;
+    
+    void removeSporesVal(float toBeRemove);
+    void removeSporesPct(float percent);
+    void incrementSporesAge();
+
+    // Diagnostic helper: print a compact snapshot of this cloud's internal state
+    void diagSnapshot(const char *ctx) {
+#if DIAG_SPORES
+        std::ostringstream ss;
+        ss << "[DIAG] " << ctx << " :: " << "sporesCreated=" << sporesCreated << ", sporesToBeRemoved=" << sporesToBeRemoved << ", total=" << getValue();
+        ss << ", values=[";
+        for (unsigned i=0;i<values.size();++i) {
+            if (i) ss << ",";
+            ss << values[i];
+        }
+        ss << "]";
+        std::cout << ss.str() << std::endl;
+#endif
+    }
+
+    float getSporesToBeRemoved() {
         return sporesToBeRemoved;
     }
 
-    void setSporesToBeRemoved(int sporesToBeRemoved) {
+    void setSporesToBeRemoved(float sporesToBeRemoved) {
         this->sporesToBeRemoved = sporesToBeRemoved;
     }
 
-    void addSporesToBeRemoved(int sporesToBeRemoved) {
+    void addSporesToBeRemoved(float sporesToBeRemoved) {
         this->sporesToBeRemoved += sporesToBeRemoved;
+    }
+
+    void queueAgeRemoval() {
+        removeByAge = true;
+    }
+
+    void reset() {
+        values.clear();
+        sporesCreated = 0.0f;
+        sporesToBeRemoved = 0.0f;
     }
 };
 

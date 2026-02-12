@@ -19,9 +19,13 @@
 
 #include <vector>
 
+bool diseaseHasOutput(Disease *disease);
+
 struct Output {
     std::string varName;
     float value;
+
+    Output(std::string vn, float val) : varName(vn), value(val) {}
 };
 
 class Simulator : virtual public BasicInterface {
@@ -35,15 +39,15 @@ protected:
     CropInterface *cropinterface;
     std::vector<Output> loggedOutputs;
 
+    const bool hasOutput;
+    std::ofstream outputFile;
+
 public:
     Simulator();
-    Simulator(Disease *dis, CropInterface *ci) : initialCondition(dis->getFamily()), disease(dis), cropinterface(ci) {
-        //cropinterface->start();
-
-        // Compile and load injections ?
-        //Injection* rateInjection = getRateInjection();
-        //rateInjection->compile("RATE.cpp", "RATE.dll");
-        //rateInjection->load("RATE.dll");
+    Simulator(Disease *dis, CropInterface *ci) : initialCondition(dis->getFamily()), disease(dis), cropinterface(ci), hasOutput(diseaseHasOutput(dis)) {
+        outputFile.open("sim_" + disease->getDescription() + "_output.tsv", std::ios::app);
+        outputFile << "YEARDOY\tOUTPUT_NAME\tVALUE\n";
+        outputFile.close();
     };
 
     void inputPST_FromYaml();

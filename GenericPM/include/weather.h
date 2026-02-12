@@ -43,6 +43,7 @@ public:
     }
 
     bool update();
+    bool update(int yearDoy);
 
     void setRain(float rain) {
         this->rain = rain;

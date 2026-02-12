@@ -10,8 +10,7 @@
 #include <sstream>
 #include <regex>
 #include <variant>
-
-#include <yaml-cpp/yaml.h>
+#include <algorithm>
 
 #include "utilities.h"
 #include "manager.h"
@@ -71,7 +70,17 @@ Manager* Manager::getInstance() {
 }
 
 Manager* Manager::newInstance() {
+  // Reset the singleton instance and clear static collections so that
+  // repeated initialization (e.g., multiple treatment runs) does not
+  // accumulate simulators, clouds, or crop interfaces.
   instance = nullptr;
+  simulators.clear();
+  plantingDate = -99;
+  families.clear();
+  couplingPointIDs.clear();
+  cropInterfaces.clear();
+  cloudsF.clear();
+  outputStatus = false;
   return getInstance();
 }
 
@@ -161,7 +170,7 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
 
   // Added new parameters for input and output coupling points
   // - V. L. Covert 9/22/2025
-  disease->setOrganCP(strToCPID(diseaseData["ORGAN_AREA_CP"]));
+  disease->setOrganCP(strToCPID(diseaseData["ORGAN_VALUE_CP"]));
   disease->setDamageCP(strToCPID(diseaseData["ORGAN_DAMAGE_CP"]));
 
   // Added new parameter for sharing spore clouds between diseases
@@ -182,6 +191,17 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
     disease->addOutputInjection(Injection(std::get<0>(injection), std::get<1>(injection), std::get<2>(injection)));
   }
 
+  // Added parameter to determine organ mode (cohort vs singular)
+  if (diseaseData["ORGAN_MODE"] == "COHORT") {
+      disease->setOrganMode(OrganMode::COHORT);
+  } else if (diseaseData["ORGAN_MODE"] == "SINGULAR") {
+      disease->setOrganMode(OrganMode::SINGULAR);
+  } else {
+      std::cerr << "Warning: Invalid ORGAN_MODE value '" << diseaseData["ORGAN_MODE"] 
+                << "'; defaulting to COHORT." << std::endl;
+      disease->setOrganMode(OrganMode::COHORT);
+  }
+
   #ifdef DEBUGX  
   disease->printDisease();
 
@@ -190,6 +210,7 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
 
   // Use the *disease to find a new slot in the simulators 
   // vector and then initialize a new Simulator inside it.
+  std::cout << "NEW SIMULATOR\n";
   simulators.emplace_back(std::make_unique<Simulator>(disease, ci));
 }
 
@@ -271,21 +292,44 @@ std::string replacePlaceholders(std::string originalValue, std::string originalT
       std::string placeholder = matchResults.str();
       std::string key = placeholder.substr(1); // Remove the '$'
       // Then, look for the variable name in the disease YAML::Node.
-      if (disease[key]){
-        // Here, we check to see if the variable is a string (used for equations where parentheses are needed).
-        if (originalType == "std::string" || originalType == "string"){
-          std::string value = '(' + disease[key]["VALUE"].as<std::string>() + ')';
-          // Finally, replace the variable reference with the actual value.
-          originalValue = std::regex_replace(originalValue, std::regex("\\" + placeholder), value);
-          replaced = true;
-        // If it is not an equation, then numeric substitution should be without parentheses.
+      if (disease[key] && disease[key]["VALUE"]) {
+        std::string valueStr;
+        // If scalar, use the scalar string directly
+        if (disease[key]["VALUE"].IsScalar()) {
+          try {
+            valueStr = disease[key]["VALUE"].as<std::string>();
+          } catch (const std::exception &e) {
+            valueStr = "";
+          }
+        // If sequence, join elements with commas
+        } else if (disease[key]["VALUE"].IsSequence()) {
+          std::ostringstream joined;
+          for (std::size_t si = 0; si < disease[key]["VALUE"].size(); ++si) {
+            if (si) joined << ",";
+            if (disease[key]["VALUE"][si].IsScalar()) {
+              try { joined << disease[key]["VALUE"][si].as<std::string>(); } catch (...) { /* ignore */ }
+            } else {
+              // Fallback to dumping non-scalars
+              std::string dumped = YAML::Dump(disease[key]["VALUE"][si]);
+              dumped.erase(std::remove(dumped.begin(), dumped.end(), '\n'), dumped.end());
+              joined << dumped;
+            }
+          }
+          valueStr = joined.str();
         } else {
-          std::string value = disease[key]["VALUE"].as<std::string>();
-          // Finally, replace the variable reference with the actual value.
-          originalValue = std::regex_replace(originalValue, std::regex("\\" + placeholder), value);
-          replaced = true;
+          // For maps or other types, dump to string (remove newlines)
+          std::string dumped = YAML::Dump(disease[key]["VALUE"]);
+          dumped.erase(std::remove(dumped.begin(), dumped.end(), '\n'), dumped.end());
+          valueStr = dumped;
         }
-        
+
+        if (originalType == "std::string" || originalType == "string"){
+          valueStr = '(' + valueStr + ')';
+        }
+
+        // Finally, replace the variable reference with the actual value.
+        originalValue = std::regex_replace(originalValue, std::regex("\\" + placeholder), valueStr);
+        replaced = true;
       }
       // Being sure to keep checking the rest of the string for placeholders.
       tempStr = matchResults.suffix();
@@ -386,14 +430,27 @@ int readPestYaml(char *filePST, int *FOUND) {
           // Check if the value is a string or numeric value.
           if (value["VALUE"].Type() == 2) {
             std::string originalValue = value["VALUE"].as<std::string>();
-            std::string originalType = value["TYPE"].as<std::string>();
+            std::string originalType = "string";
+            if (value["TYPE"] && value["TYPE"].IsScalar()) {
+              originalType = value["TYPE"].as<std::string>();
+            }
             value["VALUE"] = replacePlaceholders(originalValue, originalType, disease);
           // Check if the value is a sequence, so each one can be checked for placeholders.
           // This is necessary because automatic sequence -> string conversion is not supported.
           } else if (value["VALUE"].Type() == 3) {
             for (int i=0; i<value["VALUE"].size(); i++) {
-              std::string originalValue = value["VALUE"][i].as<std::string>();
-              std::string originalType = value["TYPE"].as<std::string>();
+              std::string originalValue = "";
+              if (value["VALUE"][i].IsScalar()) {
+                try { originalValue = value["VALUE"][i].as<std::string>(); } catch(...) { originalValue = ""; }
+              } else {
+                std::string dumped = YAML::Dump(value["VALUE"][i]);
+                dumped.erase(std::remove(dumped.begin(), dumped.end(), '\n'), dumped.end());
+                originalValue = dumped;
+              }
+              std::string originalType = "string";
+              if (value["TYPE"] && value["TYPE"].IsScalar()) {
+                originalType = value["TYPE"].as<std::string>();
+              }
               value["VALUE"][i] = replacePlaceholders(originalValue, originalType, disease);
             }
           } // NOTE: Here we are effectively excluding the injection sections because of their alternate format.
@@ -493,17 +550,29 @@ int readPestYaml(char *filePST, int *FOUND) {
         // Step 3 is to add the disease to the manager.
         // Step 3a is to init the CropInterface if needed.
         CropInterface *ciPtr = nullptr;
-        #ifdef DEBUGX
-        std::cout << "ORGAN_AREA_CP: " << diseaseData.at("ORGAN_AREA_CP") << std::endl << "Running strToCPID..." << std::endl;
-        #endif
-        tempCP = strToCPID(diseaseData.at("ORGAN_AREA_CP"));
-         
+        // Safely obtain ORGAN_VALUE_CP from diseaseData
+        auto organIt = diseaseData.find("ORGAN_VALUE_CP");
+        if (organIt == diseaseData.end() || organIt->second.empty()) {
+          std::cerr << "Error: missing required ORGAN_VALUE_CP for disease PESTID='"
+                    << (diseaseData.count("PESTID") ? diseaseData["PESTID"] : "<unknown>")
+                    << "' -- skipping this disease." << std::endl;
+          continue;
+        }
+
+        const std::string cpStr = organIt->second;
+        tempCP = strToCPID(cpStr);
+
         // Only create a new CropInterface if we haven't seen this coupling point before
         if (tempCP == CouplingPointID::VALUE) {
           #ifdef DEBUGX
           std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
           #endif // DEBUG
-          manager->addCropInterface(tempCP, std::stof(diseaseData.at("ORGAN_AREA_CP")));
+          try {
+            manager->addCropInterface(tempCP, std::stof(cpStr));
+          } catch (const std::exception &e) {
+            std::cerr << "Error parsing ORGAN_VALUE_CP='" << cpStr << "': " << e.what() << std::endl;
+            continue;
+          }
         } else if (std::find(uniqueCPs.begin(), uniqueCPs.end(), tempCP) == uniqueCPs.end()) {
           #ifdef DEBUGX 
           std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
@@ -515,9 +584,13 @@ int readPestYaml(char *filePST, int *FOUND) {
           std::cout << "Using existing CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
           #endif // DEBUG
         }
-        
+
         ciPtr = manager->getCropInterface(tempCP);
-        std::cout << "getCropInterface -> " << (ciPtr ? "valid " : "NULL ") << cpIDToStr(ciPtr->getOrganCP()) << std::endl;
+        if (ciPtr) {
+          std::cout << "getCropInterface -> valid " << cpIDToStr(ciPtr->getOrganCP()) << std::endl;
+        } else {
+          std::cout << "getCropInterface -> NULL" << std::endl;
+        }
 
         // Step 3b is to handle family grouping.
         std::string family = diseaseData["FAMILY"];

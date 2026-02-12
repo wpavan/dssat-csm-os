@@ -28,24 +28,30 @@ int Organ::firstOutputCall = 0;
 void Organ::rate() {
     Manager *manager = Manager::getInstance();
     // Get the crop interface that refers to this type of organs specifically
-    CropInterface *cropinterface = manager->getCropInterface(organCP);
+    // CropInterface *cropinterface = manager->getCropInterface(organCP);
 
     // Calculate the ratio due senescence based on previous day
-    float actualDisease = 0, ratioSenescence = this->senescenceArea / this->totalArea;
+    // float actualDisease = 0; //, ratioSenescence = this->senescenceValue / this->getTotalValue();
+    // float actualInvisibleValue = 0, actualVisibleValue = 0;
 
     // Update the senescence area for the current day
     // NOTE: Is this routing of simulator -> cropinterface -> getSenescenceOrganArea needed? 
-    //       We could maybe change the senescenceArea of the organ to be held in the organ object itself.
-    this->senescenceArea = cropinterface->getSenescenceOrganArea(organNumber);
+    //       We could maybe change the senescenceValue of the organ to be held in the organ object itself.
+    //this->senescenceValue = cropinterface->getSenescenceOrganArea(organNumber);
 
     // Recalculate the ratio due senescence and take the difference from previous ratio
-    ratioSenescence = (this->senescenceArea / this->totalArea) - ratioSenescence;
+    //ratioSenescence = (this->senescenceValue / this->getTotalValue()) - ratioSenescence;
 
-    // Update the total organ area (current day)
-    this->totalArea = cropinterface->getOrganArea(organNumber);
-    
+    // Update the total organ area (current day) - (shouldn't do anything)
+    // this->totalArea = cropinterface->getOrganArea(organNumber);
+    std::cout << "Organ " << organNumber << " Daily Healthy Value: " << dailyHealthyValue << std::endl;
+    if (dailyHealthyValue > 0) {
+        healthyValue += dailyHealthyValue;
+        dailyHealthyValue = 0;
+    }
+
     // If the organ was not previously susceptible and now has area, set it to susceptible
-    if (!suceptible && this->totalArea > 0) {
+    if (!suceptible && this->getTotalValue() > 0) {
         suceptible = true;
     }
 
@@ -54,28 +60,14 @@ void Organ::rate() {
         return;
     }
 
-    // Use the lesion cohorts to update the diseased area based on the senescence
+    // std::cout << "=== Starting LC rate loop ===" << std::endl;
     for (auto& lc : lesionCohorts) {
-        // Must affect the disease area related with senescent area
-        if (ratioSenescence > 0) {
-            lc.setVisibleArea(lc.getVisibleArea() * (1-ratioSenescence));
-            lc.setInvisibleArea(lc.getInvisibleArea() * (1-ratioSenescence));
-            lc.setTotalArea(lc.getVisibleArea()+lc.getInvisibleArea());
-        }
-        actualDisease += lc.getTotalArea();
-    }
-
-    // Updating the disease amount on organ
-    setDiseaseArea(actualDisease);
-
-    // Calculating the health area proportion
-    healthAreaProportion = Utilities::getHealthAreaProportion(getDiseaseArea(), 
-                                                              getTotalArea(), 
-                                                              getSenescenceArea());
-
-    for (auto& lc : lesionCohorts) {
-        lc.setOrganHealthAreaProportion(healthAreaProportion);
+        lc.setOrganHealthyValue(getHealthyValue());
+        lc.setOrganDiseaseValue(getDiseaseValue());
+        // std::cout << "organ healthy & disease: " << getHealthyValue() << " & " << getDiseaseValue() << std::endl;
         lc.rate();
+        // After rate, lc has calculated the daily (in)visible value growth
+        // spores are also calculated if the method calls for it
     }
 }
 
@@ -88,19 +80,10 @@ void Organ::integration() {
     LesionCohort *lc;
 
     float cloudDensity = 0;
-    float cloudOValue = 0, cloudPValue = 0, cloudFvalue = 0;
-    dailyDiseaseArea = diseaseArea;
-    dailyVisibleDiseaseArea = visibleDiseaseArea;
-    dailySenescenceArea = senescenceArea;
-    dailyLatentDiseaseArea = latentDiseaseArea;
-    dailyInfectionDiseaseArea = infectionDiseaseArea;
-    dailyNecroticDiseaseArea = necroticDiseaseArea;
+    float cloudOValue = 0, cloudPValue = 0, cloudFValue = 0;
     dailyTotalLesions = totalLesions;
     dailyVisibleLesions = visibleLesions;
-    diseaseArea = 0;
     visibleLesions = 0;
-    visibleDiseaseArea = invisibleDiseaseArea = 0;
-    latentDiseaseArea = infectionDiseaseArea = necroticDiseaseArea = 0; 
     newLesions = 0;
 
     if (suceptible) {
@@ -110,28 +93,52 @@ void Organ::integration() {
 
             cloudOValue = cloudAmount();
             cloudPValue = cloudo.getCloudP()->getValue();
-            cloudFvalue = cloudo.getCloudP()->getCloudF()->getValue();
+            cloudFValue = cloudo.getCloudP()->getCloudF()->getValue();
 
-            // The number of lesions that will be created on any given organ is proportional to that organ's exposed surface area.
-            // NOTE: Should this organ get lesions proportional to total organ area or organ set area?
-            newLesionsFromOrgan = cloudo.getDisease()->newLesions(cloudOValue,healthAreaProportion);
-            newLesionsFromPlant = cloudo.getDisease()->newLesions(cloudPValue,healthAreaProportion) * 
-                                  getProportionFromTotalArea(); 
-            newLesionsFromField = cloudo.getDisease()->newLesions(cloudFvalue,healthAreaProportion) *
-                                  getProportionFromTotalArea(); // NOTE: Same as above
-            
+            // The number of lesions that will be created on any given 
+            // organ is proportional to that organ's exposed healthy 
+            // surface area. Organs should get lesions proportional to
+            // the fraction of healthy area represented by that organ.
+            // std::cout << "\n--------------- Lesion Math ---------------------" << std::endl;
+            // std::cout << "YEARDOY: " << std::to_string(getWeather()->getYearDoy()) << " Lesion Queue: " << lesionQueue << std::endl;
+
+            float lesionQueueOrgan = cloudo.getDisease()->newLesions(cloudOValue, healthyValue);
+            float lesionQueuePlant = cloudo.getDisease()->newLesions(cloudPValue, healthyValue) * (healthyValue / getOrganSetHealthyValue()); 
+            float lesionQueueField = cloudo.getDisease()->newLesions(cloudFValue, healthyValue) * (healthyValue / getOrganSetHealthyValue()); 
+
+            lesionQueue += lesionQueueOrgan + lesionQueuePlant + lesionQueueField;
+            // std::cout << "--------     New Lesion Queue: " << lesionQueue << std::endl;
+
+            int totalNewLesions = lesionQueue;
+            // std::cout << "--------       Lesions Formed: " << totalNewLesions << std::endl;
+
+            lesionQueue -= totalNewLesions;
+            // std::cout << "--------     End Lesion Queue: " << lesionQueue << std::endl;
+            // std::cout << "-----------------------------------------\n" << std::endl;
+
+            // Using old integer-based approach
+            // newLesionsFromOrgan = cloudo.getDisease()->newLesions(cloudOValue,healthAreaProportion);
+            // newLesionsFromPlant = cloudo.getDisease()->newLesions(cloudPValue,healthAreaProportion) * (healthyValue / getOrganSetHealthyValue()); 
+            // newLesionsFromField = cloudo.getDisease()->newLesions(cloudFValue,healthAreaProportion) * (healthyValue / getOrganSetHealthyValue()); 
+                        
+            // int totalNewLesions = newLesionsFromField + newLesionsFromPlant + newLesionsFromOrgan;
+
             // Uncomment the following line to debug this step
-            
+            // std::cout << "YEARDOY: " << std::to_string(getWeather()->getYearDoy()) << " New Lesions: " << totalNewLesions << std::endl;
+            // std::cout << "-------- ------- Cloud Value: " << cloudOValue + cloudPValue + cloudFValue << std::endl;
+            // std::cout << "-------- ------- Physio Life: " << physiologicalLife << std::endl;
+
             // NOTE: This hardcoded physiological life should be 
             //       replaced by a dynamic threshold in the .yaml file.
             //       We could also modulate the number of lesions 
             //       created based on some dynamic age factor.
-            if ((newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField) > 0 && physiologicalLife >= 5) {
-                newLesions = newLesionsFromOrgan+newLesionsFromPlant+newLesionsFromField;
-                //std::cout << "Organ: " << organNumber << "\tnew lesions: " << newLesions << std::endl;
+            if (totalNewLesions > 0 && physiologicalLife >= 0) {
+                // std::cout << "Organ: " << organNumber << "\tnew lesions: " << newLesions << std::endl;
                 
-                lesionCohorts.emplace_back(newLesions, &cloudo);
-                totalLesions += newLesions;
+                lesionCohorts.emplace_back(totalNewLesions, &cloudo);
+                totalLesions += totalNewLesions;
+ 
+                // std::cout << "YEARDOY: " << getWeather()->getYearDoy() << " Organ (" << doc << ") Lesions: " << totalLesions << std::endl;
 
                 // Add Spores that will be removed because were used to infect the tissue
                 cloudo.addSporesToBeRemoved(newLesionsFromOrgan);
@@ -142,33 +149,23 @@ void Organ::integration() {
         }
     }
 
+    // Run lesion cohort integrations
     for (auto& lc : lesionCohorts) {
         lc.integration();
-        diseaseArea += lc.getTotalArea();
-        latentDiseaseArea += lc.getLatentArea();
-        infectionDiseaseArea += lc.getInfectionArea();
-        necroticDiseaseArea += lc.getNecroticArea();
         visibleLesions += lc.getVisibleLesions();
-        visibleDiseaseArea += lc.getVisibleArea();
-        invisibleDiseaseArea += lc.getInvisibleArea();
     }
 
-    cloudIntegration();
-    if (!cloudsO.empty()) {
-        cloudOValue = cloudAmount();
-        cloudPValue = cloudsO[0].getCloudP()->getValue();
-        cloudFvalue = cloudsO[0].getCloudP()->getCloudF()->getValue();
-    }
+    // Read in the lesion cohort values after running their integrations
+    readDiseaseValues();
     
-    
-    dailyDiseaseArea = fmax(0,diseaseArea - dailyDiseaseArea);
-    dailyVisibleDiseaseArea = fmax(0,visibleDiseaseArea - dailyVisibleDiseaseArea);
-    dailySenescenceArea = fmax(0,senescenceArea - dailySenescenceArea);
-    dailyLatentDiseaseArea = fmax(0,latentDiseaseArea - dailyLatentDiseaseArea);
-    dailyInfectionDiseaseArea = fmax(0,infectionDiseaseArea - dailyInfectionDiseaseArea);
-    dailyNecroticDiseaseArea = fmax(0,necroticDiseaseArea - dailyNecroticDiseaseArea);
-    dailyTotalLesions = fmax(0,totalLesions - dailyTotalLesions);
-    dailyVisibleLesions = fmax(0,visibleLesions - dailyVisibleLesions);
+    // dailyDiseaseArea = fmax(0,diseaseArea - dailyDiseaseArea);
+    // dailyVisibleDiseaseArea = fmax(0,visibleDiseaseArea - dailyVisibleDiseaseArea);
+    // dailySenescenceArea = fmax(0,senescenceArea - dailySenescenceArea);
+    // dailyLatentDiseaseArea = fmax(0,latentDiseaseArea - dailyLatentDiseaseArea);
+    // dailyInfectionDiseaseArea = fmax(0,infectionDiseaseArea - dailyInfectionDiseaseArea);
+    // dailyNecroticDiseaseArea = fmax(0,necroticDiseaseArea - dailyNecroticDiseaseArea);
+    // dailyTotalLesions = fmax(0,totalLesions - dailyTotalLesions);
+    // dailyVisibleLesions = fmax(0,visibleLesions - dailyVisibleLesions);
     //    printf(" Daily: DiseaseArea (%f),"
     //            "VisibleDiseaseArea (%f),"
     //            "SenescenceArea (%f),"
@@ -188,26 +185,20 @@ void Organ::integration() {
      * CloudO, CloudP, CloudF, HealthAreaProportion, ProportionOfPlantTotalArea,
      * WetnessDuration, NewLesionsFromOrgan, NewLesionsFromPlant, NewLesionsFromField
      */
-    std::ostringstream convert;
-    convert << organNumber << "," 
-            << Basic::getWeather()->getYearDoy() << "," << totalArea << "," << senescenceArea << "," 
-            << Utilities::formatfloat(diseaseArea, 4) << ","
-            << Utilities::formatfloat(visibleDiseaseArea, 4) << "," 
-            << Utilities::formatfloat(invisibleDiseaseArea, 4) << ","
-            << Utilities::formatfloat(totalLesions / totalArea, 4) << ","
-            << Utilities::formatfloat(physiologicalLife, 4) << "," << dailyTotalLesions << "," 
-            << totalLesions << "," 
-            << Utilities::formatfloat(cloudOValue) << "," << Utilities::formatfloat(cloudPValue) << ","
-            << Utilities::formatfloat(cloudFvalue) << "," << healthAreaProportion << "," 
-            << getProportionFromTotalArea() << "," << Basic::getWeather()->getWetDur() << ","
-            << newLesionsFromOrgan << "," << newLesionsFromPlant << "," << newLesionsFromField;
-    Basic::output.push_back(convert.str());
-}
-
-void Organ::cloudIntegration() {
-    for (auto& cloudO : cloudsO) {
-        cloudO.integration();
-    }
+    // std::ostringstream convert;
+    // convert << organNumber << "," 
+    //         << Basic::getWeather()->getYearDoy() << "," << totalArea << "," << senescenceArea << "," 
+    //         << Utilities::formatfloat(diseaseArea, 4) << ","
+    //         << Utilities::formatfloat(visibleDiseaseArea, 4) << "," 
+    //         << Utilities::formatfloat(invisibleDiseaseArea, 4) << ","
+    //         << Utilities::formatfloat(totalLesions / totalArea, 4) << ","
+    //         << Utilities::formatfloat(physiologicalLife, 4) << "," << dailyTotalLesions << "," 
+    //         << totalLesions << "," 
+    //         << Utilities::formatfloat(cloudOValue) << "," << Utilities::formatfloat(cloudPValue) << ","
+    //         << Utilities::formatfloat(cloudFValue) << "," << healthAreaProportion << "," 
+    //         << getProportionFromTotalArea() << "," << Basic::getWeather()->getWetDur() << ","
+    //         << newLesionsFromOrgan << "," << newLesionsFromPlant << "," << newLesionsFromField;
+    // Basic::output.push_back(convert.str());
 }
 
 float Organ::cloudAmount() {

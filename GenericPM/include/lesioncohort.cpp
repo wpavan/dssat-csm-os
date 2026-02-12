@@ -11,6 +11,7 @@
 
 #include "lesioncohort.h"
 #include "cropinterface.h"
+#include "project_config.h"
 
 #include <string>
 #include <sstream>
@@ -18,28 +19,74 @@
 
 int LesionCohort::qtd = 0;
 
+void LesionCohort::rate() {
+    Disease *disease = cloudo->getDisease();
+
+    if (REMOVAL_METHOD == 0) {
+        double age_factor = 1.0f / (1.0f + std::exp(-LAG_SLOPE * (getAge() - T_LAG)));
+
+        // Growth should be limited to the remaining healthy value of 
+        // the organ divided up proportionally to total lesion biomass.
+        double growthLimit = getOrganHealthyValue() * (getTotalValue() / getOrganDiseaseValue());
+        double dailyTissueConsumed = growthLimit * R_MAX * age_factor;
+
+        // Partitioning visible and invisible growth
+        // new fungal biomass is sent to invisible value
+        // consumed tissue is considered visible value (necrotic)
+        // thus, visible and invisible values are combined into a WSDD component
+        dailyInvisibleValue = Y * dailyTissueConsumed;
+        dailyVisibleValue = (1 - Y) * dailyTissueConsumed;
+
+        // Run Diagnostic
+        // std::cout << "[DIAG] " << std::endl <<
+        // "  - Growth limit: " << getOrganHealthyValue() << " * " << getTotalValue() << " / " << getOrganDiseaseValue() << std::endl <<
+        // "  - Tissue Consumed: " << growthLimit << " * " << R_MAX << " * " << age_factor << " = " << dailyTissueConsumed << std::endl <<
+        // "  - Invisible Value: " << dailyInvisibleValue << std::endl <<
+        // "  - Visible Value: " << dailyVisibleValue << std::endl <<
+        // "------------------------------------------" << std::endl;
+        // No rate calculation for new spores in this method
+        
+    } else if (REMOVAL_METHOD == 1) {
+        // NOTE: The healthy area proportion of before was very hamfistedly replaced 
+        // with the getOrganHealthyValue() calls and should be revisited to ensure correctness.
+
+        physiologicalDay = util.temperatureFavorability(Basic::getWeather()->getTMean(),
+                                                        disease->getTemperatureFavorabilitySet());
+        // Thinking on: cumsum(runif(25, min = 0.01, max = 0.1))
+        dailyInvisibleValue  = util.growthFunction(getPhysiologicalDaysAcumm(),
+                                                    disease->getInvisibleGrowthFunction()) *
+                                disease->getHostFactor() *
+                                getOrganHealthyValue(); 
+                                //* totalArea 
+
+        dailyInvisibleValue *= lesionsInThisCohort;
+        
+        newSpores = 0;
+        if (getOrganHealthyValue() > 0.01 && isInfectionPeriod() &&
+                Basic::getWeather()->getWetDur() >= disease->getWetnessThreshold()) {
+            newSpores = (lesionsInThisCohort * 
+                        disease->getDailySporeProductionPerLesion() * 
+                        util.trapezoidalFunction(getAge(), disease->getCohortAgeSet()) *
+                        disease->getSporulationCrowdingFactor(getOrganHealthyValue()) *
+                        util.temperatureFavorability(Basic::getWeather()->getTMean(),
+                                                    disease->getTemperatureFavorabilitySet()));
+        }
+    }
+}
+
 void LesionCohort::integration() {
     Disease *disease = cloudo->getDisease();
 
-    if (getOrganHealthAreaProportion() > 0.01) {      
-        if(dailyInvisibleAreaGrow>0) {
-            invisibleArea += dailyInvisibleAreaGrow; //(dailyInvisibleAreaGrow-dailyVisibleAreaGrow) * lesionsInThisCohort;
+    if (getOrganHealthyValue() > 0) {      
+        if(dailyInvisibleValue>0) {
+            // std::cout << "invis before: " << invisibleValue;
+            invisibleValue += dailyInvisibleValue; //(dailyInvisibleAreaGrow-dailyVisibleAreaGrow) * lesionsInThisCohort;
+            // std::cout << " invis after: " << invisibleValue << std::endl;
+        }
+        if(dailyVisibleValue>0) {
+            visibleValue += dailyVisibleValue; //dailyVisibleAreaGrow * lesionsInThisCohort;
         }
         
-        totalArea = invisibleArea;
-
-        // Se tonar infec 10% da area inv passa a ser visivel e continua crescendo ambas. Visivel nunca será maior que invisivel
-        if (isLatentPeriod()) {
-            latentArea = invisibleArea;
-            visibleArea = infectionArea = necroticArea = 0;
-        } else if (isInfectionPeriod()) {
-            visibleArea = invisibleArea * 1/2.5;  // virtualRatio
-            infectionArea = visibleArea; // totalArea;
-            latentArea = necroticArea = 0;
-        } else {
-            necroticArea = visibleArea;
-            infectionArea = latentArea = 0;
-        }
 
         if(newSpores > 0) {
             cloudo->addSporesCreated(newSpores);
@@ -48,15 +95,14 @@ void LesionCohort::integration() {
         physiologicalDaysAcumm += physiologicalDay;
 
         std::ostringstream convert;
-        convert << Basic::getWeather()->getYearDoy() << "," << totalArea << "," << lesionsInThisCohort << "," << getPhysiologicalDaysAcumm() << ","
-                << getOrganDiseasedAreaProportion() << "," << latentArea << "," << infectionArea << "," << necroticArea << ","
+        convert << Basic::getWeather()->getYearDoy() << "," << getTotalValue() << "," << lesionsInThisCohort << "," << getPhysiologicalDaysAcumm() << ","
+                << getOrganDiseasedValueProportion() << "," << getLatentValue() << "," << getInfectionValue() << "," << getNecroticValue() << ","
                 << newSpores << "," << util.temperatureFavorability(Basic::getWeather()->getTMean(),
-                disease->getTemperatureFavorabilitySet()) << "," << dailyVisibleAreaGrow << "," << dailyInvisibleAreaGrow;
+                disease->getTemperatureFavorabilitySet()) << "," << dailyVisibleValue << "," << dailyInvisibleValue;
         Basic::output.push_back(convert.str());
 
         newSpores=0;
     }
-
 }
 
 int LesionCohort::getVisibleLesions() {
@@ -73,51 +119,7 @@ void LesionCohort::output() {
     Basic::getOutput(convert.str());
 }
 
-void LesionCohort::rate() {
-    Disease *disease = cloudo->getDisease();
-
-    physiologicalDay = util.temperatureFavorability(Basic::getWeather()->getTMean(),
-                                                    disease->getTemperatureFavorabilitySet());
-    // Thinking on: cumsum(runif(25, min = 0.01, max = 0.1))
-    dailyInvisibleAreaGrow  = util.growthFunction(getPhysiologicalDaysAcumm(),
-                                                  disease->getInvisibleGrowthFunction()) *
-                              disease->getHostFactor() *
-                              getOrganHealthAreaProportion(); 
-                              //* totalArea 
-
-    dailyInvisibleAreaGrow *= lesionsInThisCohort;
-
-    /*std::cout << "growthFunction: " << util.growthFunction(getPhysiologicalDaysAcumm(), disease->getInvisibleGrowthFunction()) << 
-              " lesionsInThisCohort: " << lesionsInThisCohort <<
-              " dailyInvisibleAreaGrow: " << dailyInvisibleAreaGrow <<
-              " HostFactor: " << disease->getHostFactor() << 
-              " totalArea: " << totalArea << " HealthAreaProportion: " << 
-              getOrganHealthAreaProportion() << std::endl;*/
-    /*dailyVisibleAreaGrow    = util.growthFunction(disease->getVisibleGrowthFunction(), 
-                                                  getPhysiologicalDaysAcumm()) 
-                              * disease->getHostFactor()
-                              // * totalArea
-                              * getOrganHealthAreaProportion();
-    if (isLatentPeriod()) { 
-        dailyVisibleAreaGrow = 0;
-    } else */ 
-    if (isNecroticPeriod()) { 
-        dailyVisibleAreaGrow = dailyInvisibleAreaGrow = 0;
-    }
-    
-    newSpores = 0;
-    if (getOrganHealthAreaProportion() > 0.01 && isInfectionPeriod() &&
-            Basic::getWeather()->getWetDur() >= disease->getWetnessThreshold()) {
-        newSpores = (lesionsInThisCohort * 
-                     disease->getDailySporeProductionPerLesion() * 
-                     util.trapezoidalFunction(getAge(), disease->getCohortAgeSet()) *
-                     disease->getSporulationCrowdingFactor(getOrganDiseasedAreaProportion()) *
-                     util.temperatureFavorability(Basic::getWeather()->getTMean(),
-                                                  disease->getTemperatureFavorabilitySet()));
-    }
-}
-
-bool LesionCohort::isLatentPeriod() {
+bool LesionCohort::isLatentPeriod() const {
     Disease *disease = cloudo->getDisease();
     if (getPhysiologicalDaysAcumm() <= disease->getLatentPeriod()) {
         return true;
@@ -125,7 +127,7 @@ bool LesionCohort::isLatentPeriod() {
     return false;
 }
 
-bool LesionCohort::isInfectionPeriod() {
+bool LesionCohort::isInfectionPeriod() const {
     Disease *disease = cloudo->getDisease();
     if (getPhysiologicalDaysAcumm() > disease->getLatentPeriod() && getPhysiologicalDaysAcumm() <= (disease->getLatentPeriod() + disease->getInfectionPeriod())) {
         return true;
@@ -133,7 +135,7 @@ bool LesionCohort::isInfectionPeriod() {
     return false;
 }
 
-bool LesionCohort::isNecroticPeriod() {
+bool LesionCohort::isNecroticPeriod() const {
     Disease *disease = cloudo->getDisease();
     if (getPhysiologicalDaysAcumm() > (disease->getLatentPeriod() + disease->getInfectionPeriod())) {
         return true;

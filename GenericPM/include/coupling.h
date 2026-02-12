@@ -73,39 +73,39 @@ struct CouplingData {
         static CouplingData* instance;
 
     public:
-        float* AREALF;
-        float* CLW;
-        float* CSW;
-        float* PCLMT;
-        float* PCSTMD;
-        float* PDLA;
-        float* PLFAD;
-        float* PLFMD;
-        float* PSTMD;
-        float* PVSTGD;
-        float* SLA;
-        float* SLDOT;
-        float* SSDOT;
-        float* STMWT;
-        float* TDLA;
-        float* VSTGD;
-        float* WLFDOT;
-        float* WSTMD;
-        float* WTLF;
-        float* TLFAD;
-        float* TLFMD;
-        float* VSTAGE;
-        float* WLIDOT;
-        float* CLAI;
-        float* CLFM;
-        float* CSTEM;
-        float* DISLA;
-        float* DISLAP;
-        float* LAIDOT;
-        float* WSIDOT;
-        float* SDWT;
-        float* WSDD;
-        float* PSDD;
+        float* AREALF = 0;
+        float* CLW = 0;
+        float* CSW = 0;
+        float* PCLMT = 0;
+        float* PCSTMD = 0;
+        float* PDLA = 0;
+        float* PLFAD = 0;
+        float* PLFMD = 0;
+        float* PSTMD = 0;
+        float* PVSTGD = 0;
+        float* SLA = 0;
+        float* SLDOT = 0;
+        float* SSDOT = 0;
+        float* STMWT = 0;
+        float* TDLA = 0;
+        float* VSTGD = 0;
+        float* WLFDOT = 0;
+        float* WSTMD = 0;
+        float* WTLF = 0;
+        float* TLFAD = 0;
+        float* TLFMD = 0;
+        float* VSTAGE = 0;
+        float* WLIDOT = 0;
+        float* CLAI = 0;
+        float* CLFM = 0;
+        float* CSTEM = 0;
+        float* DISLA = 0;
+        float* DISLAP = 0;
+        float* LAIDOT = 0;
+        float* WSIDOT = 0;
+        float* SDWT = 0;
+        float* WSDD = 0;
+        float* PSDD = 0;
 
         float AREALF_PREV = 0;
 		float CLW_PREV = 0;
@@ -229,11 +229,11 @@ class CouplingPoint {
 
         static CouplingPointTrait getTrait(CouplingPointID cpID) {
             initTraits();
-            try{
-                return traits.at(cpID);
-            } catch(const std::exception& e) {
-                std::cerr << e.what() << '\n';
+            auto it = traits.find(cpID);
+            if (it != traits.end()) {
+                return it->second;
             }
+            throw std::out_of_range("Invalid CouplingPointID in getTrait");
         }
 };
 

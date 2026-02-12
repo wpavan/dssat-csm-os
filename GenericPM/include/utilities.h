@@ -21,8 +21,14 @@
 #include "../TinyExpr/tinyexpr.h"
 
 #include <string>
+#include <fstream>
 #include <cstring>
 #include <iostream>
+
+enum class OrganMode {
+    COHORT,
+    SINGULAR
+};
 
 enum class Steps {
     RATE,
@@ -55,6 +61,30 @@ class Utilities {
         static int addOneDay(int yearDoy);
         static bool isLeapYear(int year);
         static std::string base52Encode(size_t hashValue);
+
+        static void log_value(std::string varname, float value, int yrdoy, int decimals = 2) {
+            std::ofstream logFile("value_log", std::ios::app);
+            if (logFile.is_open()) {
+                logFile << "Day: " << yrdoy 
+                        << " Value: " << Utilities::formatfloat(value, decimals) 
+                        << " Variable: " << varname << std::endl;
+                logFile.close();
+            } else {
+                std::cerr << "Unable to open log file." << std::endl;
+            }
+        }
+
+        static void log_str(std::string varname, std::string value, int yrdoy) {
+            std::ofstream logFile("value_log", std::ios::app);
+            if (logFile.is_open()) {
+                logFile << "Day: " << yrdoy 
+                        << " Value: " << value 
+                        << " Variable: " << varname << std::endl;
+                logFile.close();
+            } else {
+                std::cerr << "Unable to open log file." << std::endl;
+            }
+        }
 
         static float runExpression(std::string expression_string, float value) {
             double x = value;

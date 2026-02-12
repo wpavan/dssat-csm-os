@@ -56,3 +56,32 @@ bool Weather::update() {
     }
     return true;
 }
+
+bool Weather::update(int _yearDoy) {
+    try {
+        FlexibleIO *fio = FlexibleIO::getInstance();
+        //std::cout << "Weather::update YRDOY from PEST group: " << yearDoy << std::endl;
+        yearDoy = _yearDoy;
+        year = yearDoy / 1000;
+        doy = yearDoy - (year * 1000);
+        
+        sRad = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "SRAD");
+        tMax = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "TMAX");
+        tMin = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "TMIN");
+        rain = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RAIN");
+        hRH90 = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RH90");
+        rh = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RH");
+
+        tMean = (tMax + tMin) / 2;
+        par = 0;
+        wetDur = 0;
+        hWetDur = 0;
+        rhMax = 0;
+        rhMin = 0;
+        //        getRealYrdoy(&yearDoy,(char *) "RHUM=",&rhMean);  //?????
+        rhMean = 0;
+    } catch (bool) {
+        return false;
+    }
+    return true;
+}

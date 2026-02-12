@@ -13,6 +13,7 @@
 #include "basic.h"
 #include "basicinterface.h"
 #include "cloudf.h"
+#include "plant.h"
 
 class InitialCondition : public Basic, virtual public BasicInterface {
 private:

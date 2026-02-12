@@ -67,6 +67,12 @@ class Manager : virtual public BasicInterface {
             cloudsF.emplace_back(std::make_unique<CloudF>(family));
         }
 
+        static void resetCloudsF() {
+            for (auto& cloudF : cloudsF) {
+                cloudF->reset();
+            }
+        }
+
         static CloudF* getCloudF(std::string family) {
             for (auto& cF : cloudsF) {
                 if (cF->getFamily() == family) {

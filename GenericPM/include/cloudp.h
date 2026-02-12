@@ -27,7 +27,9 @@ public:
     CloudP(Disease *disease, CloudF *cloudF) {
         this->disease = disease;
         this->cloudF = cloudF;
-    }
+        // Should we use this opportunity to use parent class constructors?
+        this->values = {0};
+    } 
 
     int getID() {
         return ID;
@@ -37,11 +39,7 @@ public:
         return cloudF;
     }
 
-    void rate() {
-        Cloud::rate();
-        cloudF->rate();
-    }
-    
+    void rate();    
     void integration();
     void output();
 

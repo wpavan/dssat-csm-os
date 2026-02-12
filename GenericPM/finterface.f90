@@ -240,3 +240,31 @@ SUBROUTINE OUTPUTGDM(YRDOY)
 
     call couplingOutput(YRDOY)
 END SUBROUTINE OUTPUTGDM
+
+SUBROUTINE LOGGINGGDM(YRDOY, YRSIM, SL1, SLL1, SSAT1, TMAX, TMIN, RAIN, SRAD, ZSTAGE)
+    USE, INTRINSIC :: iso_c_binding
+    INTEGER YRDOY
+    INTEGER YRSIM
+    REAL SL1, SLL1, SSAT1
+    REAL TMAX, TMIN, RAIN, SRAD
+    REAL ZSTAGE
+
+    INTERFACE
+        SUBROUTINE logger(YRDOY, YRSIM, SL1, SLL1, SSAT1, TMAX, TMIN, RAIN, SRAD, ZSTAGE)&
+            bind(C, name='logger')
+
+            INTEGER :: YRDOY
+            INTEGER :: YRSIM
+            REAL :: SL1
+            REAL :: SLL1
+            REAL :: SSAT1
+            REAL :: TMAX
+            REAL :: TMIN
+            REAL :: RAIN
+            REAL :: SRAD
+            REAL :: ZSTAGE
+        END SUBROUTINE logger
+    END INTERFACE
+
+    CALL logger(YRDOY, YRSIM, SL1, SLL1, SSAT1, TMAX, TMIN, RAIN, SRAD, ZSTAGE)
+END SUBROUTINE LOGGINGGDM

@@ -21,19 +21,21 @@ private:
     Utilities util;
     
 protected:
-    float totalArea = 0;
-    float visibleArea = 0, invisibleArea = 0;
-    float dailyVisibleAreaGrow = 0, dailyInvisibleAreaGrow = 0;
-    float latentArea = 0;
-    float infectionArea = 0;
-    float necroticArea = 0;
+    // Partitions of the lesion cohort total value.
+    float visibleValue = 0, invisibleValue = 0;
+
+    // Corresponding daily increments
+    float dailyVisibleValue = 0, dailyInvisibleValue = 0;
+   
+    float organHealthyValue = 0.0f, organDiseaseValue = 0.0f;
+
     int lesionsInThisCohort;
     int doc = 0; // Day of creation (cohort)
     CloudO *cloudo;
     int newSpores = 0;
     float physiologicalDaysAcumm = 0; // Physiological days accumulation 
     float physiologicalDay = 0; // Physiological value on that day 
-    float organHealthAreaProportion = 0;
+    float organHealthyValueProportion = 0;
     
     static int qtd;
     int ID = ++qtd;
@@ -44,9 +46,8 @@ public:
         Basic::output.push_back("Day of Simulation, Area, Amount of Cohorts, Physiological days,Proportion Disease Area, Latent Area , Infection Area , Necrotic Area, New Spores, Temp.Favorability, dailyVisibleAreaGrow, dailyInvisibleAreaGrow");
         this->lesionsInThisCohort = lesionsInThisCohort;
         this->cloudo = cloudo;
-        this->visibleArea = 0;
-        this->invisibleArea = (lesionsInThisCohort * cloudo->getDisease()->getInitialPustuleSize());
-        this->totalArea = this->visibleArea + this->invisibleArea;
+        this->visibleValue = 0;
+        this->invisibleValue = (lesionsInThisCohort * cloudo->getDisease()->getInitialPustuleSize());
         this->doc = getWeather()->getDoy();
     }
 
@@ -60,44 +61,36 @@ public:
     int getVisibleLesions();
 
     float getVisibleArea() {
-        return visibleArea;
+        return visibleValue;
     }
     void output();
     void rate();
-    bool isInfectionPeriod();
-    bool isLatentPeriod();
-    bool isNecroticPeriod();
+    bool isInfectionPeriod() const;
+    bool isLatentPeriod() const;
+    bool isNecroticPeriod() const;
 
-    float getInfectionArea() {
-        return infectionArea;
+    float getInfectionValue() const {
+        return isInfectionPeriod() ? getTotalValue() : 0;
     }
 
-    float getNecroticArea() {
-        return necroticArea;
+    float getNecroticValue() const {
+        return isNecroticPeriod() ? getTotalValue() : 0;
     }
 
-    float getLatentArea() {
-        return latentArea;
+    float getLatentValue() const {
+        return isLatentPeriod() ? getTotalValue() : 0;
     }
 
-    void setInvisibleArea(float invisibleArea) {
-        this->invisibleArea = invisibleArea;
+    float getInvisibleValue() const {
+        return invisibleValue;
     }
 
-    float getInvisibleArea() const {
-        return invisibleArea;
+    float getVisibleValue() const {
+        return visibleValue;
     }
 
-    void setVisibleArea(float visibleArea) {
-        this->visibleArea = visibleArea;
-    }
-
-    void setTotalArea(float totalArea) {
-        this->totalArea = totalArea;
-    }
-
-    float getTotalArea() const {
-        return totalArea;
+    float getTotalValue() const {
+        return visibleValue + invisibleValue;
     }
 
     void setPhysiologicalDaysAcumm(float physiologicalDaysAcumm) {
@@ -108,15 +101,31 @@ public:
         return physiologicalDaysAcumm;
     }
 
-    void setOrganHealthAreaProportion(float organHealthAreaProportion) {
-        this->organHealthAreaProportion = organHealthAreaProportion;
+    void setOrganHealthValueProportion(float organHealthyValueProportion) {
+        this->organHealthyValueProportion = organHealthyValueProportion;
     }
 
-    float getOrganHealthAreaProportion() const {
-        return organHealthAreaProportion;
+    void setOrganDiseaseValue(float organDiseaseValue) {
+        this->organDiseaseValue = organDiseaseValue;
     }
-    float getOrganDiseasedAreaProportion() const {
-        return (1-organHealthAreaProportion);
+
+    float getOrganDiseaseValue() const {
+        return this->organDiseaseValue;
+    }
+
+    void setOrganHealthyValue(float organHealthyValue) {
+        this->organHealthyValue = organHealthyValue;
+    }
+
+    float getOrganHealthyValue() const {
+        return this->organHealthyValue;
+    }
+
+    float getOrganHealthValueProportion() const {
+        return organHealthyValueProportion;
+    }
+    float getOrganDiseasedValueProportion() const {
+        return (1-organHealthyValueProportion);
     }
 };
 
