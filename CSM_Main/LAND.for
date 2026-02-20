@@ -149,7 +149,7 @@ C     Transfer values from constructed data types into local variables.
       IPLTI   = ISWITCH % IPLTI
       ISWDIS = ISWITCH % ISWDIS
       
-      FILEP = 'WHGEN048.PST'
+C      FILEP = 'WHGEN048.PST'
 C***********************************************************************
 C***********************************************************************
 C     Run Initialization - Called once per simulation
