@@ -27,7 +27,9 @@ CouplingPointID strToCPID(const std::string& str) {
     if (str == "CSW") return CouplingPointID::CSW;
     if (str == "PCLMT") return CouplingPointID::PCLMT;
     if (str == "PCSTMD") return CouplingPointID::PCSTMD;
-    if (str == "PDLA") return CouplingPointID::PDLA; 
+
+    // NOTE: Is this correct? Are there any other aliases we want to support? 
+    if (str == "PDLA" || str == "PLAD") return CouplingPointID::PDLA; 
     if (str == "PLFAD") return CouplingPointID::PLFAD;
     if (str == "PLFMD") return CouplingPointID::PLFMD;
     if (str == "PSTMD") return CouplingPointID::PSTMD;

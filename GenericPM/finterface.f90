@@ -8,18 +8,20 @@
 ! 08/27/2025 VC Added subroutines bound to coupling init., rate, int.
 !========================================================================
 
-SUBROUTINE READPESTGDM(FILEPST, FOUND)
+SUBROUTINE READPESTGDM(FILEPST, TRTNUM, FOUND)
     use, INTRINSIC :: iso_c_binding
     CHARACTER(len=*), intent(in) :: FILEPST
     CHARACTER(len=len_trim(FILEPST)+1, kind=c_char) :: FILEPST_C
+    INTEGER TRTNUM
     INTEGER FOUND  
 
     interface
-        subroutine readPstGdm(FILEPST, FOUND)&
+        subroutine readPstGdm(FILEPST, TRTNUM, FOUND)&
             bind(C, name='readPestYaml')
             
             import :: c_char, c_int
             CHARACTER(kind=c_char), dimension(*) :: FILEPST
+            INTEGER(c_int) :: TRTNUM
             INTEGER(c_int) :: FOUND
         end subroutine readPstGdm
     end interface
@@ -27,7 +29,7 @@ SUBROUTINE READPESTGDM(FILEPST, FOUND)
     ! Copy the trimmed string and append a null terminator
     FILEPST_C = trim(FILEPST) // c_null_char
 
-    call readPstGdm(FILEPST_C, FOUND)
+    call readPstGdm(FILEPST_C, TRTNUM, FOUND)
 END SUBROUTINE READPESTGDM
 
 SUBROUTINE INITGDM(YRDOY, YRPLT)

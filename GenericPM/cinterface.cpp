@@ -131,10 +131,7 @@ int couplingRate(int *YRDOY,
         manager->setPlantingDate(*YRPLT);
     }
 
-    for (auto& s : manager->getSimulators()) {
-        // Set the current YearDOY for next Disease step computation
-        s->updateCurrentYearDoy(*YRDOY);
-    }
+    manager->updateCurrentYearDoy(*YRDOY);
     fio->setIntegerMemory("PEST", "YRDOY", *YRDOY);
 
     Weather::getInstance()->update();

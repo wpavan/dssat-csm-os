@@ -61,11 +61,12 @@ C=======================================================================
 !----------------END-----------------!  
 !-----------------------------------------------------------------------
       CHARACTER*1   ISWDIS
+      CHARACTER*2   TRTSTR
       CHARACTER*5   PSTHD(6)
       CHARACTER*5   PID(MAXPEST)
       CHARACTER*5   PCPID(MAXPEST,6)
       CHARACTER*12  FILEP, FILET
-      CHARACTER*12  FILEGDM
+      CHARACTER*30  FILEGDM
       CHARACTER*30  FILEIO
       CHARACTER*80  PATHPE, PATHEX
 
@@ -159,14 +160,6 @@ C***********************************************************************
 !     Run Initialization - Called once per simulation
 C***********************************************************************
       IF (DYNAMIC .EQ. RUNINIT) THEN
-          call fio%get("PEST","ISDYNAMICDIS",TEMPCHAR1)
-          IF(TEMPCHAR1 .EQ. 'D') THEN
-              ISDYNAMICDIS = 'Y'
-              FILEGDM = 'WHGEN048.yaml'
-              CALL READPESTGDM(FILEGDM, 0)
-          ELSE
-              ISDYNAMICDIS = 'N'
-          ENDIF
 C-----------------------------------------------------------------------
 C     Call IPPEST to read data from FILEIO
 C-----------------------------------------------------------------------
@@ -182,6 +175,24 @@ C-----------------------------------------------------------------------
      &    FILEP, PATHPE, ISWDIS,                          !Input
      &    PCPID, PCTID, PDCF1, PID)                       !Output
 
+C-----------------------------------------------------------------------
+C     Subroutine READPESTGDM reads the .yaml input for the GDM.
+C-----------------------------------------------------------------------
+      call fio%get("PEST","ISDYNAMICDIS",TEMPCHAR1)
+      IF(TEMPCHAR1 .EQ. 'D') THEN
+            ISDYNAMICDIS = 'Y'
+
+!           V.L.C - GDM param filename is the fileT prefix, treatment 
+!           number, and .yaml
+!            WRITE(TRTSTR, '(I0.2)') TRTNUM           
+!            FILEGDM = FILET(:8) // TRTSTR // '.yaml'
+
+!           GDM new method, all in fileT prefix .yaml
+            FILEGDM = FILET(:8) // '.yaml'
+            CALL READPESTGDM(FILEGDM, TRTNUM, 0)
+      ELSE
+            ISDYNAMICDIS = 'N'
+      ENDIF
 C***********************************************************************
 C***********************************************************************
 !     Seasonal initialization - run once per season

@@ -36,12 +36,12 @@ bool Weather::update() {
         year = yearDoy / 1000;
         doy = yearDoy - (year * 1000);
         
-        sRad = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "SRAD");
-        tMax = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "TMAX");
-        tMin = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "TMIN");
-        rain = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RAIN");
-        hRH90 = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RH90");
-        rh = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RH");
+        sRad = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "SRAD");
+        tMax = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "TMAX");
+        tMin = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "TMIN");
+        rain = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "RAIN");
+        hRH90 = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "RH90");
+        rh = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "RH");
 
         tMean = (tMax + tMin) / 2;
         par = 0;
@@ -65,12 +65,12 @@ bool Weather::update(int _yearDoy) {
         year = yearDoy / 1000;
         doy = yearDoy - (year * 1000);
         
-        sRad = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "SRAD");
-        tMax = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "TMAX");
-        tMin = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "TMIN");
-        rain = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RAIN");
-        hRH90 = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RH90");
-        rh = FlexibleIO::getInstance()->getRealYrdoy("WTH", std::to_string(yearDoy), "RH");
+        sRad = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "SRAD");
+        tMax = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "TMAX");
+        tMin = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "TMIN");
+        rain = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "RAIN");
+        hRH90 = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "RH90");
+        rh = fio->getRealYrdoy("WTH", std::to_string(yearDoy), "RH");
 
         tMean = (tMax + tMin) / 2;
         par = 0;

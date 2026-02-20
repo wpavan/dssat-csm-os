@@ -67,6 +67,8 @@ class Manager : virtual public BasicInterface {
             cloudsF.emplace_back(std::make_unique<CloudF>(family));
         }
 
+        void updateCurrentYearDoy(int yearDoy);
+
         static void resetCloudsF() {
             for (auto& cloudF : cloudsF) {
                 cloudF->reset();

@@ -19,7 +19,7 @@
 
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
-extern "C" int readPestYaml(char *filePST, int *FOUND);
+extern "C" int readPestYaml(char *filePST, int *TRTNUM, int *FOUND);
 
 // Define a struct for easily comparing parameters (clouds purpose)
 struct CloudFParamHolder {
@@ -91,6 +91,38 @@ Simulator* Manager::getSimulator(int index) {
   return simulators[index].get();
 }
 
+float safe_assign_float(std::string valueStr) {
+  if (valueStr.empty()) {
+    std::cerr << "Warning: Missing parameter value. Defaulting to 0." << std::endl;
+    return 0.0f;
+  }
+  try {
+    return std::stof(valueStr);
+  } catch (const std::invalid_argument& e) {
+    std::cerr << "Warning: Invalid parameter value '" << valueStr << "'. Defaulting to 0." << std::endl;
+    return 0.0f;
+  } catch (const std::out_of_range& e) {
+    std::cerr << "Warning: Parameter value '" << valueStr << "' out of range. Defaulting to 0." << std::endl;
+    return 0.0f;
+  }
+}
+
+int safe_assign_int(std::string valueStr) {
+  if (valueStr.empty()) {
+    std::cerr << "Warning: Missing parameter value. Defaulting to 0." << std::endl;
+    return 0;
+  }
+  try {
+    return std::stoi(valueStr);
+  } catch (const std::invalid_argument& e) {
+    std::cerr << "Warning: Invalid parameter value '" << valueStr << "'. Defaulting to 0." << std::endl;
+    return 0;
+  } catch (const std::out_of_range& e) {
+    std::cerr << "Warning: Parameter value '" << valueStr << "' out of range. Defaulting to 0." << std::endl;
+    return 0;
+  }
+}
+
 void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci,
                            InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections) {
   if (ci == nullptr) {
@@ -104,51 +136,51 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
   float arraysize3[3], arraysize4[4];
 
   disease->setDescription(diseaseData["PESTID"]);
-  
-  disease->setDailySporeProductionPerLesion(std::stof(diseaseData["DSPL"]));
 
-  arraysize4[0] = std::stof(diseaseData["SPE:1"]);
-  arraysize4[1] = std::stof(diseaseData["SPE:2"]);
-  arraysize4[2] = std::stof(diseaseData["SPE:3"]);
-  arraysize4[3] = std::stof(diseaseData["SPE:4"]);
+  disease->setDailySporeProductionPerLesion(safe_assign_float(diseaseData["DSPL"]));
+
+  arraysize4[0] = safe_assign_float(diseaseData["SPE:1"]);
+  arraysize4[1] = safe_assign_float(diseaseData["SPE:2"]);
+  arraysize4[2] = safe_assign_float(diseaseData["SPE:3"]);
+  arraysize4[3] = safe_assign_float(diseaseData["SPE:4"]);
   disease->setCohortAgeSet(arraysize4);
   
-  arraysize3[0] = std::stof(diseaseData["SCF:1"]);
-  arraysize3[1] = std::stof(diseaseData["SCF:2"]);
-  arraysize3[2] = std::stof(diseaseData["SCF:3"]);
+  arraysize3[0] = safe_assign_float(diseaseData["SCF:1"]);
+  arraysize3[1] = safe_assign_float(diseaseData["SCF:2"]);
+  arraysize3[2] = safe_assign_float(diseaseData["SCF:3"]);
   disease->setSporulationCrowdingFactorsSet(arraysize3);
   
-  disease->setMaxSporeCloudsDensity(std::stof(diseaseData["MSCD"]));
+  disease->setMaxSporeCloudsDensity(safe_assign_float(diseaseData["MSCD"]));
   
-  disease->setProportionFromOrganToPlantCloud(std::stof(diseaseData["SPO2P"]));
-  disease->setProportionFromPlantToFieldCloud(std::stof(diseaseData["SPP2F"]));
+  disease->setProportionFromOrganToPlantCloud(safe_assign_float(diseaseData["SPO2P"]));
+  disease->setProportionFromPlantToFieldCloud(safe_assign_float(diseaseData["SPP2F"]));
   
-  disease->setVectorSizeCloudF(std::stof(diseaseData["CCFPO:1"]));
-  disease->setVectorSizeCloudP(std::stof(diseaseData["CCFPO:2"]));
-  disease->setVectorSizeCloudO(std::stof(diseaseData["CCFPO:3"]));
+  disease->setVectorSizeCloudF(safe_assign_float(diseaseData["CCFPO:1"]));
+  disease->setVectorSizeCloudP(safe_assign_float(diseaseData["CCFPO:2"]));
+  disease->setVectorSizeCloudO(safe_assign_float(diseaseData["CCFPO:3"]));
 
-  disease->setMRRS(std::stof(diseaseData["MRRS"]));
+  disease->setMRRS(safe_assign_float(diseaseData["MRRS"]));
   
-  disease->setInitialInoculum(std::stof(diseaseData["II"]));
+  disease->setInitialInoculum(safe_assign_float(diseaseData["II"]));
   
-  disease->setAcumulateFavorability(std::stof(diseaseData["AFII"]));    
+  disease->setAcumulateFavorability(safe_assign_float(diseaseData["AFII"]));    
   
-  arraysize3[0] = std::stof(diseaseData["TFS:1"]);
-  arraysize3[1] = std::stof(diseaseData["TFS:2"]);
-  arraysize3[2] = std::stof(diseaseData["TFS:3"]);
+  arraysize3[0] = safe_assign_float(diseaseData["TFS:1"]);
+  arraysize3[1] = safe_assign_float(diseaseData["TFS:2"]);
+  arraysize3[2] = safe_assign_float(diseaseData["TFS:3"]);
   disease->setTemperatureFavorabilitySet(arraysize3);
   
-  disease->setInfectionEfficiency(std::stof(diseaseData["IE"]));
+  disease->setInfectionEfficiency(safe_assign_float(diseaseData["IE"]));
   
-  disease->setInitialPustuleSize(std::stof(diseaseData["IPS"]));
+  disease->setInitialPustuleSize(safe_assign_float(diseaseData["IPS"]));
   
-  disease->setLatentPeriod(std::stoi(diseaseData["LP"]));
+  disease->setLatentPeriod(safe_assign_int(diseaseData["LP"]));
   
-  disease->setInfectionPeriod(std::stoi(diseaseData["IP"]));
+  disease->setInfectionPeriod(safe_assign_int(diseaseData["IP"]));
   
-  disease->setWetnessThreshold(std::stof(diseaseData["WT"]));
+  disease->setWetnessThreshold(safe_assign_float(diseaseData["WT"]));
   
-  disease->setHostFactor(std::stof(diseaseData["HF"]));
+  disease->setHostFactor(safe_assign_float(diseaseData["HF"]));
   
   disease->setInvisibleGrowthFunction(diseaseData["IGF"]);
   
@@ -217,7 +249,28 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
 void Manager::createCloudsF() {
   Disease* diseasePtr;
 
+  // New version
   for (const auto& fam : families) {
+    addCloudF(fam);
+  }
+
+  for (const auto& sim : simulators) {
+    std::string simFamily = sim->getDisease()->getFamily();
+    std::cout << "Family for this simulator: " << simFamily << std::endl;
+
+    if (std::find(families.begin(), families.end(), simFamily) != families.end()) {
+      diseasePtr = sim->getDisease();
+        if (diseasePtr == nullptr) {
+          std::cout << "Error: Disease pointer is null in Manager::createCloudsF for family " << simFamily << std::endl;
+          continue;
+        }
+        getCloudF(simFamily)->setDisease(diseasePtr);
+        sim->getInitialCondition()->setCloud(getCloudF(simFamily));
+    }
+  }
+
+  // Old version
+  /*for (const auto& fam : families) {
     addCloudF(fam);
     CloudF *cloudFPtr = getCloudF(fam);
     if (cloudFPtr == nullptr) {
@@ -227,16 +280,16 @@ void Manager::createCloudsF() {
     for (const auto& sim : simulators) {
       std::cout << "Family for this simulator: " << sim->getDisease()->getFamily() << std::endl;
       if (sim->getDisease()->getFamily() == fam) {
-          diseasePtr = sim->getDisease();
-          if (diseasePtr == nullptr) {
-            std::cout << "Error: Disease pointer is null in Manager::createCloudsF for family " << fam << std::endl;
-            continue;
-          }
-          cloudFPtr->setDisease(diseasePtr);
-          sim->getInitialCondition()->setCloud(cloudFPtr);
+        diseasePtr = sim->getDisease();
+        if (diseasePtr == nullptr) {
+          std::cout << "Error: Disease pointer is null in Manager::createCloudsF for family " << fam << std::endl;
+          continue;
+        }
+        cloudFPtr->setDisease(diseasePtr);
+        sim->getInitialCondition()->setCloud(cloudFPtr);
       }
     }
-  }
+  }*/
 }
 
 void Manager::setCurrentSimDate(int yearDoy) {
@@ -340,9 +393,10 @@ std::string replacePlaceholders(std::string originalValue, std::string originalT
 }
 
 
-void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_map<std::string, std::string> &diseaseData) {
+void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_map<std::string, std::string> &diseaseData, int *TRTNUM) {
   int sequenceIndex = 1;
   std::string dataLabel;
+  std::string trtKey = "TRNO" + std::to_string(*TRTNUM);
   // Handle paramNames {RATE, INTEGRATION} differently to allow for 
   // code injection with a streamlined format.
   switch (valueNode["VALUE"].Type()) {
@@ -370,8 +424,37 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_ma
       }
       break;
     
-    // In general, we should not be encountering this.
+    // This represents a map of TRTNUM to value
+    // We want to add the value that is associated with the key "TRNO" + TRTNUM, 
+    // and if that is not found, then we want to add the value associated with the key "DEFAULT".
     case 4: // YAML::NodeType::Map:
+      if (valueNode["VALUE"][trtKey]) {
+        if (valueNode["VALUE"][trtKey].IsScalar()) {
+          diseaseData[paramName] = valueNode["VALUE"][trtKey].as<std::string>();
+        } else if (valueNode["VALUE"][trtKey].IsSequence()) {
+          for (const auto& subElement : valueNode["VALUE"][trtKey]) {
+            std::ostringstream temp;
+            temp << paramName << ":" << sequenceIndex;
+            dataLabel = temp.str();
+            diseaseData[dataLabel] = subElement.as<std::string>();
+            sequenceIndex++;
+          }
+        }
+      } else if (valueNode["VALUE"]["DEFAULT"]) {
+        if (valueNode["VALUE"]["DEFAULT"].IsScalar()) {
+          diseaseData[paramName] = valueNode["VALUE"]["DEFAULT"].as<std::string>();
+        } else if (valueNode["VALUE"]["DEFAULT"].IsSequence()) {
+          for (const auto& subElement : valueNode["VALUE"]["DEFAULT"]) {
+            std::ostringstream temp;
+            temp << paramName << ":" << sequenceIndex;
+            dataLabel = temp.str();
+            diseaseData[dataLabel] = subElement.as<std::string>();
+            sequenceIndex++;
+          }
+        }
+      } else {
+        throw std::invalid_argument("ERROR: No matching treatment key '" + trtKey + "' or 'DEFAULT' found for parameter '" + paramName + "'.");
+      }
       break;
 
     // This should cause a warning message, and should be considered NA/-99.
@@ -381,10 +464,7 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_ma
   }
 }
 
-int readPestYaml(char *filePST, int *FOUND) {
-  // NOTE: This is a manual setting of the input file and should be removed.
-  filePST = "WHGEN048.yaml";
-
+int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
   Manager* manager = Manager::newInstance();
 
   CouplingPointID tempCP;
@@ -398,7 +478,7 @@ int readPestYaml(char *filePST, int *FOUND) {
     diseases = YAML::LoadAllFromFile(filePST);
   }
   catch (const std::exception& e) {
-    std::cout << "Exception: " << e.what() << std::endl;
+    std::cerr << "Exception: " << e.what() << std::endl;
     *FOUND = -1;
     return 1; // NOTE: Check and make sure this is the right return.
   }
@@ -419,6 +499,8 @@ int readPestYaml(char *filePST, int *FOUND) {
       if (disease.IsMap()) {
       // Disease YAML::Node is active and of proper type, so load it.
       // NOTE: Is checking disease.IsMap() necessary?
+
+
       // Step 1 to loading the disease is to process the input for variable references.
       for (auto it=disease.begin(); it!=disease.end(); ++it) {
         std::string key = it->first.as<std::string>();
@@ -453,6 +535,27 @@ int readPestYaml(char *filePST, int *FOUND) {
               }
               value["VALUE"][i] = replacePlaceholders(originalValue, originalType, disease);
             }
+          } else if (value["VALUE"].Type() == 4) {
+            // Iterate through each treatment's key-value pair.
+            // Accepted keys are TRNO01-99 and DEFAULT. 
+            for (auto trtValueIt = value["VALUE"].begin(); trtValueIt != value["VALUE"].end(); ++trtValueIt) {
+              std::string trtKey = trtValueIt->first.as<std::string>();
+              YAML::Node trtValue = trtValueIt->second;
+              if (trtKey.rfind("TRNO", 0) == 0 || trtKey == "DEFAULT") {
+                if (trtValue.IsScalar()) {
+                  std::string originalValue = trtValue.as<std::string>();
+                  std::string originalType = "string";
+                  if (value["TYPE"] && value["TYPE"].IsScalar()) {
+                    originalType = value["TYPE"].as<std::string>();
+                  }
+                  value["VALUE"][trtKey] = replacePlaceholders(originalValue, originalType, disease);
+                } else {
+                  std::cout << "Warning: Treatment value for " << trtKey << " is not a scalar and will be skipped for placeholder replacement." << std::endl;
+                }
+              } else {
+                std::cout << "Warning: Unrecognized treatment key '" << trtKey << "'; expected keys starting with 'TRNO' or 'DEFAULT'." << std::endl;
+              }
+            }
           } // NOTE: Here we are effectively excluding the injection sections because of their alternate format.
         }
       }
@@ -460,6 +563,7 @@ int readPestYaml(char *filePST, int *FOUND) {
       std::unordered_map<std::string, std::string> diseaseData;
       InjectionHolder rateInjections, integrationInjections, outputInjections;
       CloudFParamHolder cloudParams;
+
 
       // Step 2 is to load the disease into memory.
         for (auto it=disease.begin(); it!=disease.end(); ++it) {
@@ -526,7 +630,7 @@ int readPestYaml(char *filePST, int *FOUND) {
                   }
                 }
               } else {
-                addPestParam(key, value, diseaseData);
+                addPestParam(key, value, diseaseData, TRTNUM);
                 // Handle if the node is a CLOUD_PARAM:
                 if (value["CLOUD_PARAM"] && value["CLOUD_PARAM"].as<bool>() && typeid(diseaseData[key]) == typeid(std::string)) {
                   cloudParams.params[key] = diseaseData[key];
@@ -568,7 +672,7 @@ int readPestYaml(char *filePST, int *FOUND) {
           std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
           #endif // DEBUG
           try {
-            manager->addCropInterface(tempCP, std::stof(cpStr));
+            manager->addCropInterface(tempCP, safe_assign_float(cpStr));
           } catch (const std::exception &e) {
             std::cerr << "Error parsing ORGAN_VALUE_CP='" << cpStr << "': " << e.what() << std::endl;
             continue;
@@ -634,6 +738,21 @@ int readPestYaml(char *filePST, int *FOUND) {
   return 1;
 } 
 
+void Manager::updateCurrentYearDoy(int yearDoy) {
+    while(Utilities::addOneDay(simulators[0]->getCurrentYearDoy()) < yearDoy) {
+        for (const auto& sim : simulators) {
+            sim->setCurrentYearDoy(Utilities::addOneDay(sim->getCurrentYearDoy()));
+        }
+        Weather::getInstance()->update(simulators[0]->getCurrentYearDoy());
+        
+        for (const auto& sim : simulators) {
+            sim->rate();
+        }
+        for (const auto& sim : simulators) {
+            sim->integration();
+        }
+    }
+}
 /*
 Execution workflow:
 0. Coupling functions are the only ones that are called by fortran.

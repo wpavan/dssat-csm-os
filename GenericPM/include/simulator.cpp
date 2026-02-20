@@ -171,7 +171,7 @@ void Simulator::rate() {
             } else if (disease->getOrganMode() == OrganMode::SINGULAR) {
                 Plant::getInstance()->getOrganSet(organCP).queueHealthyGrowth(dssatDelta);
             }
-            this->logOutput("NEW_GROWTH", dssatDelta);
+            this->logOutput("NEW_GROWTH_" + cpIDToStr(organCP), dssatDelta);
         } else {
             #ifdef DEBUGX
             std::cout << "No new organ growth detected: " 
@@ -382,7 +382,6 @@ void Simulator::updateCurrentYearDoy(int yearDoy) {
         // Weather::getInstance()->update();
         rate();
         integration();
-        std::cout << "YEARDOY updated to: " << getCurrentYearDoy() << std::endl;
     }
     setCurrentYearDoy(yearDoy);
 }
