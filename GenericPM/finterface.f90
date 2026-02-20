@@ -10,20 +10,24 @@
 
 SUBROUTINE READPESTGDM(FILEPST, FOUND)
     use, INTRINSIC :: iso_c_binding
-    CHARACTER, dimension(*) :: FILEPST
-    INTEGER FOUND
+    CHARACTER(len=*), intent(in) :: FILEPST
+    CHARACTER(len=len_trim(FILEPST)+1, kind=c_char) :: FILEPST_C
+    INTEGER FOUND  
 
     interface
         subroutine readPstGdm(FILEPST, FOUND)&
             bind(C, name='readPestYaml')
             
-            import :: c_char
-            CHARACTER, dimension(*) :: FILEPST
-            INTEGER :: FOUND
+            import :: c_char, c_int
+            CHARACTER(kind=c_char), dimension(*) :: FILEPST
+            INTEGER(c_int) :: FOUND
         end subroutine readPstGdm
     end interface
+    
+    ! Copy the trimmed string and append a null terminator
+    FILEPST_C = trim(FILEPST) // c_null_char
 
-    call readPstGdm(FILEPST, FOUND)
+    call readPstGdm(FILEPST_C, FOUND)
 END SUBROUTINE READPESTGDM
 
 SUBROUTINE INITGDM(YRDOY, YRPLT)
