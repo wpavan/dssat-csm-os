@@ -29,7 +29,7 @@ CouplingPointID strToCPID(const std::string& str) {
     if (str == "PCSTMD") return CouplingPointID::PCSTMD;
 
     // NOTE: Is this correct? Are there any other aliases we want to support? 
-    if (str == "PDLA" || str == "PLAD") return CouplingPointID::PDLA; 
+    if (str == "PDLA") return CouplingPointID::PDLA; 
     if (str == "PLFAD") return CouplingPointID::PLFAD;
     if (str == "PLFMD") return CouplingPointID::PLFMD;
     if (str == "PSTMD") return CouplingPointID::PSTMD;
@@ -97,7 +97,7 @@ std::string cpIDToStr(CouplingPointID cp) {
         case CouplingPointID::PSDD: return "PSDD";
         case CouplingPointID::VALUE: return "VALUE";
         default:
-            throw std::invalid_argument("Invalid CouplingPoint");
+            throw std::invalid_argument("Invalid CouplingPoint: " + std::to_string(static_cast<int>(cp)));
     }
 }
 
@@ -139,7 +139,7 @@ float* CouplingData::getCouplingValue(CouplingPointID cp) {
         case CouplingPointID::WSDD: return WSDD;
         case CouplingPointID::PSDD: return PSDD;
         default:
-            throw std::invalid_argument("Invalid CouplingPoint");
+            throw std::invalid_argument("Invalid CouplingPoint: " + std::to_string(static_cast<int>(cp)));
     }
 }
 
@@ -180,7 +180,7 @@ void CouplingData::setCouplingValue(CouplingPointID cp, float *value) {
         case CouplingPointID::WSDD: WSDD = value; break;
         case CouplingPointID::PSDD: PSDD = value; break;
         default:
-            throw std::invalid_argument("Invalid CouplingPoint");
+            throw std::invalid_argument("Invalid CouplingPoint: " + std::to_string(static_cast<int>(cp)));
     }
 }
 
@@ -221,7 +221,7 @@ void CouplingData::overwriteCouplingValue(CouplingPointID cp, float value) {
         case CouplingPointID::WSDD: *WSDD = value; break;
         case CouplingPointID::PSDD: *PSDD = value; break;
         default:
-            throw std::invalid_argument("Invalid CouplingPoint");
+            throw std::invalid_argument("Invalid CouplingPoint: " + std::to_string(static_cast<int>(cp)));
     }
 }
 
@@ -261,7 +261,7 @@ float CouplingData::getCouplingValuePrev(CouplingPointID cp) {
         case CouplingPointID::WSDD: return WSDD_PREV;
         case CouplingPointID::PSDD: return PSDD_PREV;
         default:
-            throw std::invalid_argument("Invalid CouplingPoint");
+            throw std::invalid_argument("Invalid CouplingPoint: " + std::to_string(static_cast<int>(cp)));
     }
 }
 

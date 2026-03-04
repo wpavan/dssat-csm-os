@@ -40,7 +40,7 @@ enum class CouplingPointID{
     SLA,        // Input - Specific leaf area (cm2[leaf] / m2[ground])
     SLDOT,      // Input - Defoliation due to daily leaf senescence (g/m2/day)
     SSDOT,      // Input - Daily senescence of petioles (g / m2 / d)
-    STMWT,      // Input - Dry mass of stem tissue, including C and N (g[stem] / m2[ground)
+    STMWT,      // Input - Dry mass of stem tissue, including C and N (g[stem] / m2[ground])
     TDLA,       // Input - Total diseased leaf area (cm2/m2)
     VSTGD,      // Input - Absolute daily V-stage damage (nodes/day)
     WLFDOT,     // Input - Leaf weight losses due to freezing (g[leaf]/m2-d)
@@ -51,15 +51,16 @@ enum class CouplingPointID{
     VSTAGE,     // Input - Number of nodes on main stem of plant (nodes)
     WLIDOT,     // Output - Daily pest or freeze damage to leaf mass (g/m2/day)
     CLAI,       // Output - Cumulative leaf area index destroyed (m2/m2)
-    CLFM,       // Output - Cumulative leaf mass destroyed  (g/m2)
+    CLFM,       // Output - Cumulative leaf mass destroyed  (g/m2)      
     CSTEM,      // Output - Cumulative stem mass destroyed (g/m2)
-    DISLA,      // Output - Diseased leaf area (cm2[leaf]/m2[ground]/d)
-    DISLAP,     // Output - Percent diseased leaf area (%/d)
+    DISLA,      // Output - Diseased leaf area (cm2[leaf]/m2[ground]/d) 
+    DISLAP,     // Output - Percent diseased leaf area (%/d)            
     LAIDOT,     // Output - Daily pest damage to leaf area index (m2/m2/d)    
     WSIDOT,     // Output - Daily pest damage to stem mass (g/m2/day)
     SDWT,       // Input - Seed weight (g/m2) NOTE: Check if this is an input or output.
     WSDD,       // Output - Daily weight of seed destroyed (g/m2/day)
-    PSDD        // Output - Percent of seed mass destroyed (%/d)
+    PSDD,       // Output - Percent of seed mass destroyed (%/d)
+    COUNT       // Special enum value to represent the number of coupling points; not an actual coupling point
 };
 
 struct CouplingData {
