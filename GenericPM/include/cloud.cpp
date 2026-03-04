@@ -123,9 +123,10 @@ void Cloud::integration() {
 
 float Cloud::getValue() {
     // Validate this pointer
-    // std::cout << "Cloud::getValue() called on " << this << std::endl;
-    // std::cout << "Expected Cloud object? " << (typeid(*this).name()) << std::endl;
-
+    //std::cout << "this pointer: " << this << std::endl;
+    //std::cout << "values container address: " << &values << std::endl;
+    //std::cout << "values.size(): " << values.size() << std::endl;
+    
     float sum = 0.0f;
 
     #ifdef DEBUGX
@@ -135,18 +136,22 @@ float Cloud::getValue() {
     }
     #endif // DEBUGX
     
+    if (values.empty()) return 0.0f;
+
     // Sanitize values: replace non-finite values with 0 and accumulate
-    for (auto& value : values) {
-        if (!std::isfinite(value)) {
-            #ifdef DEBUGX
-            std::cout << "Sanitizing non-finite value in cloud values: " << value << " -> 0" << std::endl;
-            #endif
-            value = 0.0f;
-        }
-        #ifdef DEBUGX
-        std::cout << "\tValue: " << value << std::endl;
-        #endif
-        sum += value;
+    for (size_t i = 0; i < values.size(); ++i) {
+        try {
+            float& value = values[i];
+            if (!std::isfinite(value)) {
+                #ifdef DEBUGX
+                std::cout << "Sanitizing non-finite value in cloud values: " << value << " -> 0" << std::endl;
+                #endif
+                value = 0.0f;
+            }
+            sum += value;
+        } catch (const std::exception& e) {
+            std::cout << "Exception while checking cloud value for finiteness: " << e.what() << std::endl;
+        }  
     }
     return sum;
 }

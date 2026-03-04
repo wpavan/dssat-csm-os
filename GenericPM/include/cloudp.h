@@ -12,11 +12,12 @@
 
 #include "cloud.h"
 #include "basicinterface.h"
+#include <memory>
 #include "cloudf.h"
 
 class CloudP : public Cloud, virtual public BasicInterface {
 private:
-    CloudF *cloudF;
+    std::shared_ptr<CloudF> cloudF;
 
 protected:
     static int qtd;
@@ -24,7 +25,7 @@ protected:
     static int firstOutputCall;
 
 public:
-    CloudP(Disease *disease, CloudF *cloudF) {
+    CloudP(Disease *disease, std::shared_ptr<CloudF> cloudF) {
         this->disease = disease;
         this->cloudF = cloudF;
         // Should we use this opportunity to use parent class constructors?
@@ -35,7 +36,7 @@ public:
         return ID;
     }
 
-    CloudF* getCloudF() {
+    std::shared_ptr<CloudF> getCloudF() {
         return cloudF;
     }
 
