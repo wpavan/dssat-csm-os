@@ -102,3 +102,18 @@ std::string Utilities::base52Encode(size_t hashValue) {
     }
     return encodedResult;
 }
+
+ std::filesystem::path Utilities::safeRenameFile(const std::filesystem::path& oldPath) {
+    // Assume going into the function, there is already the base file existing. Now we need 
+    // to return the new path with the appropriate suffix.
+
+    std::filesystem::path newPath;
+    int counter = 1;
+    while (true) {
+        newPath = oldPath.stem().string() + "_(" + std::to_string(counter) + ")" + oldPath.extension().string();
+        if (!std::filesystem::exists(newPath)) {
+            return newPath;
+        }
+        counter++;
+    }
+}

@@ -24,6 +24,7 @@
 #include <fstream>
 #include <cstring>
 #include <iostream>
+#include <filesystem>
 
 enum class OrganMode {
     COHORT,
@@ -61,6 +62,10 @@ class Utilities {
         static int addOneDay(int yearDoy);
         static bool isLeapYear(int year);
         static std::string base52Encode(size_t hashValue);
+
+        // A method to safely rename files to a version that includes the suffix "_(X)" to avoid 
+        // appending to files unintentionally.
+        static std::filesystem::path safeRenameFile(const std::filesystem::path& oldPath);
 
         static void log_value(std::string varname, float value, int yrdoy, int decimals = 2) {
             std::ofstream logFile("value_log", std::ios::app);
