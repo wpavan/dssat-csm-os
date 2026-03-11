@@ -182,8 +182,7 @@ C-----------------------------------------------------------------------
       IF(TEMPCHAR1 .EQ. 'D') THEN
             ISDYNAMICDIS = 'Y'
 
-!           V.L.C - GDM param filename is the fileT prefix, treatment 
-!           number, and .yaml
+!           V.L.C - GDM param filename is the fileT prefix, and .yaml
 !            WRITE(TRTSTR, '(I0.2)') TRTNUM           
 !            FILEGDM = FILET(:8) // TRTSTR // '.yaml'
 
@@ -333,7 +332,6 @@ C-----------------------------------------------------------------------
         CALL PUT('PDLABETA','BETA',1.0)
         CALL PUT('PDLABETA','PDLA',PDLA)
         CALL PUT('PDLABETA','PSDD',PSDD)
-        !WRITE(*,*) "PSDD: ", PSDD
       ENDIF
          
 !----------------END-----------------!
