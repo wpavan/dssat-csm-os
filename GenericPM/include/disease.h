@@ -625,7 +625,7 @@ public:
      * @param sporulationCrowdingFactorsSet Sporulation crowding factors set.
      */
     void setSporulationCrowdingFactorsSet(float sporulationCrowdingFactorsSet[]) {
-        std::copy(sporulationCrowdingFactorsSet, sporulationCrowdingFactorsSet + 4, 
+        std::copy(sporulationCrowdingFactorsSet, sporulationCrowdingFactorsSet + 3, 
                   this->sporulationCrowdingFactorsSet);
     }
 
