@@ -15,7 +15,6 @@
 #include "cropinterface.h"
 #include "initialcondition.h"
 #include "weather.h"
-#include "manager.h"
 #include "utilities.h"
 #include "coupling.h"
 
@@ -43,6 +42,8 @@ bool diseaseHasOutput(Disease *disease) {
     return false;
 }
 
+int Simulator::currentYearDoy = -99;
+
 void Simulator::clearOutputLog() {
     this->loggedOutputs.clear();
 }
@@ -58,7 +59,7 @@ void Simulator::logOutput(std::string varName, float value) {
  * rate functions. These calls propagate downwards (e.g. to organs).
  */
 void Simulator::rate() {
-    // std::cout << "=========== Simulator Rate YRDOY: " << currentYearDoy << std::endl;
+    std::cout << "=========== Simulator (" << disease->getDescription() << ") Rate YRDOY: " << currentYearDoy << std::endl;
     CouplingData *couplingData = CouplingData::getInstance(); 
 
     InitialCondition *ic;
@@ -143,6 +144,13 @@ void Simulator::rate() {
             //           << "Variable: " << fioString 
             //           << " Value: " << fioFloat 
             //           << std::endl;
+        } else if (injection.getEndpoint() == InjEndpoint::PCP) {
+            CouplingPointID injCP = strToCPID(injection.getRawEndpoint());
+            float *injCPVal = couplingData->getCouplingValue(injCP);
+            std::cout << "CP Injection - " << injection.getRawEndpoint() << " - Value before: " << *injCPVal << std::endl;
+            injection.apply(*injCPVal);
+            std::cout << "CP Injection - " << injection.getRawEndpoint() << " - Value after : " << *injCPVal << std::endl;
+            // IDK if this is needed: couplingData->overwriteCouplingValue(injCP, *injCPVal);
         }
     }
     // std::cout << std::endl << "YRDOY: " << currentYearDoy << "\tCloud val: " << initialCondition.getCloud()->getValue() << std::endl;
@@ -163,6 +171,8 @@ void Simulator::rate() {
         float organCPValPrev = couplingData->getCouplingValuePrev(organCP);
         float damageCPValPrev = couplingData->getCouplingValuePrev(damageCP);
 
+        // `dssatDelta` is the amount of change (growth and senescence) that 
+        // has occurred since the last rate call.
         float dssatDelta = *organCPVal - organCPValPrev + damageCPValPrev;
 
         if (dssatDelta > 0) {
@@ -180,6 +190,12 @@ void Simulator::rate() {
                     << " Growth: " << dssatDelta 
                     << std::endl;
             #endif // DEBUG
+        }
+
+        CouplingPointID outputCP;
+        for (int i = 1; i < static_cast<int>(CouplingPointID::COUNT); i++) {
+            outputCP = static_cast<CouplingPointID>(i);
+            this->logOutput("CP_" + cpIDToStr(outputCP), *couplingData->getCouplingValue(outputCP));
         }
 
         // OLD CODE THAT ASSUMES NEW GROWTH = DIFFERENCE IN COUPLING VALUE
@@ -352,10 +368,10 @@ void Simulator::output() {
         }
 
         // Then, report all injections that have the "OUTPUT" endpoint (from all steps)
-        outputFile.open("sim_" + disease->getDescription() + "_output.tsv", std::ios::app);
+        outputFile.open(outputFileName, std::ios::app);
         for (const auto& output : loggedOutputs) {
             outputFile << currentYearDoy << "\t" << output.varName << "\t" << output.value << "\n";
-            std::cout << currentYearDoy << "\t" << output.varName << "\t" << output.value << "\n";
+            // std::cout << currentYearDoy << "\t" << output.varName << "\t" << output.value << "\n";
         }
         outputFile.close();
 

@@ -97,6 +97,7 @@ enum class InjEndpoint {
     INOCULUM,
     INFECTION_BIOLOGICAL_FACTOR,
     FIO,
+    PCP,        // Coupling point endpoint - needs to be linked to a coupling point ID
     OUTPUT
 };
 
@@ -122,6 +123,10 @@ class Injection {
             endpoint = parseEndpoint(endpt);
             modification = parseModification(modif);
         };
+
+        std::string getRawEndpoint() const {
+            return rawEndpoint;
+        }
 
         InjEndpoint getEndpoint() const {
             return endpoint;

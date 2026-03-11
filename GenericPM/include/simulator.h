@@ -16,8 +16,10 @@
 #include "initialcondition.h"
 #include "injection.h"
 #include "plant.h"
+#include "manager.h"
 
 #include <vector>
+#include <filesystem>
 
 bool diseaseHasOutput(Disease *disease);
 
@@ -33,19 +35,27 @@ private:
     Utilities util;
 
 protected:
-    int currentYearDoy = 0;
+    static int currentYearDoy;
     InitialCondition initialCondition;
     Disease *disease;
     CropInterface *cropinterface;
     std::vector<Output> loggedOutputs;
 
     const bool hasOutput;
+    std::string outputFileName;
     std::ofstream outputFile;
 
 public:
     Simulator();
     Simulator(Disease *dis, CropInterface *ci) : initialCondition(dis->getFamily()), disease(dis), cropinterface(ci), hasOutput(diseaseHasOutput(dis)) {
-        outputFile.open("sim_" + disease->getDescription() + "_output.tsv", std::ios::app);
+        outputFileName = Manager::getOutfileName() + "_" + disease->getDescription() + ".OUT";
+        std::filesystem::path outputPath(outputFileName);
+
+        if (std::filesystem::exists(outputPath)) {
+            outputPath = Utilities::safeRenameFile(outputPath);
+            outputFileName = outputPath.filename().string();
+        }
+        outputFile.open(outputPath, std::ios::app);
         outputFile << "YEARDOY\tOUTPUT_NAME\tVALUE\n";
         outputFile.close();
     };

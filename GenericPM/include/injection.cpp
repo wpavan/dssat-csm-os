@@ -284,6 +284,12 @@ ModificationType parseModification(std::string modifStr) {
 }
 
 InjEndpoint parseEndpoint(std::string endpointStr) {
+    try {
+        CouplingPointID cpID = strToCPID(endpointStr);
+        return InjEndpoint::PCP;
+    } catch (const std::invalid_argument&) {
+        // The user has supplied an endpoint that is not a coupling point.
+    }
     if (endpointStr == "INOCULUM") {
         return InjEndpoint::INOCULUM;
     } else if (endpointStr == "INFECTION_BIOLOGICAL_FACTOR") {

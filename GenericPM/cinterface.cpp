@@ -122,10 +122,6 @@ int couplingRate(int *YRDOY,
     couplingData->setCouplingValue(CouplingPointID::WSDD, WSDD);
     couplingData->setCouplingValue(CouplingPointID::PSDD, PSDD);
 
-    // Multiple instances of simulator to ensure multiple diseases can be run.
-    // Because each simulator might couple with different coupling points,
-    // we need to have a crop interface for each simulator.
-
     // Set the sowing/planting date
     if(manager->getPlantingDate() < 0) {
         manager->setPlantingDate(*YRPLT);
