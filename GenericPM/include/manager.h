@@ -44,7 +44,8 @@ class Manager : virtual public BasicInterface {
         static std::vector<std::string> families;   
         static std::vector<CouplingPointID> couplingPointIDs;
         static std::vector<std::unique_ptr<CropInterface>> cropInterfaces;
-        static std::vector<std::unique_ptr<CloudF>> cloudsF;
+        static std::vector<std::shared_ptr<CloudF>> cloudsF;
+        static std::string outfileName;
 
         static bool outputStatus;
         
@@ -64,7 +65,7 @@ class Manager : virtual public BasicInterface {
                                  InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections);
 
         static void addCloudF(std::string family) {
-            cloudsF.emplace_back(std::make_unique<CloudF>(family));
+            cloudsF.emplace_back(std::make_shared<CloudF>(family));
         }
 
         void updateCurrentYearDoy(int yearDoy);
@@ -75,13 +76,13 @@ class Manager : virtual public BasicInterface {
             }
         }
 
-        static CloudF* getCloudF(std::string family) {
+        static std::shared_ptr<CloudF> getCloudF(std::string family) {
             for (auto& cF : cloudsF) {
                 if (cF->getFamily() == family) {
-                    return cF.get();
+                    return cF;
                 }
             }
-            return nullptr;
+            return std::shared_ptr<CloudF>();
         }
 
         static void addCropInterface(CouplingPointID cp) {
@@ -129,6 +130,14 @@ class Manager : virtual public BasicInterface {
             return plantingDate;
         }
 
+        static std::string getOutfileName() {
+            return outfileName;
+        }
+        
+        static void setOutfileName(std::string name) {
+            outfileName = name;
+        }
+        
         static void setCurrentSimDate(int yearDoy);
 
         static int getCurrentSimDate();

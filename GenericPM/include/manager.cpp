@@ -11,6 +11,7 @@
 #include <regex>
 #include <variant>
 #include <algorithm>
+#include <memory>
 
 #include "utilities.h"
 #include "manager.h"
@@ -56,7 +57,8 @@ int Manager::plantingDate = -99;
 std::vector<std::string> Manager::families;
 std::vector<CouplingPointID> Manager::couplingPointIDs;
 std::vector<std::unique_ptr<CropInterface>> Manager::cropInterfaces;
-std::vector<std::unique_ptr<CloudF>> Manager::cloudsF;
+std::vector<std::shared_ptr<CloudF>> Manager::cloudsF;
+std::string Manager::outfileName;
 
 bool Manager::outputStatus = false;
 
@@ -264,6 +266,9 @@ void Manager::createCloudsF() {
           std::cout << "Error: Disease pointer is null in Manager::createCloudsF for family " << simFamily << std::endl;
           continue;
         }
+        if (getCloudF(simFamily) == nullptr) {
+          std::cout << "Error: CloudF pointer is null in Manager::createCloudsF for family " << simFamily << std::endl;
+        }
         getCloudF(simFamily)->setDisease(diseasePtr);
         sim->getInitialCondition()->setCloud(getCloudF(simFamily));
     }
@@ -307,6 +312,7 @@ int Manager::getCurrentSimDate() {
 }
 
 void Manager::rate() {
+  std::cout << "=========== Manager Rate YRDOY: " << getCurrentSimDate() << std::endl;
   for (auto& simulator : simulators) {
     simulator->rate();
   }
@@ -393,10 +399,9 @@ std::string replacePlaceholders(std::string originalValue, std::string originalT
 }
 
 
-void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_map<std::string, std::string> &diseaseData, int *TRTNUM) {
+void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_map<std::string, std::string> &diseaseData, std::string trtKey) {
   int sequenceIndex = 1;
   std::string dataLabel;
-  std::string trtKey = "TRNO" + std::to_string(*TRTNUM);
   // Handle paramNames {RATE, INTEGRATION} differently to allow for 
   // code injection with a streamlined format.
   switch (valueNode["VALUE"].Type()) {
@@ -466,11 +471,16 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_ma
 
 int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
   Manager* manager = Manager::newInstance();
+  std::string outfileName = std::string(filePST, 8) + '_' + std::to_string(*TRTNUM);
+
+  manager->setOutfileName(outfileName);
 
   CouplingPointID tempCP;
   std::vector<CouplingPointID> uniqueCPs;
   UniqueFamilies uniqueFamilies;
   std::vector<YAML::Node> diseases;
+
+  std::string trtKey = "TRNO" + std::to_string(*TRTNUM);
 
   // Try to read the input YAML file and throw an error if it doesn't work.
   // NOTE: How should we address errors in GDM/FlexibleIO?
@@ -563,7 +573,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
       std::unordered_map<std::string, std::string> diseaseData;
       InjectionHolder rateInjections, integrationInjections, outputInjections;
       CloudFParamHolder cloudParams;
-
+      std::string injectionExpression;
 
       // Step 2 is to load the disease into memory.
         for (auto it=disease.begin(); it!=disease.end(); ++it) {
@@ -606,7 +616,19 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
                   }
                   
                   try {
-                    std::string expression = injectionData["EXPRESSION"].as<std::string>();
+                    // First, check for the treatment logic for expressions only.
+                    if (injectionData["EXPRESSION"].Type() == 4) {
+                      if (injectionData["EXPRESSION"][trtKey]) {
+                        injectionExpression = injectionData["EXPRESSION"][trtKey].as<std::string>();
+                      } else if (injectionData["EXPRESSION"]["DEFAULT"]) {
+                        injectionExpression = injectionData["EXPRESSION"]["DEFAULT"].as<std::string>();
+                      } else {
+                        throw std::invalid_argument("ERROR: No matching treatment key '" + trtKey + "' or 'DEFAULT' found for injection expression in endpoint '" + endpointName + "'.");
+                      }
+                    } else {
+                      injectionExpression = injectionData["EXPRESSION"].as<std::string>();
+                    }
+                    
                     std::string modification = injectionData["MODIFICATION"].as<std::string>();
                     
                     // Create the injection
@@ -614,13 +636,13 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
                       case -1:  // INVALID
                         throw std::invalid_argument("The following string is not recognized as one of the three steps: " + key + "\nThe step options are:\n\tRATE\n\tINTEGRATION\n\tOUTPUT");
                       case 0:   // RATE
-                        rateInjections.add(endpointName, expression, modification);
+                        rateInjections.add(endpointName, injectionExpression, modification);
                         break;
                       case 1:   // INTEGRATION
-                        integrationInjections.add(endpointName, expression, modification);
+                        integrationInjections.add(endpointName, injectionExpression, modification);
                         break;
                       case 2:   // OUTPUT
-                        outputInjections.add(endpointName, expression, modification);
+                        outputInjections.add(endpointName, injectionExpression, modification);
                         break;
                     }
                     
@@ -630,7 +652,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
                   }
                 }
               } else {
-                addPestParam(key, value, diseaseData, TRTNUM);
+                addPestParam(key, value, diseaseData, trtKey);
                 // Handle if the node is a CLOUD_PARAM:
                 if (value["CLOUD_PARAM"] && value["CLOUD_PARAM"].as<bool>() && typeid(diseaseData[key]) == typeid(std::string)) {
                   cloudParams.params[key] = diseaseData[key];
@@ -739,19 +761,22 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
 } 
 
 void Manager::updateCurrentYearDoy(int yearDoy) {
-    while(Utilities::addOneDay(simulators[0]->getCurrentYearDoy()) < yearDoy) {
-        for (const auto& sim : simulators) {
-            sim->setCurrentYearDoy(Utilities::addOneDay(sim->getCurrentYearDoy()));
-        }
-        Weather::getInstance()->update(simulators[0]->getCurrentYearDoy());
-        
-        for (const auto& sim : simulators) {
-            sim->rate();
-        }
-        for (const auto& sim : simulators) {
-            sim->integration();
-        }
+  while(Utilities::addOneDay(simulators[0]->getCurrentYearDoy()) < yearDoy) {
+    for (const auto& sim : simulators) {
+      sim->setCurrentYearDoy(Utilities::addOneDay(sim->getCurrentYearDoy()));
     }
+    Weather::getInstance()->update(simulators[0]->getCurrentYearDoy());
+    
+    for (const auto& sim : simulators) {
+      sim->rate();
+    }
+    for (const auto& sim : simulators) {
+      sim->integration();
+    }
+  }
+  for (const auto& sim : simulators) {
+    sim->setCurrentYearDoy(yearDoy);
+  }
 }
 /*
 Execution workflow:

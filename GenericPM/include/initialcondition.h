@@ -12,12 +12,13 @@
 
 #include "basic.h"
 #include "basicinterface.h"
+#include <memory>
 #include "cloudf.h"
 #include "plant.h"
 
 class InitialCondition : public Basic, virtual public BasicInterface {
 private:
-    CloudF *cloudF = nullptr;
+    std::shared_ptr<CloudF> cloudF = nullptr;
 
 protected:
     float acumulateFavorability = 0, dailyFavorability = 0;
@@ -36,11 +37,11 @@ public:
         return ID;
     }
 
-    CloudF* getCloud() {
+    std::shared_ptr<CloudF> getCloud() {
         return cloudF;
     }
 
-    void setCloud(CloudF *cloudF) {
+    void setCloud(std::shared_ptr<CloudF> cloudF) {
         this->cloudF = cloudF;
     }
 

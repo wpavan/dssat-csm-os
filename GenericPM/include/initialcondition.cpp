@@ -24,7 +24,7 @@ int InitialCondition::qtd = 0;
  */
 
 void InitialCondition::rate() {
-    if (!favorabilityAccumulated) {
+    if (!favorabilityAccumulated && cloudF) {
         dailyFavorability = Utilities::temperatureFavorability(Basic::getWeather()->getTMean(),
                                                                cloudF->getDisease()->getTemperatureFavorabilitySet()) 
                             * Utilities::wetnessFavorability(Basic::getWeather()->getWetDur(), 
@@ -33,7 +33,9 @@ void InitialCondition::rate() {
 }
 
 void InitialCondition::integration() {
-    integration(cloudF->getDisease());
+    if (cloudF) {
+        integration(cloudF->getDisease());
+    }
 }
 
 void InitialCondition::integration(Disease *disease) {
@@ -68,5 +70,5 @@ void InitialCondition::output() {
     #endif // OUTPUT
 
     // Run the cloud integration only once per day (handled by cloudF)
-    cloudF->output();
+    if (cloudF) cloudF->output();
 }
