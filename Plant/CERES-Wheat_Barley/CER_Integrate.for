@@ -43,12 +43,14 @@
             CARBOC = CARBOC + CARBO
             RESPC = RESPC + RTRESP
             LFWT = LFWT + GROLF - SENLFG - SENLFGRS
+            LFWTCU = LFWTCU + GROLF * PLTPOP
             IF (LFWT.LT.1.0E-12) THEN
 !              IF (LFWT.LT.0.0) 
 !     &          WRITE(fnumwrk,*)'Leaf weight less than 0! ',LFWT
               LFWT = 0.0
             ENDIF
             STWT = STWT + GROST - SENSTG - GROGRST
+            STWTCU = STWTCU + GROST * PLTPOP
             IF (STWT.LT.1.0E-06) THEN
 !              IF (STWT.LT.0.0) 
 !     &         WRITE(fnumwrk,*)'Stem weight less than 0! ',STWT
@@ -1167,6 +1169,10 @@
           RTWTGM = RTWT*PLTPOP !g/m2
           STWTGM = STWT*PLTPOP !g/m2
           LFWTGM = LFWT*PLTPOP !g/m2
+
+          ! 03/03/2026 - VLC to fix units for PEST
+          AREALF = LAI*10000   !cm2/m2
+
 
 !======================================================================
 ! PEST COUPLING POINTS

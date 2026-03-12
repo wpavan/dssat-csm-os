@@ -239,7 +239,7 @@
 
         IF (ISWDIS.EQ.'Y') THEN
           CALL PEST(CONTROL, ISWITCH, 
-     &      LAI, LFWTGM, STWTGM, LAGSD, LNGPEG, NR2, CARBO,     !Input
+     &      AREALF, LFWTCU, STWTCU, LAGSD, LNGPEG, NR2, CARBO,  !Input
      &      PHTIM, PLTPOP, RTWTGM, SLA, SLDOT, SOILPROP,        !Input
      &      SSDOT, STWTGM, TOPWT, WLFDOT, LFWTGM, YEARPLTCSM,   !Input
      &      RLV, SDNO, SHELN, SWIDOT,                           !Input/Output
@@ -261,7 +261,7 @@
 
         IF (ISWDIS.EQ.'Y') THEN
           CALL PEST(CONTROL, ISWITCH, 
-     &      LAI, LFWTGM, STWTGM, LAGSD, LNGPEG, NR2, CARBO,     !Input
+     &      AREALF, LFWTCU, STWTCU, LAGSD, LNGPEG, NR2, CARBO,  !Input
      &      PHTIM, PLTPOP, RTWTGM, SLA, SLDOT, SOILPROP,        !Input
      &      SSDOT, STWTGM, TOPWT, WLFDOT, LFWTGM, YEARPLTCSM,   !Input
      &      RLV, SDNO, SHELN, SWIDOT,                           !Input/Output
@@ -305,7 +305,7 @@
 
         IF (ISWDIS.EQ.'Y') THEN
           CALL PEST(CONTROL, ISWITCH, 
-     &      LAI, LFWTGM, STWTGM, LAGSD, LNGPEG, NR2, CARBO,     !Input
+     &      AREALF, LFWTCU, STWTCU, LAGSD, LNGPEG, NR2, CARBO,  !Input
      &      PHTIM, PLTPOP, RTWTGM, SLA, SLDOT, SOILPROP,        !Input
      &      SSDOT, STWTGM, TOPWT, WLFDOT, LFWTGM, YEARPLTCSM,   !Input
      &      RLV, SDNO, SHELN, SWIDOT,                           !Input/Output
@@ -327,7 +327,7 @@
 
         IF (ISWDIS.EQ.'Y') THEN
           CALL PEST(CONTROL, ISWITCH, 
-     &      LAI, LFWTGM, STWTGM, LAGSD, LNGPEG, NR2, CARBO,     !Input
+     &      AREALF, LFWTCU, STWTCU, LAGSD, LNGPEG, NR2, CARBO,  !Input
      &      PHTIM, PLTPOP, RTWTGM, SLA, SLDOT, SOILPROP,        !Input
      &      SSDOT, STWTGM, TOPWT, WLFDOT, LFWTGM, YEARPLTCSM,   !Input
      &      RLV, SDNO, SHELN, SWIDOT,                           !Input/Output

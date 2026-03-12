@@ -1,5 +1,5 @@
-        Module CER_First_Trans_m
-
+      Module CER_First_Trans_m
+      IMPLICIT NONE
       CHARACTER(LEN=1),PARAMETER::BLANK = ' '
       !CHARACTER(LEN=3),PARAMETER::DASH = ' - '
       !CHARACTER(LEN=6),PARAMETER::ERRKEY = 'CSCER '        
@@ -1216,6 +1216,35 @@
 !      REAL          Nuptake_daily !Daily N uptake (kg [N]/ha)
 !      REAL          NUAD_Y        !Yesterdays cumulative N uptake
 
+!-----------------------------------------------------------------------
+!*! PEST VARIABLES 
+!*!
+!*! DATE        AUTHOR  ACTION
+!*! 01/09/2024  TF      Created
+!*! 03/03/2026  VLC     Fixed LAI direct pass
+!-----------------------------------------------------------------------
+      REAL          SWIDOT ! Seed loss due to pests               g/m2
+      REAL          WRIDOT ! Root loss due to pests               g/m2
+      REAL          WSIDOT ! Stem loss due to pests               g/m2
+      REAL          WLIDOT ! Leaf loss due to pests               g/m2
+      REAL          LAIDOT ! Leaf area consumed by pests          cm2/m2
+      REAL          PPLTD  ! Percent plants destroyed             %/m2
+      REAL          DISLA  ! Diseased leaf area                   cm2/m2
+      REAL          ASMDOT ! Reduction in photosyn. due to pests  g/p
+!-----------------------------------------------------------------------
+!*! VARIABLES ADDED TO ADJUST UNITS AND PROVIDE INPUT TO THE PEST MODULE
+!-----------------------------------------------------------------------      
+      REAL          RTWTGM ! Root weight in g/m2 for pest module  g/m2
+      REAL          STWTGM ! Stem weight in g/m2 for pest module  g/m2
+      REAL          LFWTGM ! Leaf weight in g/m2 for pest module  g/m2
+      REAL          SDWT   ! Seed weight                          g/m2
+      REAL          AREALF ! Leaf area for PEST                   cm2/m2
+      REAL          LFWTCU ! Cumulative leaf weight               g/m2
+      REAL          STWTCU ! Cumulative stem weight               g/m2
+!     NR2 is a required variable however is only used for CROPGRO.
+      INTEGER       NR2      
+!-----------------------------------------------------------------------
+
 !      Condition at end of phase
       DATA BASTGNAM/'Max Prim  ','End Veg   ','End Ear Gr',
      1              'Bg Gr Fill','End Gr Fil','Harvest   ',
@@ -1232,31 +1261,8 @@
      4              '          ','          ','          ',
      5              '          ','          ','          ',
      6              '          ','          '/
-
-
-!-----------------------------------------------------------------------
-!*! PEST VARIABLES (TF - 01/09/2024)
-!-----------------------------------------------------------------------
-      REAL          SWIDOT ! Seed loss due to pests               g/m2
-      REAL          WRIDOT ! Root loss due to pests               g/m2
-      REAL          WSIDOT ! Stem loss due to pests               g/m2
-      REAL          WLIDOT ! Leaf loss due to pests               g/m2
-      REAL          LAIDOT ! Leaf area consumed by pests          cm2/m2
-      REAL          PPLTD  ! Percent plants destroyed             %/m2
-      REAL          DISLA  ! Diseased leaf area                   cm2/m2
-      REAL          ASMDOT ! Reduction in photosyn. due to pests  g/p
-!-----------------------------------------------------------------------
-!*! VARIABLES ADDED TO ADJUST UNITS AND PROVIDE INPUT TO THE PEST MODULE
-!-----------------------------------------------------------------------      
-      REAL          RTWTGM ! Root weight in g/m2 for pest module  g/m2
-      REAL          STWTGM ! Stem weight in g/m2 for pest module  g/m2
-      REAL          LFWTGM ! Leaf weight in g/m2 for pest module  g/m2
-      REAL          SDWT   !
-!     NR2 is a required variable however is only used for CROPGRO.
-      INTEGER       NR2      
-!-----------------------------------------------------------------------
-    
-        End Module CER_First_Trans_m
+ 
+      End Module CER_First_Trans_m
         
         
       subroutine clear_CER_First_Trans_m()
@@ -1519,7 +1525,6 @@
         tminsump0 = 0.0
         xstagefs = 0.0
         gplasenf = 0.0
-
 !-----------------------------------------------------------------------
 !*! PEST VARIABLES (TF - 01/09/2024)
 !-----------------------------------------------------------------------
@@ -1538,6 +1543,9 @@
         RTWTGM = 0.0
         STWTGM = 0.0
         LFWTGM = 0.0
+        AREALF = 0.0
+        STWTCU = 0.0
+        LFWTCU = 0.0
         NR2    = 10000
 !-----------------------------------------------------------------------  
 
