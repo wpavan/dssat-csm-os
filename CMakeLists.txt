@@ -134,7 +134,7 @@ set(
         "GenericPM/include/simulator.cpp"
         "GenericPM/include/utilities.cpp"
         "GenericPM/include/weather.cpp"
-        "GenericPM/TinyExpr/tinyexpr.c"
+        "GenericPM/TinyExpr++/tinyexpr.cpp"
         "FlexibleIO/Interface/FInterface.f90"
         "FlexibleIO/Interface/CInterface.cpp"
         "FlexibleIO/Data/FlexibleIO.cpp"

@@ -30,8 +30,8 @@ ENDIF(BT STREQUAL "RELEASE")
 ######################################################
 SET_COMPILE_FLAG(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}"
                  CXX 
-                     "-std=c++17"      # GNU
-                     "-std=gnu++17"    # GNU
+                     "-std=c++20"      # GNU
+                     "-std=gnu++20"    # GNU
                      " -c"             # GNU
                      "-fPIC"           # GNU  
                 )
