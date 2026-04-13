@@ -60,7 +60,7 @@ protected:
     float healthyValuePrev = 0;
 
     // Lesion trackers
-    float totalLesions = 0, newLesions = 0, visibleLesions = 0;
+    float totalLesions = 0, visibleLesions = 0;
     static int firstOutputCall;
 
     Plant();

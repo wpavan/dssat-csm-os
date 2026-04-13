@@ -33,8 +33,8 @@ protected:
     int doc = 0; // Day of creation (cohort)
     CloudO *cloudo;
     int newSpores = 0;
-    float physiologicalDaysAcumm = 0; // Physiological days accumulation 
-    float physiologicalDay = 0; // Physiological value on that day 
+    float physiologicalAge = 0; // Physiological days accumulation 
+    float dailyAge = 0; // Physiological value on that day 
     float organHealthyValueProportion = 0;
     
     static int qtd;
@@ -64,7 +64,19 @@ public:
         return visibleValue;
     }
     void output();
+
+    /**
+     * @brief Rate method for the LesionCohort class.
+     * 
+     * This method calculates the daily changes for the following state variables:
+     *  - physiologicalAge
+     *  - visibleValue
+     *  - invisibleValue
+     * 
+     * Additionally, it calculates the lesion's contribution to new spore production.
+     */
     void rate();
+    
     bool isInfectionPeriod() const;
     bool isLatentPeriod() const;
     bool isNecroticPeriod() const;

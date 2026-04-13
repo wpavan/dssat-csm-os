@@ -31,7 +31,6 @@ protected:
     float organSetHealthyValue = 0;
 
     int organNumber = 0;
-    int newLesions = 0;
     float lesionQueue = 0.0f;
     int newLesionsFromOrgan, newLesionsFromPlant, newLesionsFromField;
     int totalLesions = 0;
@@ -190,14 +189,6 @@ public:
 
     int getTotalLesions() const {
         return totalLesions;
-    }
-
-    void setNewLesions(int newLesions) {
-        this->newLesions = newLesions;
-    }
-
-    int getNewLesions() const {
-        return newLesions;
     }
 
     void setOrganNumber(int organNumber) {

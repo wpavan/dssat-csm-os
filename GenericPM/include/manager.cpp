@@ -311,7 +311,6 @@ int Manager::getCurrentSimDate() {
 }
 
 void Manager::rate() {
-  std::cout << "=========== Manager Rate YRDOY: " << getCurrentSimDate() << std::endl;
   for (auto& simulator : simulators) {
     simulator->rate();
   }
