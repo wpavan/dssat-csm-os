@@ -48,7 +48,7 @@ protected:
 public:
     Simulator();
     Simulator(Disease *dis, CropInterface *ci) : initialCondition(dis->getFamily()), disease(dis), cropinterface(ci), hasOutput(diseaseHasOutput(dis)) {
-        outputFileName = Manager::getOutfileName() + "_" + disease->getDescription() + ".OUT";
+        outputFileName = Manager::getOutfileName() + "_" + disease->getDiseaseID() + ".OUT";
         std::filesystem::path outputPath(outputFileName);
 
         if (std::filesystem::exists(outputPath)) {

@@ -165,7 +165,7 @@ void Simulator::rate() {
         } else {
             #ifdef DEBUGX
             std::cout << "No new organ growth detected: " 
-                    << "Disease: " << this->disease->getDescription() 
+                    << "Disease: " << this->disease->getDiseaseID() 
                     << " Coupling Point: " << cpIDToStr(organCP) 
                     << " Growth: " << dssatDelta 
                     << std::endl;
@@ -194,7 +194,7 @@ void Simulator::rate() {
         //
         //     #ifdef DEBUGX
         //     std::cout << "New organ growth detected: " 
-        //             << "Disease: " << this->disease->getDescription() 
+        //             << "Disease: " << this->disease->getDiseaseID() 
         //             << " Coupling Point: " << cpIDToStr(organCP) 
         //             << " Growth: " << (*organCPVal - organCPValPrev) 
         //             << std::endl;
@@ -209,7 +209,7 @@ void Simulator::rate() {
     } else {
         #ifdef DEBUGX
             std::cout << "Constant value organ: " 
-                    << "Disease: " << this->disease->getDescription() 
+                    << "Disease: " << this->disease->getDiseaseID() 
                     << " Coupling Point: " << cpIDToStr(organCP) 
                     << " Value: " << cropinterface->getConstValue()
                     << std::endl;
