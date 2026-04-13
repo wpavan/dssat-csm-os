@@ -118,7 +118,7 @@ void Organ::rate() {
 
     // Determine the number of new lesions on the organ today
     if(suceptible) {
-        for (auto& cloudo : cloudsO) {s
+        for (auto& cloudo : cloudsO) {
             // Record that new lesions should be created
             int newLesionsVal = 0;
             try {
