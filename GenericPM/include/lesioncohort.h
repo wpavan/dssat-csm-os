@@ -105,12 +105,12 @@ public:
         return visibleValue + invisibleValue;
     }
 
-    void setPhysiologicalDaysAcumm(float physiologicalDaysAcumm) {
-        this->physiologicalDaysAcumm = physiologicalDaysAcumm;
+    void setPhysiologicalDaysAcumm(float physiologicalAge) {
+        this->physiologicalAge = physiologicalAge;
     }
 
     float getPhysiologicalDaysAcumm() const {
-        return physiologicalDaysAcumm;
+        return physiologicalAge;
     }
 
     void setOrganHealthValueProportion(float organHealthyValueProportion) {
