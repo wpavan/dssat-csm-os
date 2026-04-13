@@ -52,8 +52,6 @@ class Utilities {
         static const std::string BASE52_CODING;
     public:
         static float trapezoidalFunction(float value, float v[]);
-        static float temperatureFavorability(float temp, float cardinalTemperatures[]);
-        static float wetnessFavorability(float wetDuration, std::string wetnessFunction);
         static float growthFunction(float value, std::string expression_string);
         static float runExpressionFunction(float value, std::string expressionString);
         static float getHealthAreaProportion(float diseaseArea, float totalArea, float senescedArea);

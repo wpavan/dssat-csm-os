@@ -31,27 +31,6 @@ float Utilities::trapezoidalFunction(float value, float v[]) {
     }
 }
 
-// NOTE: This implementation of temperature favorability can be abstracted to the .json file. 
-//       If the function for temperature favorability is always the same, then it could be set to a 
-//       default and this implementation be used in case of .json omission.
-float Utilities::temperatureFavorability(float temp, float cardinalTemperatures[]) {
-    float tempMax = cardinalTemperatures[0], 
-          tempMin = cardinalTemperatures[1], 
-          tempOpt = cardinalTemperatures[2];
-    float tf, a, b;
-
-    b = ((tempMax - tempOpt) / (tempOpt - tempMin));
-    a = (1 / ((tempOpt - tempMin) * pow(tempMax - tempOpt, b)));
-    if(temp > tempMax) temp = tempMax;
-    if(temp < tempMin) temp = tempMin;
-    tf = (a * (temp - tempMin) * pow(tempMax - temp, b));
-    return (fmax(0,tf));
-}
-
-float Utilities::wetnessFavorability(float wetDuration, std::string wetnessFunction) {
-    return Utilities::runExpression(wetnessFunction, wetDuration); 
-}
-
 float Utilities::growthFunction(float value, std::string expressionString) {
     return Utilities::runExpression(expressionString, value);
 }

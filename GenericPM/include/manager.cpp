@@ -137,104 +137,102 @@ void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseD
   Disease *disease = new Disease();
   float arraysize3[3], arraysize4[4];
 
-  disease->setDescription(diseaseData["PESTID"]);
+  disease->setDiseaseID(diseaseData["PESTID"].getOriginal());
 
-  disease->setDailySporeProductionPerLesion(safe_assign_float(diseaseData["DSPL"]));
+  // Removed by V.L. Covert 04/02/2026:
+  // - DSPL
+  // - SCF
+  // - SPE
+  // - WT
+  // - MRRS
+  // - HF
+  // - DRE
+  // - TFS
+  // - RHFactor
+  // - SWF
+  
+  disease->setMaxSporeCloudsDensity(safe_assign_float(diseaseData["MSCD"].getOriginal()));
+  
+  disease->setProportionFromOrganToPlantCloud(safe_assign_float(diseaseData["SPO2P"].getOriginal()));
+  disease->setProportionFromPlantToFieldCloud(safe_assign_float(diseaseData["SPP2F"].getOriginal()));
+  
+  disease->setVectorSizeCloudF(safe_assign_float(diseaseData["CCFPO:1"].getOriginal()));
+  disease->setVectorSizeCloudP(safe_assign_float(diseaseData["CCFPO:2"].getOriginal()));
+  disease->setVectorSizeCloudO(safe_assign_float(diseaseData["CCFPO:3"].getOriginal()));
+  
+  disease->setInitialInoculum(safe_assign_float(diseaseData["II"].getOriginal()));
+  
+  disease->setAcumulateFavorability(safe_assign_float(diseaseData["AFII"].getOriginal()));    
+  
+  disease->setInitialPustuleSize(safe_assign_float(diseaseData["IPS"].getOriginal()));
+  
+  disease->setLatentPeriod(safe_assign_int(diseaseData["LP"].getOriginal()));
+  
+  disease->setInfectionPeriod(safe_assign_int(diseaseData["IP"].getOriginal()));
 
-  arraysize4[0] = safe_assign_float(diseaseData["SPE:1"]);
-  arraysize4[1] = safe_assign_float(diseaseData["SPE:2"]);
-  arraysize4[2] = safe_assign_float(diseaseData["SPE:3"]);
-  arraysize4[3] = safe_assign_float(diseaseData["SPE:4"]);
-  disease->setCohortAgeSet(arraysize4);
-  
-  arraysize3[0] = safe_assign_float(diseaseData["SCF:1"]);
-  arraysize3[1] = safe_assign_float(diseaseData["SCF:2"]);
-  arraysize3[2] = safe_assign_float(diseaseData["SCF:3"]);
-  disease->setSporulationCrowdingFactorsSet(arraysize3);
-  
-  disease->setMaxSporeCloudsDensity(safe_assign_float(diseaseData["MSCD"]));
-  
-  disease->setProportionFromOrganToPlantCloud(safe_assign_float(diseaseData["SPO2P"]));
-  disease->setProportionFromPlantToFieldCloud(safe_assign_float(diseaseData["SPP2F"]));
-  
-  disease->setVectorSizeCloudF(safe_assign_float(diseaseData["CCFPO:1"]));
-  disease->setVectorSizeCloudP(safe_assign_float(diseaseData["CCFPO:2"]));
-  disease->setVectorSizeCloudO(safe_assign_float(diseaseData["CCFPO:3"]));
-
-  disease->setMRRS(safe_assign_float(diseaseData["MRRS"]));
-  
-  disease->setInitialInoculum(safe_assign_float(diseaseData["II"]));
-  
-  disease->setAcumulateFavorability(safe_assign_float(diseaseData["AFII"]));    
-  
-  arraysize3[0] = safe_assign_float(diseaseData["TFS:1"]);
-  arraysize3[1] = safe_assign_float(diseaseData["TFS:2"]);
-  arraysize3[2] = safe_assign_float(diseaseData["TFS:3"]);
-  disease->setTemperatureFavorabilitySet(arraysize3);
-  
-  disease->setInfectionEfficiency(safe_assign_float(diseaseData["IE"]));
-  
-  disease->setInitialPustuleSize(safe_assign_float(diseaseData["IPS"]));
-  
-  disease->setLatentPeriod(safe_assign_int(diseaseData["LP"]));
-  
-  disease->setInfectionPeriod(safe_assign_int(diseaseData["IP"]));
-  
-  disease->setWetnessThreshold(safe_assign_float(diseaseData["WT"]));
-  
-  disease->setHostFactor(safe_assign_float(diseaseData["HF"]));
-  
-  disease->setInvisibleGrowthFunction(diseaseData["IGF"]);
-  
-  disease->setVisibleGrowthFunction(diseaseData["VGF"]);
-
-  disease->setWetnessFunction(diseaseData["WF"]);
-
-  disease->setDispersionFrequency(diseaseData["DRE"]);
-
-  disease->setRhFactor(diseaseData["RHFac"]);
-
-  // Added new parameter called sporeModule to the disease class
-  // - V. L. Covert 4/1/2025
-  disease->setSporeModule(diseaseData["SPOREMODULE"]);
-
-  // Added SWF parameter which was previously unused.
-  // - V. L. Covert 4/1/2025
-  disease->setSWF(diseaseData["SWF"]);
-
+  // BEGIN GDM2 Parameters - 9/22/2025
   // Added new parameters for input and output coupling points
   // - V. L. Covert 9/22/2025
-  disease->setOrganCP(strToCPID(diseaseData["ORGAN_VALUE_CP"]));
-  disease->setDamageCP(strToCPID(diseaseData["ORGAN_DAMAGE_CP"]));
+  disease->setOrganCP(strToCPID(diseaseData["ORGAN_VALUE_CP"].getOriginal()));
+  disease->setDamageCP(strToCPID(diseaseData["ORGAN_DAMAGE_CP"].getOriginal()));
 
   // Added new parameter for sharing spore clouds between diseases
   // - V. L. Covert 9/22/2025
-  disease->setFamily(diseaseData["FAMILY"]);
+  disease->setFamily(diseaseData["FAMILY"].getOriginal());
   // if the family is new, then create a new CloudF object and associate it with the disease.
   // if the family is not new, then find the existing CloudF object and associate it with the disease.
   
+  // Create injection support
   for (auto& injection : rateInjections.injections) {
-    disease->addRateInjection(Injection(std::get<0>(injection), std::get<1>(injection), std::get<2>(injection)));
+    Expression* expr = new Expression(std::get<1>(injection));
+    disease->addRateInjection(Injection(std::get<0>(injection), expr, std::get<2>(injection)));
   }
 
   for (auto& injection : integrationInjections.injections) {
-    disease->addIntegrationInjection(Injection(std::get<0>(injection), std::get<1>(injection), std::get<2>(injection)));
+    Expression* expr = new Expression(std::get<1>(injection));
+    disease->addIntegrationInjection(Injection(std::get<0>(injection), expr, std::get<2>(injection)));
   }
 
   for (auto& injection : outputInjections.injections) {
-    disease->addOutputInjection(Injection(std::get<0>(injection), std::get<1>(injection), std::get<2>(injection)));
+    Expression* expr = new Expression(std::get<1>(injection));
+    disease->addOutputInjection(Injection(std::get<0>(injection), expr, std::get<2>(injection)));
   }
 
   // Added parameter to determine organ mode (cohort vs singular)
-  if (diseaseData["ORGAN_MODE"] == "COHORT") {
+  if (diseaseData["ORGAN_MODE"].getOriginal() == "COHORT") {
       disease->setOrganMode(OrganMode::COHORT);
-  } else if (diseaseData["ORGAN_MODE"] == "SINGULAR") {
+  } else if (diseaseData["ORGAN_MODE"].getOriginal() == "SINGULAR") {
       disease->setOrganMode(OrganMode::SINGULAR);
   } else {
-      std::cerr << "Warning: Invalid ORGAN_MODE value '" << diseaseData["ORGAN_MODE"] 
+      std::cerr << "Warning: Invalid ORGAN_MODE value '" << diseaseData["ORGAN_MODE"].getOriginal()
                 << "'; defaulting to COHORT." << std::endl;
       disease->setOrganMode(OrganMode::COHORT);
   }
+
+  // Implement new inoculum parameters
+  // - INOC_EXT for external inoculum production expression
+  // - INOC_LES for lesion-based inoculum production expression
+  // - INOC_REM for daily proportional removal of inoculum
+  disease->setINOC_EXT(diseaseData["INOC_EXT"]);
+  disease->setINOC_LES(diseaseData["INOC_LES"]);
+  disease->setINOC_REM(diseaseData["INOC_REM"]);
+
+
+  // Implement organ damage parameter
+  // - DAMAGE is the expression evaluated and then sent back to the selected ORGAN_DAMAGE_CP
+  disease->setDAMAGE(diseaseData["DAMAGE"]);
+
+  // Implement initial inoculum parameters
+  // - II_AGE is the expression that determines how quickly favorability accumulates for initial spore release
+  disease->setII_AGE(diseaseData["II_AGE"]);
+
+  // Implement lesion parameters
+  // - LES_AGE is the expression that determines how quickly lesions age
+  // - VGF is the expression that determines the visible growth of lesions
+  // - IGF is the expression that determines the invisible growth of lesions
+  disease->setLES_AGE(diseaseData["LES_AGE"]);
+  disease->setIGF(diseaseData["IGF"]);
+  disease->setVGF(diseaseData["VGF"]);
 
   #ifdef DEBUGX  
   disease->printDisease();
