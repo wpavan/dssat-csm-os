@@ -22,7 +22,14 @@ int CloudP::qtd = 0;
 int CloudP::firstOutputCall = 0;
 
 void CloudP::rate() {
+    // Set current cloud for context
+    gEqContext->cloud = this;
+
+    // Run the generic cloud rate function
     Cloud::rate();
+
+    // Free the context
+    gEqContext->cloud = nullptr;
 }
 
 void CloudP::integration() {

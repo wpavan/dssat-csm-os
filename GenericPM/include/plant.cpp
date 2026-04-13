@@ -42,31 +42,36 @@ Plant::Plant() {
 
 void Plant::rate() {
     // NEW CODE FOR GDM2:
+    // Set the current plant for context
+    gEqContext->plant = this;
+
     int newOrgan = 0;
 
     // Create new organs if needed
     for (auto& set : organSets) {
+        CropInterface *ci = Manager::getCropInterface(set.CP);
+        Expression ORGAN_AGE = ci->getORGAN_AGE();
+
         // If the user has indicated that new organs can be created, we
         // follow algorithm 1. Otherwise we use algorithm 2.
 
         // Algorithm 1:
         //   Check if there is a new organ and if so, how many need to be created
-        CropInterface *ci = Manager::getCropInterface(set.CP);
+        
         
         newOrgan = ci->hasNewOrgan();
 
-        // If the number of new organs is greater than 0, create an organ with the
-        // corresponding data and index in the crop interface.
+        //   If the number of new organs is greater than 0, create an organ with the
+        //   corresponding data and index in the crop interface.
         if (newOrgan > 0) {
-            set.organs.emplace_back(set.CP, cloudsP, newOrgan, Manager::getCropInterface(set.CP)->getOrganArea(newOrgan));
+            set.organs.emplace_back(set.CP, cloudsP, newOrgan, ci->getOrganArea(newOrgan), ORGAN_AGE);
         }
 
         // Algorithm 2:
-        // Debug statement for reporting growth queue
-        // std::cout << "Growth queue for this OrganSet: " << set.growthQueue << std::endl;
+        //   Debug statement for reporting growth queue
         if (set.growthQueue > 0) {
             if (set.organs.size() == 0) {
-                set.organs.emplace_back(set.CP, cloudsP, 1, set.growthQueue);
+                set.organs.emplace_back(set.CP, cloudsP, 1, set.growthQueue, ORGAN_AGE);
             } else {
                 set.organs.back().grow(set.growthQueue);
             }
@@ -102,6 +107,8 @@ void Plant::rate() {
             }
         }
     }
+    // Release the plant context
+    gEqContext->plant = nullptr;
 }
 
 void Plant::integration() {

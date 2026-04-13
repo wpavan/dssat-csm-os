@@ -19,7 +19,12 @@ int CloudF::firstOutputCall = 0;
 
 void CloudF::rate() {
     if (lastRate != Basic::getWeather()->getDoy()) {
+        // Set current cloud for context
+        gEqContext->cloud = this;
+
+        // Run the generic cloud rate function
         Cloud::rate();
+
         #ifdef DEBUGX        
         std::cout << "YEARDOY: " << weather->getYearDoy() << "\n\t- CloudF family: " << family << "\n\t- Total Spores in CloudF: " << getValue() << std::endl;
         #endif // DEBUG
@@ -30,7 +35,9 @@ void CloudF::rate() {
         // Add the inoculum value into FlexibleIO
         FlexibleIO *fio = FlexibleIO::getInstance();
         fio->setRealMemory(family, "INOCULUM", getValue());
-        // std::cout << "Just set " << family << ":INOCULUM to " << getValue() << std::endl;
+        
+        // Free the context
+        gEqContext->cloud = nullptr;
     }
 }
 

@@ -16,6 +16,8 @@
 #include "utilities.h"
 #include "basic.h"
 #include "manager.h"
+#include "equation_context.h"
+#include "numericstringcache.h"
 
 #include <string>
 #include <sstream>
@@ -23,36 +25,132 @@
 #include <fstream>
 #include <cmath>
 
+static double TE_getHealthyValue(void) {
+    return gEqContext && gEqContext->organ ? static_cast<double>(gEqContext->organ->getHealthyValue()) : 0.0;
+}
+
+static double TE_getDiseaseValue(void) {
+    return gEqContext && gEqContext->organ ? static_cast<double>(gEqContext->organ->getDiseaseValue()) : 0.0;
+}
+
+static double TE_getTotalValue(void) {
+    return gEqContext && gEqContext->organ ? static_cast<double>(gEqContext->organ->getTotalValue()) : 0.0;
+}
+
+static double TE_getAge(void) {
+    return gEqContext && gEqContext->organ ? static_cast<double>(gEqContext->organ->getPhysiologicalLife()) : 0.0;
+}
+
+static double TE_getLocalInoculum(void) {
+    float totalInoc = 0.0f;
+    if (gEqContext && gEqContext->organ) {
+        for (auto& cloudo : gEqContext->organ->getCloudsO()) {
+            totalInoc += cloudo.getValue();
+            totalInoc += cloudo.getCloudP()->getValue();
+            totalInoc += cloudo.getCloudP()->getCloudF()->getValue();
+        }
+        return static_cast<double>(totalInoc);
+    }
+    return 0.0;
+}
+
+// NOTE: we need to replace family text with a number
+static double TE_getLocalInoculumByFamily(double family) {
+    FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+    std::string familyStr = converter->decode(family);
+
+    float totalInoc = 0.0f;
+    if (gEqContext && gEqContext->organ) {
+        for (auto& cloudo : gEqContext->organ->getCloudsO()) {
+            if (familyStr == cloudo.getCloudP()->getCloudF()->getFamily()) {
+                totalInoc += cloudo.getValue();
+                totalInoc += cloudo.getCloudP()->getValue();
+                totalInoc += cloudo.getCloudP()->getCloudF()->getValue();
+                return static_cast<double>(totalInoc);
+            }
+        }
+    }
+    return 0.0;
+}
+
+namespace {
+    struct FunctionRegistrar {
+        FunctionRegistrar() {
+            getCustomFunctions().register_context_function({"ORGAN_VALUE", TE_getTotalValue});
+            getCustomFunctions().register_context_function({"ORGAN_DISEASE_VALUE", TE_getDiseaseValue});
+            getCustomFunctions().register_context_function({"ORGAN_HEALTHY_VALUE", TE_getHealthyValue});
+            getCustomFunctions().register_context_function({"ORGAN_AGE", TE_getAge});
+            getCustomFunctions().register_context_function({"ORGAN_LOCAL_INOC", TE_getLocalInoculum});
+            getCustomFunctions().register_context_function({"ORGAN_LOCAL_FAMILY_INOC", TE_getLocalInoculumByFamily});
+        }
+    };
+
+    // Static instance to trigger the registration at program startup
+    static FunctionRegistrar registrar;
+}
+
 int Organ::firstOutputCall = 0;
 
 void Organ::rate() {
+    // Set the current organ for context
+    gEqContext->organ = this;
+
+    // Get the manager instance to access crop interfaces and coupling data
     Manager *manager = Manager::getInstance();
-    // Get the crop interface that refers to this type of organs specifically
-    // CropInterface *cropinterface = manager->getCropInterface(organCP);
 
-    // Calculate the ratio due senescence based on previous day
-    // float actualDisease = 0; //, ratioSenescence = this->senescenceValue / this->getTotalValue();
-    // float actualInvisibleValue = 0, actualVisibleValue = 0;
+    // Get the flexible IO instance for new lesion storage updating.
+    FlexibleIO *fio = FlexibleIO::getInstance();
 
+    // Determine the increase in physiological age today
+    // NOTE: Ensure that the organ age parameter is set
+    //       once per organ value CP in the yaml file.
+    try {
+        dailyPhysiologicalLife = ORGAN_AGE.evaluate();
+    } catch (const std::runtime_error& e) {
+        std::cerr << "Error evaluating ORGAN_AGE expression for Organ CP: " << cpIDToStr(organCP) << std::endl << "Exception: " << e.what() << std::endl;
+        dailyPhysiologicalLife = 0.0f; // Default to 0 favorability if evaluation fails
+    }
+    
     // Update the senescence area for the current day
     // NOTE: Is this routing of simulator -> cropinterface -> getSenescenceOrganArea needed? 
     //       We could maybe change the senescenceValue of the organ to be held in the organ object itself.
-    //this->senescenceValue = cropinterface->getSenescenceOrganArea(organNumber);
+    // this->senescenceValue = cropinterface->getSenescenceOrganArea(organNumber);
+
+    // Determine the number of new lesions on the organ today
+    if(suceptible) {
+        for (auto& cloudo : cloudsO) {s
+            // Record that new lesions should be created
+            int newLesionsVal = 0;
+            try {
+                newLesionsVal = cloudo.getDisease()->getNEW_LES()->evaluate();
+            } catch (const std::runtime_error& e) {
+                std::cerr << "Error evaluating NEW_LES expression for DiseaseID: " << cloudo.getDisease()->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
+            }
+
+            if (newLesionsVal > 0) {
+                // Add the new lesions to the organ's tracking structure
+                newLesions.addLesions(&cloudo, newLesionsVal);
+
+                // Push information about new daily lesions to FIO
+                fio->setIntegerMemory(cloudo.getDisease()->getDiseaseID(), "DAILY_NEW_LESIONS", fio->getInteger(cloudo.getDisease()->getDiseaseID(), "DAILY_NEW_LESIONS") + newLesions.getTotalLesions());
+            }
+            
+        }
+    }
+
+    
+    // NOTE: This should be divided by which disease is creating the lesions
+    
 
     // Recalculate the ratio due senescence and take the difference from previous ratio
     //ratioSenescence = (this->senescenceValue / this->getTotalValue()) - ratioSenescence;
 
     // Update the total organ area (current day) - (shouldn't do anything)
     // this->totalArea = cropinterface->getOrganArea(organNumber);
-    std::cout << "Organ " << organNumber << " Daily Healthy Value: " << dailyHealthyValue << std::endl;
+    // std::cout << "Organ " << organNumber << " Daily Healthy Value: " << dailyHealthyValue << std::endl;
     if (dailyHealthyValue > 0) {
         healthyValue += dailyHealthyValue;
         dailyHealthyValue = 0;
-    }
-
-    // If the organ was not previously susceptible and now has area, set it to susceptible
-    if (!suceptible && this->getTotalValue() > 0) {
-        suceptible = true;
     }
 
     // If the organ is not alive, skip the rest of the calculations
@@ -60,15 +158,14 @@ void Organ::rate() {
         return;
     }
 
-    // std::cout << "=== Starting LC rate loop ===" << std::endl;
+    // === Starting LC rate loop ===
     for (auto& lc : lesionCohorts) {
-        lc.setOrganHealthyValue(getHealthyValue());
-        lc.setOrganDiseaseValue(getDiseaseValue());
-        // std::cout << "organ healthy & disease: " << getHealthyValue() << " & " << getDiseaseValue() << std::endl;
+        // Lesion cohort rate call
         lc.rate();
-        // After rate, lc has calculated the daily (in)visible value growth
-        // spores are also calculated if the method calls for it
     }
+
+    // Safely nullify the organ pointer in the context before exiting/looping
+    gEqContext->organ = nullptr;
 }
 
 void Organ::integration() {

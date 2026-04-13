@@ -22,6 +22,17 @@
 int CloudO::qtd = 0;
 int CloudO::firstOutputCall = 0;
 
+void CloudO::rate() {
+    // Set current cloud for context
+    gEqContext->cloud = this;
+
+    // Run the generic cloud rate function
+    Cloud::rate();
+
+    // Free the context
+    gEqContext->cloud = nullptr;
+}
+
 void CloudO::integration() {
     // Refactor
     if (REMOVAL_METHOD == 1) {
