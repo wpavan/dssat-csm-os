@@ -15,6 +15,7 @@
 #include "utilities.h"
 #include "coupling.h"
 #include "injection.h"
+#include "expression.h"
 
 #include <cstring>
 #include <string>
@@ -32,67 +33,32 @@ protected:
     int id;
     std::string cropModel = "CRGRO";
     std::string family = "RUST";
-    std::string description = "Soybean Leaf Rust";
-    std::string sporeModule = "GenericPM-Spores";
+    std::string diseaseID = "SLR";
     CouplingPointID organCP = CouplingPointID::SDWT;
     CouplingPointID damageCP = CouplingPointID::PSDD; 
 
     // NOTE: Units for all of these values would be great to include in the documentation.
-    float infectionEfficiency = 0.17;
     float initialInoculum = 50;
     int vectorSizeCloudF = 5;
     int vectorSizeCloudP = 7;
     int vectorSizeCloudO = 10;
-    float dailySporeProductionPerLesion = 3000;
+    // float dailySporeProductionPerLesion = 3000;
     float maxSporeCloudsDensity = 12000;
     float proportionFromOrganToPlantCloud = 0.20;
     float proportionFromPlantToFieldCloud = 0.30;   
     int latentPeriod = 7;
     int infectionPeriod = 21;
-    int MRRS = 2000;
-    std::string visibleGrowthFunction = "0.4*exp(-10*exp(-0.4*x))";
-    std::string wetnessFunction = "1/(1+exp(4.948-0.348*x))";
+    
     std::string depositionFrequency = "0.367753*(x+0.001)^0.129605*exp(-0.085252*(x+0.001))";
     float initialPustuleSize = 0.00001;
-    std::string invisibleGrowthFunction = "0.8*exp(-10*exp(-0.4*x))";
-    std::string SWF = "0.0000005*exp(0.20*x)";
-    float wetnessThreshold = 6;
+    
     float acumulateFavorability = 35;
-    float hostFactor = 1;
     static std::vector<Disease*> listDiseases;
-    std::string rhFactor = "1*x";
     float biologicalFactor = 0.0;
 
     OrganMode organMode = OrganMode::COHORT;
 
     bool createdSpores = false;
-
-    /**
-     * @var cohortAgeSet
-     * 
-     * Set of factors related to the cohort age. These coefficients are
-     * used as an input to the trapezoidal function for the calculation of 
-     * new spores created by lesions.
-     */ 
-    float cohortAgeSet[4] = {4,20,22,30};
-
-    /**
-     * @var sporulationCrowdingFactorsSet
-     * 
-     * Set of coefficients used in an equation to calculate sporulation 
-     * crowding factor. This factor is used in the calculation of new 
-     * spores created by lesions.
-     */
-    float sporulationCrowdingFactorsSet[3] = {0.98669, 10.71894, 0.93374};
-
-    /**
-     * @var temperatureFavorabilitySet
-     * 
-     * Set of temperatures in Celsius used to calculate the favorability 
-     * of the environment for the disease in terms of temperature. This is 
-     * always used in Utilities::TemperatureFavorability.
-     */
-    float temperatureFavorabilitySet[3] = {29,10,22.5};
 
     /**
      * @var cardinalTempPhysiologicalLife
@@ -132,34 +98,20 @@ public:
     }
 
     void printDisease() {
-        std::cout << "Disease ID: " << id << std::endl;
-        std::cout << "Description: " << description << std::endl;
-        std::cout << "Spore Module: " << sporeModule << std::endl;
-        std::cout << "Infection Efficiency: " << infectionEfficiency << std::endl;
+        std::cout << "Disease ID: " << diseaseID << std::endl;
         std::cout << "Initial Inoculum: " << initialInoculum << std::endl;
         std::cout << "Vector Size Cloud F: " << vectorSizeCloudF << std::endl;
         std::cout << "Vector Size Cloud P: " << vectorSizeCloudP << std::endl;
         std::cout << "Vector Size Cloud O: " << vectorSizeCloudO << std::endl;
-        std::cout << "Daily Spore Production Per Lesion: " << dailySporeProductionPerLesion << std::endl;
-        std::cout << "Cohort Age Set: " << cohortAgeSet[0] << " " << cohortAgeSet[1] << " " << cohortAgeSet[2] << " " << cohortAgeSet[3] << std::endl;
-        std::cout << "Sporulation Crowding Factors Set: " << sporulationCrowdingFactorsSet[0] << " " << sporulationCrowdingFactorsSet[1] << " " << sporulationCrowdingFactorsSet[2] << std::endl;
         std::cout << "Max Spore Clouds Density: " << maxSporeCloudsDensity << std::endl;
         std::cout << "Proportion From Organ To Plant Cloud: " << proportionFromOrganToPlantCloud << std::endl;
         std::cout << "Proportion From Plant To Field Cloud: " << proportionFromPlantToFieldCloud << std::endl;
-        std::cout << "Temperature Favorability Set: " << temperatureFavorabilitySet[0] << " " << temperatureFavorabilitySet[1] << " " << temperatureFavorabilitySet[2] << std::endl;
         std::cout << "Latent Period: " << latentPeriod << std::endl;
         std::cout << "Infection Period: " << infectionPeriod << std::endl;
-        std::cout << "MRRS: " << MRRS << std::endl;
-        std::cout << "Visible Growth Function: " << visibleGrowthFunction << std::endl;
-        std::cout << "Wetness Function: " << wetnessFunction << std::endl;
         std::cout << "Deposition Frequency: " << depositionFrequency << std::endl;
         std::cout << "Initial Pustule Size: " << initialPustuleSize << std::endl;
-        std::cout << "Invisible Growth Function: " << invisibleGrowthFunction << std::endl;
-        std::cout << "Wetness Threshold: " << wetnessThreshold << std::endl;
         std::cout << "Acumulate Favorability: " << acumulateFavorability << std::endl;
-        std::cout << "Host Factor: " << hostFactor << std::endl;
         std::cout << "Cardinal Temp Physiological Life: " << cardinalTempPhysiologicalLife[0] << " " << cardinalTempPhysiologicalLife[1] << " " << cardinalTempPhysiologicalLife[2] << " " << cardinalTempPhysiologicalLife[3] << std::endl;
-        std::cout << "Rh Factor: " << rhFactor << std::endl;
     }
 
     OrganMode getOrganMode() {
@@ -182,20 +134,20 @@ public:
         this->biologicalFactor = biologicalFactor;
     }
 
+    std::string getDiseaseID() {
+        return diseaseID;
+    } 
+    
+    void setDiseaseID(std::string diseaseID) {
+        this->diseaseID = diseaseID;
+    }
+
     std::string getFamily() {
         return family;
     }
 
     void setFamily(std::string family) {
         this->family = family;
-    }
-
-    std::string getSWF() {
-        return SWF;
-    }
-
-    void setSWF(std::string SWF) {
-        this->SWF = SWF;
     }
 
     CouplingPointID getOrganCP() {
@@ -237,17 +189,6 @@ public:
     void setDamageCP(CouplingPointID damageCouplingPoint) {
         this->damageCP = damageCouplingPoint; // Default coupling point for the organ cloud.
     }
-
-    std::string getSporeModule() {
-        return sporeModule;
-    }
-
-    void setSporeModule(std::string sporeModule) {
-        this->sporeModule = sporeModule;
-    }
-
-    float getSporulationCrowdingFactor(float proportionDiseaseArea);
-    float newLesions(float cloudDensity, float healthyAreaProportion);
 
     /**
      * Get proportion of spores from organ to plant cloud.
@@ -304,42 +245,6 @@ public:
     }
 
     /**
-     * Get cohort age set.
-     * 
-     * @return Set of factors/coefficients related to the cohort age function.
-     */
-    float* getCohortAgeSet() {
-        return &cohortAgeSet[0];
-    }
-
-    /**
-     * Set cohort age set.
-     * 
-     * @param cohortAgeSet Set of factors/coefficients related to the cohort age function.
-     */
-    void setCohortAgeSet(float cohortAgeSet[]) {
-        std::copy(cohortAgeSet, cohortAgeSet + 4, this->cohortAgeSet);
-    }
-
-    /**
-     * Get daily spore production per lesion.
-     * 
-     * @return Daily spore production per lesion.
-     */
-    float getDailySporeProductionPerLesion() {
-        return dailySporeProductionPerLesion;
-    }
-
-    /**
-     * Set daily spore production per lesion.
-     * 
-     * @param dailySporeProductionPerLesion Daily spore production per lesion.
-     */
-    void setDailySporeProductionPerLesion(float dailySporeProductionPerLesion) {
-        this->dailySporeProductionPerLesion = dailySporeProductionPerLesion;
-    }
-
-    /**
      * Get the disease ID.
      * 
      * @return Disease ID.
@@ -355,42 +260,6 @@ public:
      */
     void setId(int id) {
         this->id = id;
-    }
-
-    /**
-     * Get the wetness threshold.
-     * 
-     * @return Wetness threshold.
-     */
-    float getWetnessThreshold() {
-        return wetnessThreshold;
-    }
-
-    /**
-     * Set the wetness threshold.
-     * 
-     * @param wetnessThreshold Wetness threshold.
-     */
-    void setWetnessThreshold(float wetnessThreshold) {
-        this->wetnessThreshold = wetnessThreshold;
-    }
-
-    /**
-     * Get the disease description.
-     * 
-     * @return Disease description.
-     */
-    std::string getDescription() {
-        return description;
-    }
-
-    /**
-     * Set the disease description.
-     * 
-     * @param description Disease description.
-     */
-    void setDescription(std::string description) {
-        this->description = description;
     }
 
     /**
@@ -427,68 +296,6 @@ public:
      */
     void setInfectionPeriod(int infectionPeriod) {
         this->infectionPeriod = infectionPeriod;
-    }
-
-    /**
-     * Get the MRRS.
-     * 
-     * NOTE: I know it relates to rain susceptibility, but what does it stand for?
-     * 
-     * @return MRRS.
-     */
-    float getMRRS() {
-        return MRRS;
-    }
-
-    /**
-     * Set the MRRS.
-     * 
-     * @param MRRS MRRS.
-     */
-    void setMRRS(int MRRS) {
-        this->MRRS = MRRS;
-    }
-
-    /**
-     * Get the infection efficiency.
-     * 
-     * @return Infection efficiency.
-     */
-    float getInfectionEfficiency() {
-        return infectionEfficiency;
-    }
-
-    /**
-     * Set the infection efficiency.
-     * 
-     * @param infectionEfficiency Infection efficiency.
-     */
-    void setInfectionEfficiency(float infectionEfficiency) {
-        this->infectionEfficiency = infectionEfficiency;
-    }
-
-    /**
-     * Get the temperature favorability set.
-     * 
-     * @copydoc temperatureFavorabilitySet
-     * 
-     * @return Temperature favorability set.
-     */
-    float* getTemperatureFavorabilitySet() {
-        return &temperatureFavorabilitySet[0];
-    }
-
-    /**
-     * Set the temperature favorability set.
-     * 
-     * @copydoc temperatureFavorabilitySet
-     * 
-     * @param temperatureFavorabilitySet Temperature favorability set.
-     */
-    void setTemperatureFavorabilitySet(float temperatureFavorabilitySet[]) {
-        std::copy(temperatureFavorabilitySet, 
-                  temperatureFavorabilitySet + 3, 
-                  this->temperatureFavorabilitySet);
     }
 
     /**
@@ -546,24 +353,6 @@ public:
     }
 
     /**
-     * Get the host factor.
-     * 
-     * @return Host factor.
-     */
-    float getHostFactor() {
-        return hostFactor;
-    }
-
-    /**
-     * Set the host factor.
-     * 
-     * @param hostFactor Host factor.
-     */
-    void setHostFactor(float hostFactor) {
-        this->hostFactor = hostFactor;
-    }
-
-    /**
      * Get the initial pustule size.
      * 
      * @return Initial pustule size.
@@ -615,32 +404,6 @@ public:
      */
     void setAcumulateFavorability(float acumulateFavorability) {
         this->acumulateFavorability = acumulateFavorability;
-    }
-
-    /**
-     * Get the sporulation crowding factors set.
-     * 
-     * @copydoc sporulationCrowdingFactorsSet
-     * 
-     * NOTE: This is currently unused. Should it be removed, or should the
-     *       implementation of sporulation crowding factor be calculated in .json file?
-     * 
-     * @return Sporulation crowding factors set.
-     */
-    float* getSporulationCrowdingFactorsSet() {
-        return &sporulationCrowdingFactorsSet[0];
-    }
-
-    /**
-     * Set the sporulation crowding factors set.
-     * 
-     * @copydoc sporulationCrowdingFactorsSet
-     * 
-     * @param sporulationCrowdingFactorsSet Sporulation crowding factors set.
-     */
-    void setSporulationCrowdingFactorsSet(float sporulationCrowdingFactorsSet[]) {
-        std::copy(sporulationCrowdingFactorsSet, sporulationCrowdingFactorsSet + 3, 
-                  this->sporulationCrowdingFactorsSet);
     }
 
     /**
@@ -720,62 +483,134 @@ public:
      * 
      * @param invisibleGrowthFunction Invisible growth function.
      */
-    void setInvisibleGrowthFunction(std::string invisibleGrowthFunction) {
-        this->invisibleGrowthFunction = invisibleGrowthFunction;
+    void setIGF(Expression invisibleGrowthFunction) {
+        this->IGF = invisibleGrowthFunction;
     }
 
     /**
-     * Get the wetness function.
+     * Get the INOC_EXT expression.
      * 
-     * @return Wetness function.
+     * @return INOC_EXT expression.
      */
-    std::string getWetnessFunction() const {
-        return wetnessFunction;
+    Expression* getINOC_EXT() {
+        return &INOC_EXT;
     }
 
     /**
-     * Set the wetness function.
+     * Set the INOC_EXT expression.
      * 
-     * @param wetnessFunction Wetness function.
+     * @param INOC_EXT INOC_EXT expression.
      */
-    void setWetnessFunction(std::string wetnessFunction) {
-        this->wetnessFunction = wetnessFunction;
+    void setINOC_EXT(Expression INOC_EXT) {
+        this->INOC_EXT = INOC_EXT;
     }
 
     /**
-     * Get the deposition frequency.
+     * Get the INOC_LES expression.
      * 
-     * @return Deposition frequency.
+     * @return INOC_LES expression.
      */
-    std::string getDispersionFrequency() const {
-        return depositionFrequency;
+    Expression* getINOC_LES() {
+        return &INOC_LES;
     }
 
     /**
-     * Set the deposition frequency.
+     * Set the INOC_LES expression.
      * 
-     * @param depositionFrequency Deposition frequency.
+     * @param INOC_LES INOC_LES expression.
      */
-    void setDispersionFrequency(std::string depositionFrequency) {
-        this->depositionFrequency = depositionFrequency;
+    void setINOC_LES(Expression INOC_LES) {
+        this->INOC_LES = INOC_LES;
     }
 
     /**
-     * Get the RH factor.
+     * Get the DAMAGE expression.
      * 
-     * @return RH factor.
+     * @return DAMAGE expression.
      */
-    std::string getRhFactor() {
-        return rhFactor;
+    Expression* getDAMAGE() {
+        return &DAMAGE;
     }
 
     /**
-     * Set the RH factor.
+     * Set the DAMAGE expression.
      * 
-     * @param rhFactor RH factor.
+     * @param DAMAGE DAMAGE expression.
      */
-    void setRhFactor(std::string rhFactor) {
-        this->rhFactor = rhFactor;
+    void setDAMAGE(Expression DAMAGE) {
+        this->DAMAGE = DAMAGE;
+    }
+
+    /**
+     * Get the II_AGE expression.
+     * 
+     * @return II_AGE expression.
+     */
+    Expression* getII_AGE() {
+        return &II_AGE;
+    }
+
+    /**
+     * Set the II_AGE expression.
+     * 
+     * @param II_AGE II_AGE expression.
+     */
+    void setII_AGE(Expression II_AGE) {
+        this->II_AGE = II_AGE;
+    }
+
+    /**
+     * Get the NEW_LES expression.
+     * 
+     * @return NEW_LES expression.
+     */
+    Expression* getNEW_LES() {
+        return &NEW_LES;
+    }
+
+    /**
+     * Set the NEW_LES expression.
+     * 
+     * @param NEW_LES NEW_LES expression.
+     */
+    void setNEW_LES(Expression NEW_LES) {
+        this->NEW_LES = NEW_LES;
+    }
+
+    /**
+     * Get the LES_AGE expression.
+     * 
+     * @return LES_AGE expression.
+     */
+    Expression* getLES_AGE() {
+        return &LES_AGE;
+    }
+
+    /**
+     * Set the LES_AGE expression.
+     * 
+     * @param LES_AGE LES_AGE expression.
+     */
+    void setLES_AGE(Expression LES_AGE) {
+        this->LES_AGE = LES_AGE;
+    }
+
+    /**
+     * Get the INOC_REM expression.
+     * 
+     * @return INOC_REM expression.
+     */
+    Expression* getINOC_REM() {
+        return &INOC_REM;
+    }
+
+    /**
+     * Set the INOC_REM expression.
+     * 
+     * @param INOC_REM INOC_REM expression.
+     */
+    void setINOC_REM(Expression INOC_REM) {
+        this->INOC_REM = INOC_REM;
     }
 };
 
