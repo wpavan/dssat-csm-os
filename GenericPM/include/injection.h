@@ -1,8 +1,11 @@
-#include "../TinyExpr/tinyexpr.h"
+#include "../TinyExpr++/tinyexpr.h"
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
+#include <set>
 #include <string>
 #include <regex>
+#include <random>
+#include <cmath>
 #include <iostream>
 
 #ifndef INJECTION_H
@@ -75,6 +78,8 @@
  * that results in the value being updated appropriately. 
  */
 
+class Expression;
+
 // Define the modification types for injections.
 enum class ModificationType {
     ADD,        // Effect will be the same as +=
@@ -84,17 +89,7 @@ enum class ModificationType {
     ASSIGN      // Effect will be the same as =
 };
 
-// Define regex patterns for each modification type
-struct ModificationRegex { 
-    static const std::regex addPattern;
-    static const std::regex subPattern;
-    static const std::regex multPattern;
-    static const std::regex divPattern;
-    static const std::regex asgnPattern;
-};
-
 enum class InjEndpoint {
-    INOCULUM,
     INFECTION_BIOLOGICAL_FACTOR,
     FIO,
     PCP,        // Coupling point endpoint - needs to be linked to a coupling point ID
@@ -109,17 +104,14 @@ InjEndpoint parseEndpoint(std::string endpointStr);
  * [... your comment block ...]
  */
 class Injection {
-    private:
-        static const std::regex fioPattern_;
-        static const std::regex simDatePattern_;
     protected:
-        std::string rawExpression;
+        Expression* expression;
         std::string rawEndpoint;
         InjEndpoint endpoint;
         ModificationType modification;
     public:
-        Injection() : rawExpression("") {};
-        Injection(std::string endpt, std::string expr, std::string modif) : rawExpression(expr),  rawEndpoint(endpt){
+        Injection() : expression(nullptr) {};
+        Injection(std::string endpt, Expression* expr, std::string modif) : expression(expr), rawEndpoint(endpt){
             endpoint = parseEndpoint(endpt);
             modification = parseModification(modif);
         };
@@ -131,8 +123,7 @@ class Injection {
         InjEndpoint getEndpoint() const {
             return endpoint;
         }
-        std::string parse(bool& missingVal);
-        std::string parse();
+
         double eval();
 
         void apply(float& endpointValue);

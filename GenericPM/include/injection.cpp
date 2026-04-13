@@ -1,50 +1,44 @@
-#include <random>
-
 #include "injection.h"
 #include "manager.h"
+#include "utilities.h"
+#include "equation_context.h"
+#include "numericstringcache.h"
 
 static std::mt19937 rng(std::random_device{}());
 
 static const double inverse_sqrt_2pi = 0.3989422804014337;
 
-const std::regex Injection::fioPattern_(R"(#\{([A-Za-z\s]+):([A-Za-z0-9_\s]+):?([A-Za-z0-9\s]+)?\})");
-const std::regex Injection::simDatePattern_(R"((?:(?:CURRENT|SIMULATION|SIM)(?: |_))?(?:YRDOY|DATE|TODAY|YYYYJJJ|YYYYDDD|YYYYDOY))");
- 
-const std::regex ModificationRegex::addPattern(R"((?:ADDITION|ADD|PLUS|\+=|\+))", std::regex::icase);
-const std::regex ModificationRegex::subPattern(R"((?:SUBTRACTION|SUBTRACT|MINUS|-=|-))", std::regex::icase);
-const std::regex ModificationRegex::multPattern(R"((?:MULTIPLICATION|MULTIPLY|MULT|TIMES|\*=|\*))", std::regex::icase);
-const std::regex ModificationRegex::divPattern(R"((?:DIVISION|DIVIDE|DIV|\/=|\/))", std::regex::icase);
-const std::regex ModificationRegex::asgnPattern(R"((?:ASSIGNMENT|REPLACEMENT|ASSIGN|REPLACE|EQUALS|=))", std::regex::icase);
-
-double max_func(double a, double b) {
+// NOTE: We should add a function for automatic gdd calculation.
+// Define custom functions for tinyexpr for the user.
+static double TE_max(double a, double b) {
     return (a > b) ? a : b;
 }
 
-double min_func(double a, double b) {
+static double TE_min(double a, double b) {
     return (a < b) ? a : b;
 }
 
-double amp_gaussian_func(double x, double mean, double stddev, double amplitude) {
+static double TE_amp_gaussian(double x, double mean, double stddev, double amplitude) {
     double a = (x - mean) / stddev;
     return amplitude * std::exp(-0.5 * a * a);
 }
 
-double norm_gaussian_func(double x, double mean, double stddev) {
+static double TE_norm_gaussian(double x, double mean, double stddev) {
     double a = (x - mean) / stddev;
     return (inverse_sqrt_2pi * stddev) * std::exp(-0.5 * a * a);
 }
 
-double rand_unif_func(double min, double max) {
+static double TE_rand_unif(double min, double max) {
     std::uniform_real_distribution<double> dist(min, max);
     return dist(rng);
 }
 
-double rand_norm_func(double mean, double stddev) {
+static double TE_rand_norm(double mean, double stddev) {
     std::normal_distribution<double> dist(mean, stddev);
     return dist(rng);
 }
 
-double bounded_beta_func(double x, double max, double opt, double min) {
+static double TE_bounded_beta(double x, double max, double opt, double min) {
     if (x == -99 || max == -99.0 || opt == -99.0 || min == -99.0) {
         return 0.0;
     } else if (x < min || x > max) {
@@ -54,11 +48,11 @@ double bounded_beta_func(double x, double max, double opt, double min) {
     } else if (!std::isfinite(x) || !std::isfinite(min) || !std::isfinite(opt) || !std::isfinite(max)) {
         return 0.0;
     } else {
-        return fmin(fmax(std::pow((x - min) / (opt - min), (opt - min) / (max - min)) * std::pow((max - x) / (max - opt), (max - opt) / (max - min)), 0.0), 1.0);
+        return std::fmin(std::fmax(std::pow((x - min) / (opt - min), (opt - min) / (max - min)) * std::pow((max - x) / (max - opt), (max - opt) / (max - min)), 0.0), 1.0);
     }
 }
 
-double unit_beta_func(double x, double max, double opt, double min) {
+static double TE_unit_beta(double x, double max, double opt, double min) {
     double tf, a, b;
 
     b = ((max - opt) / (opt - min));
@@ -72,7 +66,7 @@ double unit_beta_func(double x, double max, double opt, double min) {
     return (fmax(0,tf));
 }
 
-double trapezoidal_func(double x, double max, double opt_max, double opt_min, double min) {
+static double TE_trapezoidal(double x, double max, double opt_max, double opt_min, double min) {
     if (x <= min || x >= max) {
         return 0.0;
     } else if (x >= opt_min && x <= opt_max) {
@@ -84,7 +78,7 @@ double trapezoidal_func(double x, double max, double opt_max, double opt_min, do
     }
 }
 
-double triangular_func(double x, double max, double opt, double min) {
+static double TE_triangular(double x, double max, double opt, double min) {
     if (x <= min || x >= max) {
         return 0.0;
     } else if (x == opt) {
@@ -96,7 +90,7 @@ double triangular_func(double x, double max, double opt, double min) {
     }
 }
 
-double linear_func(double x, double x_at_max, double x_at_min) {
+static double TE_linear(double x, double x_at_max, double x_at_min) {
     if (x_at_max > x_at_min) {
         if (x <= x_at_min) {
             return 0.0;
@@ -116,112 +110,76 @@ double linear_func(double x, double x_at_max, double x_at_min) {
     }
 }
 
-// Define custom functions for tinyexpr for the user.
-te_variable customFunctions[] = {
-    {"max", (const void*)max_func, TE_FUNCTION2},
-    {"min", (const void*)min_func, TE_FUNCTION2},
-    {"amp_gaussian", (const void*)amp_gaussian_func, TE_FUNCTION4},
-    {"gaussian", (const void*)amp_gaussian_func, TE_FUNCTION4},
-    {"gaussian", (const void*)norm_gaussian_func, TE_FUNCTION3},
-    {"norm_gaussian", (const void*)norm_gaussian_func, TE_FUNCTION3},
-    {"beta", (const void*)unit_beta_func, TE_FUNCTION4},
-    {"trapezoidal", (const void*)trapezoidal_func, TE_FUNCTION4},
-    {"triangular", (const void*)triangular_func, TE_FUNCTION3},
-    {"linear", (const void*)linear_func, TE_FUNCTION3},
-    {"rand_unif", (const void*)rand_unif_func, TE_FUNCTION2},
-    {"rand_norm", (const void*)rand_norm_func, TE_FUNCTION2}
-};
-
-std::string Injection::parse(bool& missingVal) {
-    std::string result = rawExpression;
-    missingVal = false;
-    
-    // Process all matches from right to left to avoid position shifts
-    std::vector<std::smatch> allMatches;
-    std::sregex_iterator iter(rawExpression.begin(), rawExpression.end(), Injection::fioPattern_);
-    std::sregex_iterator end;
-    
-    // Collect all matches
-    for (; iter != end; ++iter) {
-        allMatches.push_back(*iter);
-    }
-    
-    // Process matches in reverse order to maintain string positions
-    for (auto it = allMatches.rbegin(); it != allMatches.rend(); ++it) {
-        const std::smatch& match = *it;
-        float value;
-        
-        std::string group = match[1].str();
-        std::string second = match[2].str();
-        std::string third = match[3].str();
-        
-        if (third.empty()) {
-            // Two parts: #{GROUP:VARNAME}
-            value = FlexibleIO::getInstance()->getReal(group, second);
-        } else {
-            // Three parts: #{GROUP:YRDOY:VARNAME} or #{GROUP:VARNAME:INDEX}
-            // Check if second part is a year-day (length 7 and all digits)
-            // Then check for specific keywords to indicate current simulation date.
-            // Then check if it's an index (all digits).
-            if (second.length() == 7 && std::all_of(second.begin(), second.end(), ::isdigit)) {
-                value = FlexibleIO::getInstance()->getRealYrdoy(group, second, third);
-            } else if (std::regex_match(second, Injection::simDatePattern_)) {
-                value = FlexibleIO::getInstance()->getRealYrdoy(group, std::to_string(Manager::getInstance()->getCurrentSimDate()), third);
-            } else if (std::all_of(third.begin(), third.end(), ::isdigit)) {
-                value = FlexibleIO::getInstance()->getRealIndex(group, third, std::stoi(second));
-            } else {
-                throw std::runtime_error("Error: Second part of FIO reference '" + second + "' is neither YRDOY nor is the third part of FIO reference: '" + third + "' an INDEX.");
-            }
-        }
-        
-        // Check if value was missing in FlexibleIO
-        if (value == -99) {
-            missingVal = true;
-        }
-
-        // Replace this specific match with its value
-        result.replace(match.position(), match.length(), std::to_string(value));
-    }
-    
-    return result;
+static double TE_fio_real(double group, double varname) {
+    FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+    std::string groupStr = converter->decode(group);
+    std::string varnameStr = converter->decode(varname);
+    return FlexibleIO::getInstance()->getReal(groupStr, varnameStr);
 }
 
-std::string Injection::parse() {
-    bool missingVal;
-    return parse(missingVal);
+static double TE_fio_real_yrdoy(double group, double yrdoy, double varname) {
+    FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+    std::string groupStr = converter->decode(group);
+    std::string varnameStr = converter->decode(varname);
+
+    if (yrdoy == -1) {
+        // This is the case where the second part of the FIO reference was a sim date keyword like CURRENT_YRDOY. We need to get the current simulation date from the Weather singleton and pass it to FlexibleIO.
+        int currentYrdoy = Weather::getInstance()->getYearDoy();
+        return FlexibleIO::getInstance()->getRealYrdoy(groupStr, std::to_string(currentYrdoy), varnameStr);
+
+    }
+    return FlexibleIO::getInstance()->getRealYrdoy(groupStr, std::to_string((int)yrdoy), varnameStr);
+}
+
+static double TE_fio_real_index(double group, double varname, double index) {
+    FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+    std::string groupStr = converter->decode(group);
+    std::string varnameStr = converter->decode(varname);
+    return FlexibleIO::getInstance()->getRealIndex(groupStr, varnameStr, (int)index);
+}
+
+
+namespace {
+    struct FunctionRegistrar {
+        FunctionRegistrar() {
+            getCustomFunctions().register_context_function({"max", TE_max});
+            getCustomFunctions().register_context_function({"min", TE_min});
+            getCustomFunctions().register_context_function({"norm_gaussian", TE_norm_gaussian});
+            getCustomFunctions().register_context_function({"gaussian", TE_norm_gaussian});
+            getCustomFunctions().register_context_function({"amp_gaussian", TE_amp_gaussian});
+            getCustomFunctions().register_context_function({"rand_unif", TE_rand_unif});
+            getCustomFunctions().register_context_function({"rand_norm", TE_rand_norm});
+            getCustomFunctions().register_context_function({"bounded_beta", TE_bounded_beta});
+            getCustomFunctions().register_context_function({"unit_beta", TE_unit_beta});
+            getCustomFunctions().register_context_function({"trapezoidal", TE_trapezoidal});
+            getCustomFunctions().register_context_function({"triangular", TE_triangular});
+            getCustomFunctions().register_context_function({"linear", TE_linear});
+            getCustomFunctions().register_context_function({"FIO_REAL", TE_fio_real});
+            getCustomFunctions().register_context_function({"FIO_REAL_YRDOY", TE_fio_real_yrdoy});
+            getCustomFunctions().register_context_function({"FIO_REAL_INDEX", TE_fio_real_index});
+        }
+    };
+
+    static FunctionRegistrar registrar;
 }
 
 double Injection::eval() {
-    bool missingVal; 
     try {
-        std::string parsedExpr = parse(missingVal);
-        if (!missingVal) {
-            int err = 0;
-            te_expr *n = te_compile(parsedExpr.c_str(), customFunctions, sizeof(customFunctions) / sizeof(te_variable), &err);
-            
-            if (!n) {
-                throw std::runtime_error("Expression compilation failed at position " + 
-                                    std::to_string(err) + " in: " + parsedExpr);
-            }
-            
-            double result = te_eval(n);
-            te_free(n);
-            
-            if (!std::isfinite(result)) {
-                throw std::runtime_error("Expression evaluation resulted in non-finite value");
-            }
-            // std::cout << "Evaluated expression: " << parsedExpr << " = " << result << std::endl;
-            return result;
-        } else {
-            return -99.0f;
-        }
-    } catch (const std::exception& e) {
-        throw std::runtime_error("Evaluation error: " + std::string(e.what()));
+        return expression->evaluate();
+    } catch (const std::runtime_error& e) {
+        std::cerr << "Error evaluating expression for Injection with raw endpoint '" << rawEndpoint << "': " << e.what() << std::endl;
+        throw e;
     }
 }
 
 void Injection::apply(float& endpointValue) {
-    double evalResult = eval();  
+    double evalResult;
+    try {
+        evalResult = expression->evaluate();
+    } catch (const std::runtime_error& e) {
+        throw e; // Rethrow for the caller in
+    }
+
     if (evalResult == -99.0f) {
         // Do not apply if the evaluated result indicates a missing value
         return;
@@ -268,15 +226,15 @@ void Injection::apply(float& endpointValue, std::string& endpointVarName) {
 
 // Function definitions
 ModificationType parseModification(std::string modifStr) {
-    if (std::regex_match(modifStr, ModificationRegex::addPattern)) {
+    if (std::regex_match(modifStr, GDM::RegexPatterns::ADD_PATTERN)) {
         return ModificationType::ADD;
-    } else if (std::regex_match(modifStr, ModificationRegex::subPattern)) {
+    } else if (std::regex_match(modifStr, GDM::RegexPatterns::SUBTRACT_PATTERN)) {
         return ModificationType::SUBTRACT;
-    } else if (std::regex_match(modifStr, ModificationRegex::multPattern)) {
+    } else if (std::regex_match(modifStr, GDM::RegexPatterns::MULTIPLY_PATTERN)) {
         return ModificationType::MULTIPLY;
-    } else if (std::regex_match(modifStr, ModificationRegex::divPattern)) {
+    } else if (std::regex_match(modifStr, GDM::RegexPatterns::DIVIDE_PATTERN)) {
         return ModificationType::DIVIDE;
-    } else if (std::regex_match(modifStr, ModificationRegex::asgnPattern)) {
+    } else if (std::regex_match(modifStr, GDM::RegexPatterns::ASSIGN_PATTERN)) {
         return ModificationType::ASSIGN;
     } else {
         throw std::runtime_error("Error: Unknown modification type '" + modifStr + "'");
@@ -290,9 +248,7 @@ InjEndpoint parseEndpoint(std::string endpointStr) {
     } catch (const std::invalid_argument&) {
         // The user has supplied an endpoint that is not a coupling point.
     }
-    if (endpointStr == "INOCULUM") {
-        return InjEndpoint::INOCULUM;
-    } else if (endpointStr == "INFECTION_BIOLOGICAL_FACTOR") {
+    if (endpointStr == "INFECTION_BIOLOGICAL_FACTOR") {
         return InjEndpoint::INFECTION_BIOLOGICAL_FACTOR;
     } else {
         return InjEndpoint::FIO;
