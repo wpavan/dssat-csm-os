@@ -167,31 +167,7 @@ int LesionCohort::getVisibleLesions() {
 }
 
 void LesionCohort::output() {
-    std::ostringstream convert;
-    convert << "Cpp_LesionCohort_" << getID() << ".txt";
-    Basic::getOutput(convert.str());
-}
-
-bool LesionCohort::isLatentPeriod() const {
-    Disease *disease = cloudo->getDisease();
-    if (getPhysiologicalDaysAcumm() <= disease->getLatentPeriod()) {
-        return true;
-    }
-    return false;
-}
-
-bool LesionCohort::isInfectionPeriod() const {
-    Disease *disease = cloudo->getDisease();
-    if (getPhysiologicalDaysAcumm() > disease->getLatentPeriod() && getPhysiologicalDaysAcumm() <= (disease->getLatentPeriod() + disease->getInfectionPeriod())) {
-        return true;
-    }
-    return false;
-}
-
-bool LesionCohort::isNecroticPeriod() const {
-    Disease *disease = cloudo->getDisease();
-    if (getPhysiologicalDaysAcumm() > (disease->getLatentPeriod() + disease->getInfectionPeriod())) {
-        return true;
-    }
-    return false;
+    // std::ostringstream convert;
+    // convert << "Cpp_LesionCohort_" << getID() << ".txt";
+    // Basic::getOutput(convert.str());
 }

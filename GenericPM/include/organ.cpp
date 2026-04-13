@@ -181,70 +181,22 @@ void Organ::integration() {
     dailyTotalLesions = totalLesions;
     dailyVisibleLesions = visibleLesions;
     visibleLesions = 0;
-    newLesions = 0;
 
+    // Increase the organ's physiological age
+    physiologicalLife += dailyPhysiologicalLife;
+
+    // Create the new lesions
     if (suceptible) {
-        for (auto& cloudo : cloudsO) {
-            physiologicalLife += Utilities::trapezoidalFunction(Basic::getWeather()->getTMean(), 
-                                                                cloudo.getDisease()->getCardinalTempPhysiologicalLife());
+        for (auto& pair : newLesions.lesions) {
+            // Create a new lesion cohort for each disease that has created lesions on this organ
+            lesionCohorts.emplace_back(pair.second, pair.first);
 
-            cloudOValue = cloudAmount();
-            cloudPValue = cloudo.getCloudP()->getValue();
-            cloudFValue = cloudo.getCloudP()->getCloudF()->getValue();
-
-            // The number of lesions that will be created on any given 
-            // organ is proportional to that organ's exposed healthy 
-            // surface area. Organs should get lesions proportional to
-            // the fraction of healthy area represented by that organ.
-            // std::cout << "\n--------------- Lesion Math ---------------------" << std::endl;
-            // std::cout << "YEARDOY: " << std::to_string(getWeather()->getYearDoy()) << " Lesion Queue: " << lesionQueue << std::endl;
-
-            float lesionQueueOrgan = cloudo.getDisease()->newLesions(cloudOValue, healthyValue);
-            float lesionQueuePlant = cloudo.getDisease()->newLesions(cloudPValue, healthyValue) * (healthyValue / getOrganSetHealthyValue()); 
-            float lesionQueueField = cloudo.getDisease()->newLesions(cloudFValue, healthyValue) * (healthyValue / getOrganSetHealthyValue()); 
-
-            lesionQueue += lesionQueueOrgan + lesionQueuePlant + lesionQueueField;
-            // std::cout << "--------     New Lesion Queue: " << lesionQueue << std::endl;
-
-            int totalNewLesions = lesionQueue;
-            // std::cout << "--------       Lesions Formed: " << totalNewLesions << std::endl;
-
-            lesionQueue -= totalNewLesions;
-            // std::cout << "--------     End Lesion Queue: " << lesionQueue << std::endl;
-            // std::cout << "-----------------------------------------\n" << std::endl;
-
-            // Using old integer-based approach
-            // newLesionsFromOrgan = cloudo.getDisease()->newLesions(cloudOValue,healthAreaProportion);
-            // newLesionsFromPlant = cloudo.getDisease()->newLesions(cloudPValue,healthAreaProportion) * (healthyValue / getOrganSetHealthyValue()); 
-            // newLesionsFromField = cloudo.getDisease()->newLesions(cloudFValue,healthAreaProportion) * (healthyValue / getOrganSetHealthyValue()); 
-                        
-            // int totalNewLesions = newLesionsFromField + newLesionsFromPlant + newLesionsFromOrgan;
-
-            // Uncomment the following line to debug this step
-            // std::cout << "YEARDOY: " << std::to_string(getWeather()->getYearDoy()) << " New Lesions: " << totalNewLesions << std::endl;
-            // std::cout << "-------- ------- Cloud Value: " << cloudOValue + cloudPValue + cloudFValue << std::endl;
-            // std::cout << "-------- ------- Physio Life: " << physiologicalLife << std::endl;
-
-            // NOTE: This hardcoded physiological life should be 
-            //       replaced by a dynamic threshold in the .yaml file.
-            //       We could also modulate the number of lesions 
-            //       created based on some dynamic age factor.
-            if (totalNewLesions > 0 && physiologicalLife >= 0) {
-                // std::cout << "Organ: " << organNumber << "\tnew lesions: " << newLesions << std::endl;
-                
-                lesionCohorts.emplace_back(totalNewLesions, &cloudo);
-                totalLesions += totalNewLesions;
- 
-                // std::cout << "YEARDOY: " << getWeather()->getYearDoy() << " Organ (" << doc << ") Lesions: " << totalLesions << std::endl;
-
-                // Add Spores that will be removed because were used to infect the tissue
-                cloudo.addSporesToBeRemoved(newLesionsFromOrgan);
-                cloudo.getCloudP()->addSporesToBeRemoved(newLesionsFromPlant);
-                cloudo.getCloudP()->getCloudF()->addSporesToBeRemoved(newLesionsFromField);
-            } 
-            newLesionsFromOrgan = newLesionsFromPlant = newLesionsFromField = 0;            
+            // Update the total lesions count for this organ
+            totalLesions += pair.second;
         }
     }
+
+    // NOTE: we still have to implement removal from infection.
 
     // Run lesion cohort integrations
     for (auto& lc : lesionCohorts) {
@@ -253,49 +205,8 @@ void Organ::integration() {
     }
 
     // Read in the lesion cohort values after running their integrations
+    // NOTE: reconsider these values here vs global or fio context.
     readDiseaseValues();
-    
-    // dailyDiseaseArea = fmax(0,diseaseArea - dailyDiseaseArea);
-    // dailyVisibleDiseaseArea = fmax(0,visibleDiseaseArea - dailyVisibleDiseaseArea);
-    // dailySenescenceArea = fmax(0,senescenceArea - dailySenescenceArea);
-    // dailyLatentDiseaseArea = fmax(0,latentDiseaseArea - dailyLatentDiseaseArea);
-    // dailyInfectionDiseaseArea = fmax(0,infectionDiseaseArea - dailyInfectionDiseaseArea);
-    // dailyNecroticDiseaseArea = fmax(0,necroticDiseaseArea - dailyNecroticDiseaseArea);
-    // dailyTotalLesions = fmax(0,totalLesions - dailyTotalLesions);
-    // dailyVisibleLesions = fmax(0,visibleLesions - dailyVisibleLesions);
-    //    printf(" Daily: DiseaseArea (%f),"
-    //            "VisibleDiseaseArea (%f),"
-    //            "SenescenceArea (%f),"
-    //            "LatentDiseaseArea (%f),"
-    //            "InfectionDiseaseArea (%f),"
-    //            "NecroticDiseaseArea (%f)\n "
-    //            "TotalLesions (%i),"
-    //            "VisibleLesions (%i)\n", dailyDiseaseArea, dailyVisibleDiseaseArea,
-    //            dailySenescenceArea,dailyLatentDiseaseArea,dailyInfectionDiseaseArea,
-    //            dailyNecroticDiseaseArea,dailyTotalLesions,dailyVisibleLesions);
-
-    /**
-     * Add the following values to the output queue:
-     * OrganID, YearDoy, TotalArea, SenescedArea,
-     * DiseasedArea, VisibleDiseasedArea, InvisibleDiseasedArea,
-     * LesionDensity, Age, DailyNewLesions, TotalLesions, 
-     * CloudO, CloudP, CloudF, HealthAreaProportion, ProportionOfPlantTotalArea,
-     * WetnessDuration, NewLesionsFromOrgan, NewLesionsFromPlant, NewLesionsFromField
-     */
-    // std::ostringstream convert;
-    // convert << organNumber << "," 
-    //         << Basic::getWeather()->getYearDoy() << "," << totalArea << "," << senescenceArea << "," 
-    //         << Utilities::formatfloat(diseaseArea, 4) << ","
-    //         << Utilities::formatfloat(visibleDiseaseArea, 4) << "," 
-    //         << Utilities::formatfloat(invisibleDiseaseArea, 4) << ","
-    //         << Utilities::formatfloat(totalLesions / totalArea, 4) << ","
-    //         << Utilities::formatfloat(physiologicalLife, 4) << "," << dailyTotalLesions << "," 
-    //         << totalLesions << "," 
-    //         << Utilities::formatfloat(cloudOValue) << "," << Utilities::formatfloat(cloudPValue) << ","
-    //         << Utilities::formatfloat(cloudFValue) << "," << healthAreaProportion << "," 
-    //         << getProportionFromTotalArea() << "," << Basic::getWeather()->getWetDur() << ","
-    //         << newLesionsFromOrgan << "," << newLesionsFromPlant << "," << newLesionsFromField;
-    // Basic::output.push_back(convert.str());
 }
 
 float Organ::cloudAmount() {
