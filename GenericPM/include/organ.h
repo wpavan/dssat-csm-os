@@ -47,14 +47,47 @@ protected:
     float proportionFromTotalValue = 0;
     // NOTE: can we clarify this name a bit or add documentation for hovering over it?
     int doc = Basic::getWeather()->getDoy();
+    
+    // Physiological age tracking
     float physiologicalLife = 0;
+    float dailyPhysiologicalLife = 0;
+
+    // Structure to track new lesions by disease
+    struct NewLesions {
+        // Data structure to track new lesions
+        std::unordered_map<CloudO*, int> lesions;
+
+        // Add new lesions from a CloudO
+        void addLesions(CloudO* cloud, int count) {
+            lesions[cloud] += count;
+        }
+
+        // Get total new lesions across all diseases
+        int getTotalLesions() const {
+            int total = 0;
+            for (const auto& pair : lesions) {
+                total += pair.second;
+            }
+            return total;
+        }
+
+        // Get the lesions for one disease
+        int getLesionsFromCloudO(CloudO* cloud) const {
+            auto it = lesions.find(cloud);
+            return it != lesions.end() ? it->second : 0;
+        }
+    };
+
+    NewLesions newLesions;
+
     std::vector<LesionCohort> lesionCohorts;
     std::vector<CloudO> cloudsO;
     static int firstOutputCall;
     CouplingPointID organCP;
+    Expression ORGAN_AGE;
 
 public:
-    Organ(CouplingPointID cp, std::vector<CloudP>& cloudsP, int organNumber, float initialValue) : organCP(cp) {
+    Organ(CouplingPointID cp, std::vector<CloudP>& cloudsP, int organNumber, float initialValue, Expression ORGAN_AGE) : organCP(cp), ORGAN_AGE(ORGAN_AGE) {
         //Basic::output.push_back("Organ, YearDoy, TotalValue, Senesced, Diseased, VisibleValue, InvisibleValue, LesionDensity, Age, NewLesions, TotalLesions, CloudO, CloudP, CloudF, HealthValueProportion");
         this->organNumber = organNumber;
         this->initialValue += initialValue;
@@ -105,6 +138,10 @@ public:
 
     void setPhysiologicalLife(float physiologicalLife) {
         this->physiologicalLife = physiologicalLife;
+    }
+
+    void incrementPhysiologicalLife(float physiologicalLife) {
+        this->physiologicalLife += physiologicalLife;
     }
 
     float getPhysiologicalLife() const {
