@@ -60,7 +60,6 @@ void Simulator::logOutput(std::string varName, float value) {
  * rate functions. These calls propagate downwards (e.g. to organs).
  */
 void Simulator::rate() {
-    std::cout << "=========== Simulator (" << disease->getDescription() << ") Rate YRDOY: " << currentYearDoy << std::endl;
     CouplingData *couplingData = CouplingData::getInstance(); 
 
     InitialCondition *ic;
@@ -101,11 +100,6 @@ void Simulator::rate() {
     CouplingData *cpData = CouplingData::getInstance();
 
     // Declare helpers for non-cp endpoints.
-    float inoculumGenerated = 0;
-    float inoculumRemoved = 0;
-    float newInoculum = initialCondition.getCloud()->getValue();
-    float inoculumDelta = 0;
-
     float fioFloat = 0;
     std::string fioString;
 
@@ -274,7 +268,8 @@ void Simulator::integration() {
 
     initialCondition.integration(disease);
 
-    // Orchestrate rate calls for all CloudOs, then CloudPs, then CloudFs.
+    // Orchestrate rate calls for all CloudOs, then CloudPs, then CloudF.
+    //  CloudOs
     Plant* plant = getPlant();
     for (auto& OrganSet : plant->getOrgans()) {
         for (auto& organ : OrganSet.organs) {
@@ -285,47 +280,53 @@ void Simulator::integration() {
             }
         }
     }
+
+    //  CloudPs
     for (auto& cloudP : plant->getCloudsP()) {
         if (cloudP.getDisease() == this->disease) {
             cloudP.integration();
         }
     }
+
+    // CloudF
     initialCondition.getCloud()->integration();
 
     plant->integration();
 
-    // Debug statement to show total, disease, newDisease, and totalOrgan values.
-    // std::cout << "YEARDOY: " << currentYearDoy << 
-    // " Plant Total Value: " << plant->getTotalValue() << " Disease Value: " << plant->getDiseaseValue() << std::endl <<
-    // "-------- ------- Disease Diff: " << getPlant()->getDailyDiseaseValue() << std::endl <<
-    // "-------- ------- Organ Number: " << getPlant()->getOrgans()[0].organs.size() << std::endl;
     if (getPlant() != nullptr && getPlant()->getOrgans().size() > 0) {
-        diseaseValue = getPlant()->getDiseaseValue();
-        totalValue = getPlant()->getTotalValue();
-        seedAge = getPlant()->getOrgans().size();
-
         // NOTE: Testing out the use of daily disease value
-        float diseaseDailyValue = getPlant()->getDailyDiseaseValue();
+        // float diseaseDailyValue = getPlant()->getDailyDiseaseValue();
 
-        //pDArea = (dArea/(tArea-sArea)*100);
-        //printf("Int YRDOY: %i TArea: %f DArea: %f SArea: %f\n", *YRDOY, tArea,dArea,sArea);
-        //*PSDD = (dArea/tArea*5);
-        // NOTE: This needs to be recalibrated to remove hardcoded 
-        //       values. And to only happen once because as it 
-        //       currently stands, only the last value of PSDD will
-        //       get sent back to DSSAT.
+        // Previous damageCP hardcoded expression
+        // dArea = getPlant()->getDiseaseValue();
+        // tArea = getPlant()->getTotalValue();
+        // seedAge = getPlant()->getOrgans().size();
+        // pDArea = (dArea/(tArea-sArea)*100);
+
         if (totalValue > 0) {
-            float cp_val = *couplingData->getCouplingValue(damageCP);
-            //std::cout << "YRDOY: " << currentYearDoy << " CP Val:        " << cp_val << " Coupling Point: " << cpIDToStr(damageCP) << std::endl;
-            couplingData->overwriteCouplingValue(damageCP, diseaseDailyValue);
+            // Get the current CP value
+            float existingDamageValue = *couplingData->getCouplingValue(damageCP);
+
+            // Determine the daily disease damage value
+            // Default to 0 favorability if evaluation fails
+            float damageValue = 0.0f;
+            try {
+                damageValue = disease->getDAMAGE()->evaluate(); 
+            } catch (const std::runtime_error& e) {
+                std::cerr << "Error evaluating DAMAGE expression for DiseaseID: " << disease->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
+                
+            }
+
+            // Set the damage CP value to the sum 
+            couplingData->overwriteCouplingValue(damageCP, existingDamageValue + damageValue);
+            
+            // Previous implementations:
+            // couplingData->overwriteCouplingValue(damageCP, diseaseDailyValue);
             // couplingData->overwriteCouplingValue(damageCP, diseaseValue);
-            //std::cout << "YRDOY: " << currentYearDoy << " Disease Value: " << diseaseDailyValue << " Coupling Point: " << cpIDToStr(damageCP) << std::endl;
+            
         } else {
             couplingData->overwriteCouplingValue(damageCP, 0);
         }        
-        //printf("ORIGINAL YRDOY: %i CloudF: %f PSDD %f\n",*YRDOY, s->getPlants()[0].getCloudsP()[0].getCloudF()->getValue(), PSDD);
-        //printf("YRDOY: %i Plant Total Area: %f Disease Area: %f Senescence Area: %f AREALF: %f PDLA: %f PLFAD: %f\n", *YRDOY, tArea,dArea,sArea,*AREALF,*PDLA,*PLFAD);
-        //printf("YRDOY: %i SDWT: %f PSDD: %f\n", *YRDOY, *SDWT, *PSDD);
     }
 }
 
