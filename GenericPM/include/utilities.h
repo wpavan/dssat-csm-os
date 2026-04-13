@@ -18,13 +18,25 @@
 #include <dlfcn.h>
 #endif
 
-#include "../TinyExpr/tinyexpr.h"
+#include "../TinyExpr++/tinyexpr.h"
 
 #include <string>
+#include <regex>
 #include <fstream>
 #include <cstring>
 #include <iostream>
 #include <filesystem>
+
+namespace GDM::RegexPatterns {
+    inline const std::regex FIO_PATTERN(R"(#\{([A-Za-z\s]+):([A-Za-z0-9_\s]+):?([A-Za-z0-9\s]+)?\})", std::regex::icase);
+    inline const std::regex SIM_DATE_PATTERN(R"((?:(?:CURRENT|SIMULATION|SIM)(?: |_))?(?:YRDOY|DATE|TODAY|YYYYJJJ|YYYYDDD|YYYYDOY))", std::regex::icase);
+    inline const std::regex VAR_PATTERN(R"(\$\w+)", std::regex::icase);
+    inline const std::regex ADD_PATTERN(R"((?:ADDITION|ADD|PLUS|A|\+=|\+))", std::regex::icase);
+    inline const std::regex SUBTRACT_PATTERN(R"((?:SUBTRACTION|SUBTRACT|MINUS|S|-=|-))", std::regex::icase);
+    inline const std::regex MULTIPLY_PATTERN(R"((?:MULTIPLICATION|MULTIPLY|MULT|TIMES|M|\*=|\*))", std::regex::icase);
+    inline const std::regex DIVIDE_PATTERN(R"((?:DIVISION|DIVIDE|DIV|D|\/=|\/))", std::regex::icase);
+    inline const std::regex ASSIGN_PATTERN(R"((?:ASSIGNMENT|REPLACEMENT|ASSIGN|REPLACE|EQUALS|R|=))", std::regex::icase);
+} // namespace GDM::RegexPatterns
 
 enum class OrganMode {
     COHORT,
@@ -90,90 +102,23 @@ class Utilities {
         }
 
         static float runExpression(std::string expression_string, float value) {
+            te_parser parser;
             double x = value;
-            te_variable vars[] = {{"x", &x}};
+            parser.add_variable_or_function({"x", &x});
 
-            int err;
-            te_expr *expr = te_compile(expression_string.c_str(), vars, 1, &err);
-
+            bool compile_success = parser.compile(expression_string.c_str());
             
-            if (err != 0 || expr == nullptr) {
+            if (!compile_success) {
                 std::cout << "-----" << std::endl << "Expression: " << expression_string << std::endl 
-                << "Error: " << err << std::endl << "-----" << std::endl;
+                << "Error position: " << parser.get_last_error_position() << std::endl
+                << "Error msg: " << parser.get_last_error_message() << std::endl 
+                << "-----" << std::endl;
             }
 
-            float result = te_eval(expr);
+            float result = parser.evaluate();
 
-            te_free(expr);
             return result;
         }
-
-        
 };
-
-// typedef float (*InjectionFunction)();
-
-// struct Injection {
-//     HMODULE dllHandle = nullptr;
-//     InjectionFunction injectedFunc = nullptr;
-
-//     int compile(const std::string& cpp_file, const std::string& dll){
-//         #ifdef _WIN32
-//             // Use the name of the file or some checksum to make sure
-//             // the DLL is not recompiled unnecessarily.
-//             // Use the linux server for testing to make sure it is compatible.
-//             // Potentially use the sed profiler.
-//             std::string cmd = "g++ -shared -o " + dll + " " + cpp_file;
-//             int result = std::system(cmd.c_str());
-//             return result;
-//         #else
-//             std::cerr << "Compilation is only supported on Windows." << std::endl;
-//             return -1;
-//         #endif
-//     }
-    
-//     int load(const std::string& dll) {
-//         dllHandle = LoadLibraryA(dll.c_str());
-//         if (dllHandle == nullptr) {
-//             std::cerr << "Error loading DLL: " << dll << std::endl;
-//             std::cerr << "Error code: " << GetLastError() << std::endl;
-//             return -1;
-//         }
-
-//         injectedFunc = (InjectionFunction)GetProcAddress(dllHandle, "RATE");
-//         if (injectedFunc == nullptr) {
-//             std::cerr << "Error finding function in DLL: " << dll << std::endl;
-//             std::cerr << "Error code: " << GetLastError() << std::endl;
-//             FreeLibrary(dllHandle);
-//             dllHandle = nullptr;
-//             return -1;
-//         }
-//         return 0;
-//     }
-
-//     float exec() const {
-//         if (injectedFunc != nullptr) {
-//             return injectedFunc();
-//         } else {
-//             std::cerr << "Injection function is not loaded." << std::endl;
-//             return -99.0f;
-//         }
-//     }
-
-//     void unload() {
-//         if (dllHandle == nullptr) {
-//             std::cerr << "DLL is not loaded." << std::endl;
-//             return;
-//         } else {
-//             FreeLibrary(dllHandle);
-//             dllHandle = nullptr;
-//             injectedFunc = nullptr;
-//         }
-//     }
-
-//     ~Injection() {
-//         unload();
-//     }
-// };
 
 #endif // UTILITIES_H
