@@ -336,7 +336,8 @@ std::string replacePlaceholders(std::string originalValue, std::string originalT
   // First, look for the special charcter '$' which indicates a variable reference.
   // If the variable reference is not found, then return the original value.
   // If the variable reference is found, then look for the variable in the rest of the file.
-  std::regex varPattern(R"(\$\w+)");
+  
+  std::regex varPattern = GDM::RegexPatterns::VAR_PATTERN;
   std::smatch matchResults;
 
   bool replaced = true;
