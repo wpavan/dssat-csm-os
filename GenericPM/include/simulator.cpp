@@ -10,6 +10,7 @@
 
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
+#include "injection.h"
 #include "simulator.h"
 #include "disease.h"
 #include "cropinterface.h"
@@ -112,18 +113,7 @@ void Simulator::rate() {
     std::string outputVarName;
 
     for (auto& injection : disease->getRateInjections()) {
-        if (injection.getEndpoint() == InjEndpoint::INOCULUM) {
-            injection.apply(inoculumGenerated);
-            // Determine the difference
-            // inoculumDelta = newInoculum - initialCondition.getCloud()->getValue();
-
-            // // If there was an increase, put it in added. Otherwise, removed.
-            // if (inoculumDelta > 0) {
-            //     inoculumGenerated += inoculumDelta;
-            // } else {
-            //     inoculumRemoved += -inoculumDelta;
-            // }
-        } else if (injection.getEndpoint() == InjEndpoint::OUTPUT) {
+        if (injection.getEndpoint() == InjEndpoint::OUTPUT) {
             injection.apply(outputVal, outputVarName);
             logOutput(outputVarName, outputVal);
         } else if (injection.getEndpoint() == InjEndpoint::FIO) {
@@ -147,17 +137,13 @@ void Simulator::rate() {
         } else if (injection.getEndpoint() == InjEndpoint::PCP) {
             CouplingPointID injCP = strToCPID(injection.getRawEndpoint());
             float *injCPVal = couplingData->getCouplingValue(injCP);
-            std::cout << "CP Injection - " << injection.getRawEndpoint() << " - Value before: " << *injCPVal << std::endl;
+            // std::cout << "CP Injection - " << injection.getRawEndpoint() << " - Value before: " << *injCPVal << std::endl;
             injection.apply(*injCPVal);
-            std::cout << "CP Injection - " << injection.getRawEndpoint() << " - Value after : " << *injCPVal << std::endl;
-            // IDK if this is needed: couplingData->overwriteCouplingValue(injCP, *injCPVal);
+            // std::cout << "CP Injection - " << injection.getRawEndpoint() << " - Value after : " << *injCPVal << std::endl;
+            // Unknown if this is needed: couplingData->overwriteCouplingValue(injCP, *injCPVal);
         }
     }
-    // std::cout << std::endl << "YRDOY: " << currentYearDoy << "\tCloud val: " << initialCondition.getCloud()->getValue() << std::endl;
-    initialCondition.getCloud()->addSporesCreated(inoculumGenerated);
-    initialCondition.getCloud()->removeSporesVal(inoculumRemoved);
-    // std::cout << "YRDOY: " << currentYearDoy << "\tCloud val: " << initialCondition.getCloud()->getValue() << std::endl << std::endl;
-
+    
     CouplingPointID organCP = this->disease->getOrganCP();
     CouplingPointID damageCP = this->disease->getDamageCP();
     if (organCP != CouplingPointID::VALUE) {
