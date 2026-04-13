@@ -42,6 +42,12 @@ public:
     //     return disease;
     // }
 
+    static constexpr CloudLevel cloudLevel = CloudLevel::FIELD;
+    
+    CloudLevel getLevel() const override {
+        return cloudLevel;
+    }
+
     std::string getFamily() {
         return family;
     }
@@ -87,9 +93,9 @@ public:
     void output();
 
     void addSporesCreated(float sporesCreated) {
-#if DIAG_SPORES
+        #if DIAG_SPORES
         std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " CloudF::addSporesCreated sporesCreated=" << sporesCreated << std::endl;
-#endif
+        #endif
         this->sporesCreated += sporesCreated;
     }
 

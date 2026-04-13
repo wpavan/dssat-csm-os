@@ -36,6 +36,12 @@ public:
         return ID;
     }
 
+    static constexpr CloudLevel cloudLevel = CloudLevel::FIELD;
+    
+    CloudLevel getLevel() const override {
+        return cloudLevel;
+    }
+
     std::shared_ptr<CloudF> getCloudF() {
         return cloudF;
     }

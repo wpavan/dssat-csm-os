@@ -18,6 +18,12 @@
 #include <iostream>
 #include <sstream>
 
+enum class CloudLevel {
+    FIELD,
+    PLANT,
+    ORGAN
+};
+
 class Cloud : public Basic, virtual public BasicInterface {
 private:
     bool removeByAge = false;
@@ -68,6 +74,8 @@ public:
         std::cout << ss.str() << std::endl;
 #endif
     }
+
+    virtual CloudLevel getLevel() const = 0;
 
     float getSporesToBeRemoved() {
         return sporesToBeRemoved;

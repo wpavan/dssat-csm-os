@@ -29,13 +29,17 @@ public:
         this->cloudP = cloudP;
     }
 
+    static constexpr CloudLevel cloudLevel = CloudLevel::ORGAN;
+    
+    CloudLevel getLevel() const override {
+        return cloudLevel;
+    }
+
     int getID() {
         return ID;
     }
 
-    void rate() {
-        Cloud::rate();
-    }
+    void rate();
 
     CloudP* getCloudP() {
         return cloudP;
