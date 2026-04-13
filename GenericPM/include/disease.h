@@ -104,6 +104,20 @@ protected:
 
     std::vector<Injection> rateInjections, integInjections, outputInjections;
 
+    Expression INOC_EXT; // Expression for external inoculum amount
+    Expression INOC_LES; // Expression for lesion-based inoculum production
+    Expression INOC_REM; // Expression for daily proportional removal of inoculum
+
+    Expression DAMAGE; // Expression for organ damage due to this disease
+
+    Expression II_AGE; // Expression for how quickly favorability accumulates for initial spore release
+
+    Expression LES_AGE; // Expression for how quickly lesions increase physiological age
+    Expression NEW_LES; // Expression for how many new lesions are generated daily
+
+    Expression VGF; // Expression for visible growth function
+    Expression IGF; // Expression for invisible growth function
+
 public:
     Disease() {
         listDiseases.push_back(this);
@@ -679,8 +693,8 @@ public:
      * 
      * @return Visible growth function.
      */
-    std::string getVisibleGrowthFunction() const {
-        return visibleGrowthFunction;
+    Expression* getVGF() {
+        return &VGF;
     }
     
     /**
@@ -688,8 +702,8 @@ public:
      * 
      * @param visibleGrowthFunction Visible growth function.
      */
-    void setVisibleGrowthFunction(std::string visibleGrowthFunction) {
-        this->visibleGrowthFunction = visibleGrowthFunction;
+    void setVGF(Expression visibleGrowthFunction) {
+        this->VGF = visibleGrowthFunction;
     }
 
     /**
@@ -697,8 +711,8 @@ public:
      * 
      * @return Invisible growth function.
      */
-    std::string getInvisibleGrowthFunction() {
-        return invisibleGrowthFunction;
+    Expression* getIGF() {
+        return &IGF;
     }
     
     /**

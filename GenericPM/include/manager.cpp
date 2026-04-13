@@ -17,6 +17,7 @@
 #include "manager.h"
 #include "simulator.h"
 #include "injection.h"
+#include "expression.h"
 
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
@@ -24,7 +25,7 @@ extern "C" int readPestYaml(char *filePST, int *TRTNUM, int *FOUND);
 
 // Define a struct for easily comparing parameters (clouds purpose)
 struct CloudFParamHolder {
-  std::unordered_map<std::string, std::string> params;
+  std::unordered_map<std::string, Expression> params;
 
   bool operator==(const CloudFParamHolder& other) const {
     for (const auto& param : params) {
@@ -125,7 +126,7 @@ int safe_assign_int(std::string valueStr) {
   }
 }
 
-void Manager::addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci,
+void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseData, CropInterface *ci,
                            InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections) {
   if (ci == nullptr) {
     std::cerr << "Error: CropInterface pointer is null in Manager::addSimulator" << std::endl;
@@ -397,23 +398,20 @@ std::string replacePlaceholders(std::string originalValue, std::string originalT
 }
 
 
-void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_map<std::string, std::string> &diseaseData, std::string trtKey) {
+void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_map<std::string, Expression> &diseaseData, std::string trtKey) {
   int sequenceIndex = 1;
   std::string dataLabel;
+
   // Handle paramNames {RATE, INTEGRATION} differently to allow for 
   // code injection with a streamlined format.
   switch (valueNode["VALUE"].Type()) {
     case 1: // YAML::NodeType::Null:
-      diseaseData[paramName] = "-99";
+      diseaseData[paramName] = Expression("-99");
       break;
 
     case 2: // YAML::NodeType::Scalar:
-      if(paramName == "RATE" || paramName == "INTEGRATION") {
-        // NOTE: Necessary to find the proper pathing here. 
-        // std::string filename = paramName + ".cpp";
-        //Util::writeInjectedCode(valueNode["VALUE"].as<std::string>(), filename);
-      }
-      diseaseData[paramName] = valueNode["VALUE"].as<std::string>();
+      // Put parsed value in diseaseData map
+      diseaseData[paramName] = Expression(valueNode["VALUE"].as<std::string>());
       break;
 
     case 3: // YAML::NodeType::Sequence:
@@ -422,7 +420,7 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_ma
         std::ostringstream temp;
         temp << paramName << ":" << sequenceIndex;
         dataLabel = temp.str();
-        diseaseData[dataLabel] = element.as<std::string>();
+        diseaseData[dataLabel] = Expression(element.as<std::string>());
         sequenceIndex++;
       }
       break;
@@ -433,25 +431,25 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_ma
     case 4: // YAML::NodeType::Map:
       if (valueNode["VALUE"][trtKey]) {
         if (valueNode["VALUE"][trtKey].IsScalar()) {
-          diseaseData[paramName] = valueNode["VALUE"][trtKey].as<std::string>();
+          diseaseData[paramName] = Expression(valueNode["VALUE"][trtKey].as<std::string>());
         } else if (valueNode["VALUE"][trtKey].IsSequence()) {
           for (const auto& subElement : valueNode["VALUE"][trtKey]) {
             std::ostringstream temp;
             temp << paramName << ":" << sequenceIndex;
             dataLabel = temp.str();
-            diseaseData[dataLabel] = subElement.as<std::string>();
+            diseaseData[dataLabel] = Expression(subElement.as<std::string>());
             sequenceIndex++;
           }
         }
       } else if (valueNode["VALUE"]["DEFAULT"]) {
         if (valueNode["VALUE"]["DEFAULT"].IsScalar()) {
-          diseaseData[paramName] = valueNode["VALUE"]["DEFAULT"].as<std::string>();
+          diseaseData[paramName] = Expression(valueNode["VALUE"]["DEFAULT"].as<std::string>());
         } else if (valueNode["VALUE"]["DEFAULT"].IsSequence()) {
           for (const auto& subElement : valueNode["VALUE"]["DEFAULT"]) {
             std::ostringstream temp;
             temp << paramName << ":" << sequenceIndex;
             dataLabel = temp.str();
-            diseaseData[dataLabel] = subElement.as<std::string>();
+            diseaseData[dataLabel] = Expression(subElement.as<std::string>());
             sequenceIndex++;
           }
         }
@@ -462,7 +460,7 @@ void addPestParam(std::string paramName, YAML::Node valueNode, std::unordered_ma
 
     // This should cause a warning message, and should be considered NA/-99.
     case 5: // YAML::NodeType::Undefined:
-      diseaseData[paramName] = "-99";
+      diseaseData[paramName] = Expression("-99");
       break;
   }
 }
@@ -568,7 +566,8 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
         }
       }
 
-      std::unordered_map<std::string, std::string> diseaseData;
+      std::unordered_map<std::string, Expression> diseaseData;
+      // NOTE: Check out these InjectionHolders for validity after Expression changes.
       InjectionHolder rateInjections, integrationInjections, outputInjections;
       CloudFParamHolder cloudParams;
       std::string injectionExpression;
@@ -590,7 +589,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
             case 2: // YAML::NodeType::Scalar:
               // Add important metadata to DiseaseData map.
               if (key == "PESTID" || key == "DISEASE" || key == "FAMILY") {
-                diseaseData[key] = value.as<std::string>();
+                diseaseData[key] = Expression(value.as<std::string>());
               }
               break;
 
@@ -678,12 +677,12 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
         auto organIt = diseaseData.find("ORGAN_VALUE_CP");
         if (organIt == diseaseData.end() || organIt->second.empty()) {
           std::cerr << "Error: missing required ORGAN_VALUE_CP for disease PESTID='"
-                    << (diseaseData.count("PESTID") ? diseaseData["PESTID"] : "<unknown>")
+                    << (diseaseData.count("PESTID") ? diseaseData["PESTID"].getOriginal() : "<unknown>")
                     << "' -- skipping this disease." << std::endl;
           continue;
         }
 
-        const std::string cpStr = organIt->second;
+        const std::string cpStr = organIt->second.getOriginal();
         tempCP = strToCPID(cpStr);
 
         // Only create a new CropInterface if we haven't seen this coupling point before
@@ -717,7 +716,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
         }
 
         // Step 3b is to handle family grouping.
-        std::string family = diseaseData["FAMILY"];
+        std::string family = diseaseData["FAMILY"].getOriginal();
 
         CloudF *cloudFPtr = nullptr;
         

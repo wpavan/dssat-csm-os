@@ -12,6 +12,7 @@
 #define RINTERFACE_H
 
 #include "coupling.h"
+#include "expression.h"
 
 #include <vector>
 #include <cmath>
@@ -46,9 +47,10 @@ protected:
     // NOTE: I should make this not a vector but an ordered map or something similar for quick indexing by organ number. 
     std::vector<OrganData> data;
 
+    Expression ORGAN_AGE;
 public:
-    CropInterface(CouplingPointID CP) : organCP(CP) {};
-    CropInterface(CouplingPointID CP, float value) : organCP(CP), constValue(value) {};
+    CropInterface(CouplingPointID CP, Expression age_expr) : organCP(CP), ORGAN_AGE(age_expr) {};
+    CropInterface(CouplingPointID CP, Expression ORGAN_AGE, float value) : organCP(CP), ORGAN_AGE(ORGAN_AGE), constValue(value) {};
 
     void start() {
         this->lastOrgan = 0;
@@ -70,6 +72,14 @@ public:
             return data.size();
         }
         return 0;
+    }
+
+    Expression getORGAN_AGE() {
+        return this->ORGAN_AGE;
+    }
+
+    void setORGAN_AGE(Expression ORGAN_AGE) {
+        this->ORGAN_AGE = ORGAN_AGE;
     }
 
     CouplingPointID getOrganCP() {
