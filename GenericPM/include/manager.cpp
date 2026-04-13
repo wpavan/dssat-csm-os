@@ -691,7 +691,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
           std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
           #endif // DEBUG
           try {
-            manager->addCropInterface(tempCP, safe_assign_float(cpStr));
+            manager->addCropInterface(tempCP, diseaseData["ORGAN_AGE"], safe_assign_float(cpStr));
           } catch (const std::exception &e) {
             std::cerr << "Error parsing ORGAN_VALUE_CP='" << cpStr << "': " << e.what() << std::endl;
             continue;
@@ -701,7 +701,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
           std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
           #endif // DEBUG
           uniqueCPs.push_back(tempCP);
-          manager->addCropInterface(tempCP);
+          manager->addCropInterface(tempCP, diseaseData["ORGAN_AGE"]);
         } else {
           #ifdef DEBUGX          
           std::cout << "Using existing CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
