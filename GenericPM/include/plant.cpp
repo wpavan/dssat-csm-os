@@ -18,6 +18,42 @@
 #include <fstream>
 #include <string>
 
+static double TE_getHealthyValue() {
+    return gEqContext && gEqContext->plant ? static_cast<double>(gEqContext->plant->getTotalValue()-gEqContext->plant->getDiseaseValue()) : 0.0;
+}
+
+static double TE_getDiseaseValue() {
+    return gEqContext && gEqContext->plant ? static_cast<double>(gEqContext->plant->getDiseaseValue()) : 0.0;
+}
+
+static double TE_getTotalValue() {
+    return gEqContext && gEqContext->plant ? static_cast<double>(gEqContext->plant->getTotalValue()) : 0.0;
+}
+
+static double TE_getInvisibleDiseaseValue() {
+    return gEqContext && gEqContext->plant ? static_cast<double>(gEqContext->plant->getInvisibleValue()) : 0.0;
+}
+
+static double TE_getVisibleDiseaseValue() {
+    return gEqContext && gEqContext->plant ? static_cast<double>(gEqContext->plant->getVisibleValue()) : 0.0;
+}
+
+namespace {
+    struct FunctionRegistrar {
+        FunctionRegistrar() {
+            getCustomFunctions().register_context_function({"PLANT_VALUE", TE_getTotalValue});
+            getCustomFunctions().register_context_function({"PLANT_TOTAL_VALUE", TE_getTotalValue});
+            getCustomFunctions().register_context_function({"PLANT_DISEASE_VALUE", TE_getDiseaseValue});
+            getCustomFunctions().register_context_function({"PLANT_HEALTHY_VALUE", TE_getHealthyValue});
+            getCustomFunctions().register_context_function({"PLANT_INV_DIS_VALUE", TE_getInvisibleDiseaseValue});
+            getCustomFunctions().register_context_function({"PLANT_VIS_DIS_VALUE", TE_getVisibleDiseaseValue});            
+        }
+    };
+
+    // Static instance to trigger the registration at program startup
+    static FunctionRegistrar registrar;
+}
+
 int Plant::qtd = 0;
 int Plant::firstOutputCall = 0;
 
