@@ -237,6 +237,14 @@ void Simulator::rate() {
     }
     initialCondition.getCloud()->rate();
 
+    try {
+        initialCondition.getCloud()->addSporesCreated(disease->getINOC_EXT()->evaluate());
+    } catch (const std::runtime_error& e) {
+        std::cerr << "Error evaluating INOC_EXT expression for DiseaseID: " << disease->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
+        // Default to 0 inoculum if evaluation fails
+        initialCondition.getCloud()->addSporesCreated(0.0f);
+    }
+
     /** Call the rate function for the Plant */
     plant->rate();
 }

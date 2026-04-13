@@ -25,10 +25,17 @@ int InitialCondition::qtd = 0;
 
 void InitialCondition::rate() {
     if (!favorabilityAccumulated && cloudF) {
-        dailyFavorability = Utilities::temperatureFavorability(Basic::getWeather()->getTMean(),
-                                                               cloudF->getDisease()->getTemperatureFavorabilitySet()) 
-                            * Utilities::wetnessFavorability(Basic::getWeather()->getWetDur(), 
-                                                             cloudF->getDisease()->getWetnessFunction());
+        try {
+            dailyFavorability = cloudF->getDisease()->getII_AGE()->evaluate();
+        } catch (const std::runtime_error& e) {
+            std::cerr << "Error evaluating II_AGE expression for DiseaseID: " << cloudF->getDisease()->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
+            dailyFavorability = 0.0f; // Default to 0 favorability if
+        }
+        
+        // dailyFavorability = Utilities::temperatureFavorability(Basic::getWeather()->getTMean(),
+        //                                                        cloudF->getDisease()->getTemperatureFavorabilitySet()) 
+        //                     * Utilities::wetnessFavorability(Basic::getWeather()->getWetDur(), 
+        //                                                      cloudF->getDisease()->getWetnessFunction());
     }
 }
 
