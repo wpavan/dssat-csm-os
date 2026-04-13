@@ -36,7 +36,7 @@ public:
         return ID;
     }
 
-    static constexpr CloudLevel cloudLevel = CloudLevel::FIELD;
+    static constexpr CloudLevel cloudLevel = CloudLevel::PLANT;
     
     CloudLevel getLevel() const override {
         return cloudLevel;
