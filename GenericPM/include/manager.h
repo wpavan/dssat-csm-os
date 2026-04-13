@@ -14,6 +14,7 @@
 #include "cropinterface.h"
 
 class Simulator;
+class Expression;
 
 template<typename T1, typename T2, typename T3>
 using triple = std::tuple<T1, T2, T3>;
@@ -61,7 +62,7 @@ class Manager : virtual public BasicInterface {
         static std::vector<std::unique_ptr<Simulator>>& getSimulators() {
             return simulators;
         }
-        static void addSimulator(std::unordered_map<std::string, std::string> diseaseData, CropInterface *ci, 
+        static void addSimulator(std::unordered_map<std::string, Expression> diseaseData, CropInterface *ci, 
                                  InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections);
 
         static void addCloudF(std::string family) {
@@ -85,12 +86,12 @@ class Manager : virtual public BasicInterface {
             return std::shared_ptr<CloudF>();
         }
 
-        static void addCropInterface(CouplingPointID cp) {
-            cropInterfaces.emplace_back(std::make_unique<CropInterface>(cp));
+        static void addCropInterface(CouplingPointID cp, Expression ORGAN_AGE) {
+            cropInterfaces.emplace_back(std::make_unique<CropInterface>(cp, ORGAN_AGE));
         }
 
-        static void addCropInterface(CouplingPointID cp, float value) {
-            cropInterfaces.emplace_back(std::make_unique<CropInterface>(cp, value));
+        static void addCropInterface(CouplingPointID cp, Expression ORGAN_AGE, float value) {
+            cropInterfaces.emplace_back(std::make_unique<CropInterface>(cp, ORGAN_AGE, value));
         }
 
         static std::vector<std::unique_ptr<CropInterface>>& getCropInterfaces() {
