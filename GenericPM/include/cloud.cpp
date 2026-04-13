@@ -18,6 +18,36 @@
 #include <iostream>
 #include <sstream>
 
+static double TE_isFieldCloud(void) {
+    return gEqContext && gEqContext->cloud && (gEqContext->cloud->getLevel() == CloudLevel::FIELD) ? 1.0 : 0.0;
+}
+
+static double TE_isPlantCloud(void) {
+    return gEqContext && gEqContext->cloud && (gEqContext->cloud->getLevel() == CloudLevel::PLANT) ? 1.0 : 0.0;
+}
+
+static double TE_isOrganCloud(void) {
+    return gEqContext && gEqContext->cloud && (gEqContext->cloud->getLevel() == CloudLevel::ORGAN) ? 1.0 : 0.0;
+}
+
+static double TE_getThisCloudValue(void) {
+    return gEqContext && gEqContext->cloud ? static_cast<double>(gEqContext->cloud->getValue()) : 0.0;
+}
+
+namespace {
+    struct FunctionRegistrar {
+        FunctionRegistrar() {
+            getCustomFunctions().register_context_function({"IS_FIELD_CLOUD", TE_isFieldCloud});
+            getCustomFunctions().register_context_function({"IS_PLANT_CLOUD", TE_isPlantCloud});
+            getCustomFunctions().register_context_function({"IS_ORGAN_CLOUD", TE_isOrganCloud});
+            getCustomFunctions().register_context_function({"CLOUD_INOCULUM", TE_getThisCloudValue});
+        }
+    };
+
+    // Static instance to trigger the registration at program startup
+    static FunctionRegistrar registrar;
+}
+
 // All clouds share the same integration logic:
 //   1. Remove spores that were used to infect tissue.
 //   2. Add the queued spores to the values vector.
@@ -39,49 +69,33 @@ void Cloud::integration() {
     }
 
     // If an age-based removal was queued, perform it now
-    if (removeByAge) {
-#if DIAG_SPORES
-        std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " age removal (integration): removing oldest bucket=" << values.front() << std::endl;
-#endif
-        values.erase(values.begin());
-        removeByAge = false;
-    }
+    // if (removeByAge) {
+    //     values.erase(values.begin());
+    //     removeByAge = false;
+    // }
 
-    // If method 0: proportional daily removal is modelled via queued sporesToBeRemoved
-    if (REMOVAL_METHOD == 0) {
-        sporesToBeRemoved = getValue() * (K_G + K_D);
-        if (sporesToBeRemoved > 0.0f) {
-#if DIAG_SPORES
-            std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " method 0 queued proportional removal amount=" << sporesToBeRemoved << std::endl;
-#endif
-            removeSporesVal(sporesToBeRemoved);
-        }
-    } else if (REMOVAL_METHOD == 1) {
+    if (REMOVAL_METHOD == 1) {
         // Density cap
         if (getValue() > disease->getMaxSporeCloudsDensity()) {
             float over = getValue() - disease->getMaxSporeCloudsDensity();
-#if DIAG_SPORES
-            std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " density cap removal amount=" << over << std::endl;
-#endif
             removeSporesVal(over);
         }
 
         // Infection-driven queued removals
         if (sporesToBeRemoved > 0.0f) {
-#if DIAG_SPORES
-            std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " queued infection removal amount=" << sporesToBeRemoved << std::endl;
-#endif
             removeSporesVal(sporesToBeRemoved);
         }
 
         // Rain effect
-        if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
-            float percent = 1 - exp(-0.035f * Basic::getWeather()->getRain());
-#if DIAG_SPORES
-            std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " rain effect percent=" << percent << " rain=" << Basic::getWeather()->getRain() << std::endl;
-#endif
-            removeSporesPct(1 - percent);
-        }
+        // NOTE: This should be taken care of in the .yaml input file. It is 
+        //       important to note that this percentage-based removal indicates
+        //       the need for the current inoculum value to be available in FIO 
+        //       or available through some context.
+        //
+        // if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
+        //     float percent = 1 - exp(-0.035f * Basic::getWeather()->getRain());
+        //     removeSporesPct(1 - percent);
+        // }
     }
 
     // diagSnapshot("integration_end");
