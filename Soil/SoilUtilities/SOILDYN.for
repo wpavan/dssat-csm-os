@@ -42,11 +42,14 @@ C=======================================================================
 C-----------------------------------------------------------------------
       USE ModuleDefs 
       USE ModuleData
+      USE flexibleio
+      USE FIOStateManager
 
       IMPLICIT NONE
       EXTERNAL ERROR, FIND, WARNING, INFO, TEXTURECLASS, SOILLAYERCLASS,
      &  CALBROKCRYPARA, RETC_VG, SOILLAYERTEXT, PRINT_SOILPROP, 
-     &  SETPM, OPSOILDYN, ALBEDO_avg, TILLEVENT, SOILMIXING
+     &  SETPM, OPSOILDYN, ALBEDO_avg, TILLEVENT, SOILMIXING,
+     &  PUT_FIO_SOILPROP
       SAVE
 
       LOGICAL NOTEXTURE, PHFLAG, FIRST, NO_OC
@@ -1013,6 +1016,10 @@ C  tillage and rainfall kinetic energy
       SOILPROP % TOTN  = TOTN
       SOILPROP % TotOrgN=TotOrgN
 
+!     Store initial soil properties in flexibleio for GDM usage
+      CALL PUT_FIO_SOILPROP(SOILPROP)
+      WRITE(*,*) 'SOILDYN: Initial soil properties stored in FIO'
+
 !***********************************************************************
 !***********************************************************************
 !     Daily rate calculations
@@ -1084,6 +1091,7 @@ C  tillage and rainfall kinetic energy
 
           ELSE
 !           Need to update soil properties based on changes to SOM
+!           This signals that the values in FIO should be updated========================================================
 
 !           First -- modify layer thickness
 !           dDlayr = change in layer thickness due to addition (or depletion)
@@ -1155,6 +1163,9 @@ C  tillage and rainfall kinetic energy
             LL_SOM(L)  = LL_INIT(L) + dLL_SOM
 
 !            IF (L==1) WRITE(1000,*)dOC, dBD_SOM, dLL_SOM, LL_SOM(1)
+
+! 04/15/2026 VLC If any layer's properties have been modified by SOM
+            CALL SetFIOUpdateFlag()
           ENDIF
         ENDDO
       ENDIF
@@ -1180,8 +1191,10 @@ C  tillage and rainfall kinetic energy
      &    DS_BASE, SAT, SAT_BASE, SWCN, SC_BASE,          !Input
      &    NLAYR, TILLVALS,                                !Input
      &    BD_TILLED, CN_TILLED, DL_TILLED,                !Output
-     &    DS_TILLED, SAT_TILLED, SC_TILLED)               !OutpuT
+     &    DS_TILLED, SAT_TILLED, SC_TILLED)               !Output
 
+! 04/15/2026 VLC If there was tillage, signal for FIO update
+        CALL SetFIOUpdateFlag()
       ENDIF
 
       CALL PUT(SOILPROP)
@@ -1409,6 +1422,13 @@ c** wdb orig          SUMKEL = SUMKE * EXP(-0.15*MCUMDEP)
       SOILPROP % POROS  = POROS  
 
       CALL PUT(SOILPROP)
+
+!     Update soil properties in flexibleio after daily integration if modified
+      IF (FIOUpdateNeeded()) THEN
+        CALL PUT_FIO_SOILPROP(SOILPROP)
+        WRITE(*,*) 'SOILDYN: Daily soil properties updated in FIO'
+        CALL ClearFIOUpdateFlag()
+      ENDIF
 
 !***********************************************************************
 !***********************************************************************

@@ -538,6 +538,9 @@ C       extraction (based on yesterday's values) for each soil layer.
 !     &    NLAYR, RUNOFF, SOILPROP, SW, TDFC, TDFD,        !Input
 !     &    TDRAIN, TRUNOF, WTDEP)                          !Input
 
+! 04/14/2026 VLC Added call to push GDM-relevant variables to fio
+      CALL PUT_FIO_SW(SW)
+
 !***********************************************************************
 !***********************************************************************
 !     OUTPUT - Daily output
