@@ -138,6 +138,8 @@ set(
         "GenericPM/include/utilities.cpp"
         "GenericPM/include/weather.cpp"
         "GenericPM/TinyExpr++/tinyexpr.cpp"
+        "GenericPM/fio_updater.f90"
+        "GenericPM/FIOStateManager.f90"
         "FlexibleIO/Interface/FInterface.f90"
         "FlexibleIO/Interface/CInterface.cpp"
         "FlexibleIO/Data/FlexibleIO.cpp"
