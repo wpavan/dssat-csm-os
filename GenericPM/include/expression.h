@@ -13,6 +13,9 @@ private:
     mutable std::string translatedExpr;  // FIO_REAL(...) form
     mutable bool translated = false;     // Flag to indicate if translation occurred
     
+    // Static cache for all translated expressions (keyed by original expression)
+    static std::unordered_map<std::string, std::string> translationCache;
+    
 public:
     // Default constructor
     Expression() : originalExpr("") {}
@@ -100,24 +103,9 @@ class ParserCache {
             return instance;
         }
 
-        te_parser* getParser(const std::string& expression) {
-            // Find the parser based on the expression (using map)
-            auto it = cache.find(expression);
-
-            if (it != cache.end()) {
-                // If found, return a reference to the existing parser
-                return &(it->second.parser);
-            } else {
-                // If not found, create a new parser
-                auto& cacheEntry = cache.emplace(expression, CachedParser(expression)).first->second;
-                
-                // Attempt to compile the new parser
-                cacheEntry.compile();
-
-                // Return a reference to the compiled parser for this expression
-                return &(cacheEntry.parser);
-            }
-        }
+        te_parser* getParser(const std::string& expression);
 };
+
+// newLesions = CLOUD_VALUE_BY_FAMILY(WB) * gaussian(#{PEST:ZSTAGE}, 65, 2.5, 1)
 
 #endif // EXPRESSION_H

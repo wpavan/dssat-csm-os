@@ -9,12 +9,56 @@
 
 ParserCache* ParserCache::instance = nullptr;
 
+// Initialize the static translation cache
+std::unordered_map<std::string, std::string> Expression::translationCache;
+
 const bool Expression::empty() {
     return originalExpr.empty();
 }
 
+te_parser* ParserCache::getParser(const std::string& expression) {
+    // Find the parser based on the expression (using map)
+    auto it = cache.find(expression);
+
+    if (it != cache.end()) {
+        // If found, return a reference to the existing parser
+        return &(it->second.parser);
+    } else {
+        // If not found, create a new parser
+        auto& cacheEntry = cache.emplace(expression, CachedParser(expression)).first->second;
+        
+        // Prepare the parser to handle functions with string arguments
+        cacheEntry.parser.set_unknown_symbol_resolver(
+            [](std::string_view symbol) -> te_type 
+            {
+            // Use the method of encoding *every* symbol and let the functions 
+            // handle errors on their own
+            FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+
+            // Encode the symbol to a unique double ID for tinyexpr parsing
+            return converter->encode(std::string(symbol));
+            }
+        );
+        // Attempt to compile the new parser
+        cacheEntry.compile();
+
+        // Return a reference to the compiled parser for this expression
+        return &(cacheEntry.parser);
+    }
+}
+
 const std::string& Expression::getTranslated() {
     if (!translated) {
+        // Check if this expression has already been translated globally
+        auto cacheIt = translationCache.find(originalExpr);
+        if (cacheIt != translationCache.end()) {
+            // Found in global cache, use it
+            translatedExpr = cacheIt->second;
+            translated = true;
+            return translatedExpr;
+        }
+
+        // Not in cache, perform translation
         translatedExpr = originalExpr; // Start with the original expression
         FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
 
@@ -86,6 +130,9 @@ const std::string& Expression::getTranslated() {
             // Replace this specific match with its value
             translatedExpr.replace(match.position(), match.length(), fnCall);
         }
+
+        // Store in global cache for future use
+        translationCache[originalExpr] = translatedExpr;
         translated = true;
     }
     return translatedExpr;
@@ -96,7 +143,12 @@ float Expression::evaluate() {
     // Translation performed if not already done,
     // Compilation performed if not already done for this expression.
     // Evaluate and return value
-    return ParserCache::getInstance()->getParser(this->getTranslated())->evaluate();
+    te_type result = ParserCache::getInstance()->getParser(this->getTranslated())->evaluate();
+    if (std::isnan(result)) {
+        std::string errorMsg = "Evaluation resulted in NaN for expression:\n\tOriginal:   " + originalExpr + "\n\tTranslated: " + this->getTranslated();
+        throw std::runtime_error(errorMsg);
+    }
+    return result;
 }
 
 /*
