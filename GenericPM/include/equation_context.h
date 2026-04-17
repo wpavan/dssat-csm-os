@@ -46,7 +46,7 @@ extern EquationContext* gEqContext;
 struct CustomFunctions {
     std::set<te_variable> functionSet;
 
-    void register_context_function(te_variable func) {
+    void register_context_function(te_variable func){
         functionSet.insert(func);
     }
 

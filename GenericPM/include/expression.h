@@ -43,13 +43,6 @@ public:
     const std::string& getOriginal() const { return originalExpr; }
 };
 
-
-// Raw expression:
-// - "gaussian(#{PEST:ZSTAGE}, 65, 2.5, 1)"
-//
-// Translated expression;
-// - "gaussian(FIO_REAL(PEST_ID, ZSTAGE_ID), 65, 2.5, 1)"
-
 class ParserCache {
     private:
         ParserCache() {};
