@@ -54,6 +54,10 @@ class Manager : virtual public BasicInterface {
         static Manager* getInstance();
         static Manager* newInstance();
 
+        const bool familiesHas(std::string family) {
+            return std::find(families.begin(), families.end(), family) != families.end();
+        }
+
         void rate();
         void integration();
         void output();

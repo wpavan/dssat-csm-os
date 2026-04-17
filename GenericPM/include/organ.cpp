@@ -56,17 +56,27 @@ static double TE_getLocalInoculum(void) {
 
 // NOTE: we need to replace family text with a number
 static double TE_getLocalInoculumByFamily(double family) {
+    // Get the double to string decoder for the family name
     FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
     std::string familyStr = converter->decode(family);
 
-    float totalInoc = 0.0f;
-    if (gEqContext && gEqContext->organ) {
-        for (auto& cloudo : gEqContext->organ->getCloudsO()) {
-            if (familyStr == cloudo.getCloudP()->getCloudF()->getFamily()) {
-                totalInoc += cloudo.getValue();
-                totalInoc += cloudo.getCloudP()->getValue();
-                totalInoc += cloudo.getCloudP()->getCloudF()->getValue();
-                return static_cast<double>(totalInoc);
+    // Determine if the name is a valid family
+    if (!Manager::getInstance()->familiesHas(familyStr)) {
+        // Throw an error if the family name is not valid
+        std::cerr << "Error: Local organ inoculum by family received invalid family name: " << familyStr << std::endl;
+        throw std::invalid_argument("Invalid family name for local inoculum retrieval");
+    } else {
+        std::cout << "Retrieving local inoculum for family: " << familyStr << std::endl;
+        // Evaluate the total inoculum for the family across all clouds affecting the organ
+        float totalInoc = 0.0f;
+        if (gEqContext && gEqContext->organ) {
+            for (auto& cloudo : gEqContext->organ->getCloudsO()) {
+                if (familyStr == cloudo.getCloudP()->getCloudF()->getFamily()) {
+                    totalInoc += cloudo.getValue();
+                    totalInoc += cloudo.getCloudP()->getValue();
+                    totalInoc += cloudo.getCloudP()->getCloudF()->getValue();
+                    return static_cast<double>(totalInoc);
+                }
             }
         }
     }
