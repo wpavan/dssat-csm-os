@@ -45,8 +45,8 @@ protected:
     float organLastSize = 0;
 
     float proportionFromTotalValue = 0;
-    // NOTE: can we clarify this name a bit or add documentation for hovering over it?
-    int doc = Basic::getWeather()->getDoy();
+    
+    int doc = FlexibleIO::getInstance()->getInteger("CONTROL", "YEARDOY"); // Day of lesion cohort creation
     
     // Physiological age tracking
     float physiologicalLife = 0;
