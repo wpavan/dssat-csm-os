@@ -508,6 +508,8 @@ C     RATE CALCULATIONS
 C*********************************************************************** 
       CONTROL % DYNAMIC = RATE
       CALL PUT(CONTROL)
+! 04/14/2026 VLC Added call to push GDM-relevant variables to fio
+      CALL PUT_FIO_CONTROL(CONTROL)
 
       CALL LAND(CONTROL, ISWITCH, 
      &          YRPLT, MDATE, YREND)
@@ -520,9 +522,6 @@ C***********************************************************************
 
       CALL LAND(CONTROL, ISWITCH, 
      &          YRPLT, MDATE, YREND)
-
-! 04/14/2026 VLC Added call to push GDM-relevant variables to fio
-      CALL PUT_FIO_CONTROL(CONTROL)
 
 C*********************************************************************** 
 C     OUTPUT
