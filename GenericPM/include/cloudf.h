@@ -28,7 +28,6 @@ protected:
     int ID = ++qtd;
     float firstSporeCloud = 0;
     static int firstOutputCall;
-    // Disease* disease = nullptr;
     int lastRate = -99;
     int lastIntegration = -99;
     int lastOutput = -99;
@@ -37,10 +36,6 @@ public:
     CloudF(std::string fam) : family(fam) {
         Basic::output.push_back("Day of Simulation, Total Spores in CloudF");
     }
-
-    // Disease* getDisease() {
-    //     return disease;
-    // }
 
     static constexpr CloudLevel cloudLevel = CloudLevel::FIELD;
     

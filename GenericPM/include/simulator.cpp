@@ -159,15 +159,7 @@ void Simulator::rate() {
                 Plant::getInstance()->getOrganSet(organCP).queueHealthyGrowth(dssatDelta);
             }
             this->logOutput("NEW_GROWTH_" + cpIDToStr(organCP), dssatDelta);
-        } else {
-            #ifdef DEBUGX
-            std::cout << "No new organ growth detected: " 
-                    << "Disease: " << this->disease->getDiseaseID() 
-                    << " Coupling Point: " << cpIDToStr(organCP) 
-                    << " Growth: " << dssatDelta 
-                    << std::endl;
-            #endif // DEBUG
-        }
+        } 
 
         CouplingPointID outputCP;
         for (int i = 1; i < static_cast<int>(CouplingPointID::COUNT); i++) {
@@ -187,30 +179,12 @@ void Simulator::rate() {
         //         FSEED = *YRDOY;
         //         fio->setIntegerMemory("PEST", "FSEED", FSEED);
         //         first = 1;
-        //     }*/
-        //
-        //     #ifdef DEBUGX
-        //     std::cout << "New organ growth detected: " 
-        //             << "Disease: " << this->disease->getDiseaseID() 
-        //             << " Coupling Point: " << cpIDToStr(organCP) 
-        //             << " Growth: " << (*organCPVal - organCPValPrev) 
-        //             << std::endl;
-        //     #endif // DEBUG
+        //     }
         //     if (disease->getOrganMode() == OrganMode::COHORT) {
         //         cropinterface->setOrganArea(newOrgan, (*organCPVal - organCPValPrev));
         //     } else if (disease->getOrganMode() == OrganMode::SINGULAR) {
         //         Plant::getInstance()->getOrganSet(organCP).queueHealthyGrowth((*organCPVal - organCPValPrev));
-        //     }
-        // }
-        
-    } else {
-        #ifdef DEBUGX
-            std::cout << "Constant value organ: " 
-                    << "Disease: " << this->disease->getDiseaseID() 
-                    << " Coupling Point: " << cpIDToStr(organCP) 
-                    << " Value: " << cropinterface->getConstValue()
-                    << std::endl;
-            #endif // DEBUG
+        //     }   
     }
 
     /** For each Initial Condition call the rate function */

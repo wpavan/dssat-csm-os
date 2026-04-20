@@ -155,75 +155,8 @@ int couplingIntegration(int *YRDOY,
     couplingData->updatePrevValues();
     Plant::getInstance()->updatePrev();
 
-    #if ENABLE_ODE_GDM
-    // Cohort-based damage accumulation using daily increments from ODE model
-    // Static storage for cohorts and tracking per-simulation-year
-    static std::vector<DiseaseCohort> cohorts;
-    static double total_damaged_tissue = 0.0;
-    static int last_YRDOY = -1;
-    static int simulation_year = -1;
-
-    FlexibleIO *fio = FlexibleIO::getInstance();
-    int YRSIM = fio->getReal("PEST", "YRSIM");
-    double ZSTAGE = fio->getReal("PEST", "ZSTAGE");
-    if (simulation_year != YRSIM) {
-        cohorts.clear();
-        total_damaged_tissue = 0.0;
-        simulation_year = YRSIM;
-        last_YRDOY = -1;
-    }
-
-    double HSDWT = std::max(0.0, *SDWT - total_damaged_tissue);
-
-    if (HSDWT > 0) {
-        if (dIdt > 0.0) {
-            DiseaseCohort new_cohort;
-            new_cohort.infection_day = *YRDOY;
-            new_cohort.age = 0;
-            double B0 = 0.001;
-            new_cohort.biomass = B0 * (dIdt);
-            new_cohort.damaged_tissue = 0.0;
-            cohorts.push_back(new_cohort);
-        }
-
-        double total_cohort_biomass = 0.0;
-        double daily_new_damage = 0.0;
-
-        for (auto& cohort : cohorts) {
-            cohort.age = (*YRDOY - cohort.infection_day);
-            double lag_slope = 1.0;
-            double t_lag = 5.0;
-            double r_max = 0.3;
-            double Yld = 0.4;
-            double activation = 1.0 / (1.0 + std::exp(-lag_slope * (cohort.age - t_lag)));
-            double r_eff = r_max * activation;
-
-            total_cohort_biomass = 0.0;
-            for (const auto& c : cohorts) total_cohort_biomass += c.biomass;
-
-            double growth_limit = 1.0 - (total_cohort_biomass / (Yld * HSDWT));
-            growth_limit = std::max(0.0, std::min(1.0, growth_limit));
-
-            double dB = r_eff * cohort.biomass * growth_limit;
-            cohort.biomass += dB;
-
-            double tissue_consumed = (1.0 / Yld) * dB;
-            cohort.damaged_tissue += tissue_consumed;
-            daily_new_damage += tissue_consumed;
-        }
-
-        total_damaged_tissue += daily_new_damage;
-        *WSDD = total_damaged_tissue;
-        if (total_damaged_tissue > HSDWT) total_damaged_tissue = HSDWT;
-    }
-
-    double total_biomass = 0.0;
-    for (const auto& c : cohorts) total_biomass += c.biomass;
-
-    printf("YRDOY: %i, ZSTAGE: %.4f, dIdt: %.4f, HSDWT: %.4f, total_damaged_tissue: %.4f, cohorts.size(): %zu, WSDD: %.6f, total_biomass: %.6f\n",
-           *YRDOY, ZSTAGE, dIdt, HSDWT, total_damaged_tissue,
-           cohorts.size(), *WSDD, total_biomass);
-    #endif // ENABLE_ODE_GDM
+    // Increment the current simulation date by one day at the end of integration.
+    manager->setCurrentSimDate(manager->getCurrentSimDate() + 1);
 
     return (1);
 }

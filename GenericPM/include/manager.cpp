@@ -236,12 +236,6 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
   disease->setIGF(diseaseData["IGF"]);
   disease->setVGF(diseaseData["VGF"]);
 
-  #ifdef DEBUGX  
-  disease->printDisease();
-
-  std::cout << "Crop Interface size in Manager::addSimulator: " << ci->getOrgansQtd() << std::endl;
-  #endif
-
   // Use the *disease to find a new slot in the simulators 
   // vector and then initialize a new Simulator inside it.
   std::cout << "NEW SIMULATOR\n";
@@ -660,9 +654,6 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
 
         // Only create a new CropInterface if we haven't seen this coupling point before
         if (tempCP == CouplingPointID::VALUE) {
-          #ifdef DEBUGX
-          std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
-          #endif // DEBUG
           try {
             manager->addCropInterface(tempCP, diseaseData["ORGAN_AGE"], safe_assign_float(cpStr));
           } catch (const std::exception &e) {
@@ -670,15 +661,8 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
             continue;
           }
         } else if (std::find(uniqueCPs.begin(), uniqueCPs.end(), tempCP) == uniqueCPs.end()) {
-          #ifdef DEBUGX 
-          std::cout << "Creating new CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
-          #endif // DEBUG
           uniqueCPs.push_back(tempCP);
           manager->addCropInterface(tempCP, diseaseData["ORGAN_AGE"]);
-        } else {
-          #ifdef DEBUGX          
-          std::cout << "Using existing CropInterface for CP: " << cpIDToStr(tempCP) << std::endl;
-          #endif // DEBUG
         }
 
         ciPtr = manager->getCropInterface(tempCP);
@@ -696,24 +680,10 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
         if (!uniqueFamilies.contains(family)) {
           std::cout << "Will create new CloudF for disease family: " << family << std::endl;
           uniqueFamilies.families[family] = cloudParams;
-          
-          #ifdef DEBUGX          
-          std::cout << "Cloud parameters for this family: " << family << std::endl;
-          for (const auto& param : cloudParams.params) {
-            std::cout << "  " << param.first << ": " << param.second << std::endl;
-          }
-          #endif // DEBUG
 
           manager->addUniqueFamily(family);
         } else {
           std::cout << "Will use existing CloudF for shared inoculum: " << cpIDToStr(tempCP) << std::endl;
-
-          #ifdef DEBUGX          
-          std::cout << "Cloud parameters for this family: " << family << std::endl;
-          for (const auto& param : cloudParams.params) {
-            std::cout << "  " << param.first << ": " << param.second << std::endl;
-          }
-          #endif // DEBUG
 
           if (cloudParams != uniqueFamilies.families[family]) {
             throw std::runtime_error("Error: Cloud parameters for family " + family + " do not match previous definition.");

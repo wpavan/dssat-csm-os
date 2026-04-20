@@ -32,10 +32,7 @@ void InitialCondition::rate() {
             dailyFavorability = 0.0f; // Default to 0 favorability if
         }
         
-        // dailyFavorability = Utilities::temperatureFavorability(Basic::getWeather()->getTMean(),
-        //                                                        cloudF->getDisease()->getTemperatureFavorabilitySet()) 
-        //                     * Utilities::wetnessFavorability(Basic::getWeather()->getWetDur(), 
-        //                                                      cloudF->getDisease()->getWetnessFunction());
+        // dailyFavorability = tempFactor * wetnessFactor;      cloudF->getDisease()->getWetnessFunction());
     }
 }
 

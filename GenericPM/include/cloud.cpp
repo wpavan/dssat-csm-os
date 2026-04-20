@@ -12,7 +12,6 @@
 #include "disease.h"
 #include "simulator.h"
 #include "project_config.h"
-//#include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -56,16 +55,30 @@ namespace {
 // ageing based removal deletes entries from the beginning of the 
 // vector.
 void Cloud::integration() {
-    // diagSnapshot("integration_start");
-
-    // Add new spores into cloud
+    // ===== Add new inoculum =====
+    // Add new infective inoculum into cloud
     if (values.empty()) {
-        values.push_back(sporesCreated);
+        values.push_back(activeInoculumCreated);
     } else {
         if (REMOVAL_METHOD == 1) {
             incrementSporesAge();
         }
-        values.back() += sporesCreated;
+        values.back() += activeInoculumCreated;
+    }
+
+    // Add new dormant inoculum into cloud
+    dormantInoculum += dormantInoculumCreated;
+
+    // ===== Remove inoculum =====
+    // Remove active inoculum according to queued removal (INOC_REM expression)
+    // This should include most/all effects including:
+    // - Infection-driven removal (via # of new lesions)
+    // - Rain-driven removal (via fio->rain)
+    // - Density cap removal (via TinyExpr++ functions)
+    // - Age-based removal (NEED TO IMPLEMENT NEW METHOD)
+    // - UV-based removal (also via fio)
+    if (activeInoculumRemoved > 0.0f) {
+        removeSporesVal(activeInoculumRemoved);
     }
 
     // If an age-based removal was queued, perform it now
@@ -74,81 +87,13 @@ void Cloud::integration() {
     //     removeByAge = false;
     // }
 
-    if (REMOVAL_METHOD == 1) {
-        // Density cap
-        if (getValue() > disease->getMaxSporeCloudsDensity()) {
-            float over = getValue() - disease->getMaxSporeCloudsDensity();
-            removeSporesVal(over);
-        }
-
-        // Infection-driven queued removals
-        if (sporesToBeRemoved > 0.0f) {
-            removeSporesVal(sporesToBeRemoved);
-        }
-
-        // Rain effect
-        // NOTE: This should be taken care of in the .yaml input file. It is 
-        //       important to note that this percentage-based removal indicates
-        //       the need for the current inoculum value to be available in FIO 
-        //       or available through some context.
-        //
-        // if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
-        //     float percent = 1 - exp(-0.035f * Basic::getWeather()->getRain());
-        //     removeSporesPct(1 - percent);
-        // }
-    }
-
-    // diagSnapshot("integration_end");
-
     // Reset counters
-    sporesCreated = 0.0f;
-    sporesToBeRemoved = 0.0f;
-
-    // // Original
-    // int qtd = 0;
-
-    // // Clear out the removal queue
-    // if (sporesToBeRemoved > 0) {
-    //     // Remove from cloud spores used to infect tissue
-    //     removeSporesVal(sporesToBeRemoved);
-    // }
-
-    // if (removeByAge) {
-    //     values.erase(values.begin());
-    //     removeByAge = false;
-    // }
-
-    // if (REMOVAL_METHOD == 1){
-    //     // Age the spores in the cloud (only for method 1)
-    //     incrementSporesAge();
-    // }
-
-    // // Add new spores into cloud
-    // if (values.size() == 0) {
-    //     values.push_back(sporesCreated);
-    // } else {
-    //     values.back() += sporesCreated;
-    // }
-    
-    // // Reset created and to-be-removed counters
-    // sporesCreated = 0.0f;
-    // sporesToBeRemoved = 0.0f;
+    activeInoculumCreated = 0.0f;
+    activeInoculumRemoved = 0.0f;
 }
 
 float Cloud::getValue() {
-    // Validate this pointer
-    //std::cout << "this pointer: " << this << std::endl;
-    //std::cout << "values container address: " << &values << std::endl;
-    //std::cout << "values.size(): " << values.size() << std::endl;
-    
     float sum = 0.0f;
-
-    #ifdef DEBUGX
-    if (this->disease == nullptr) {
-        std::cout << "getValue() called on a cloud with a nullptr for disease." << std::endl;
-        printf("Address of disease: %p\n", (void *)this->disease);
-    }
-    #endif // DEBUGX
     
     if (values.empty()) return 0.0f;
 
@@ -157,9 +102,6 @@ float Cloud::getValue() {
         try {
             float& value = values[i];
             if (!std::isfinite(value)) {
-                #ifdef DEBUGX
-                std::cout << "Sanitizing non-finite value in cloud values: " << value << " -> 0" << std::endl;
-                #endif
                 value = 0.0f;
             }
             sum += value;

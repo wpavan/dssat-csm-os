@@ -99,23 +99,6 @@ public:
     CropInterface* getCropInterface() {
         return cropinterface;
     }
-
-    /*void resetCropInterface() {
-        delete cropinterface;
-        cropinterface = new CropInterface();
-        cropinterface->start();
-    }*/
-
-    /*void setRateInjection(Injection *inj) {
-        rateInj = inj;
-    }
-
-    Injection* getRateInjection() {
-        if (rateInj == nullptr) {
-            rateInj = new Injection();
-        }
-        return rateInj;
-    }*/
 };
 
 #endif // SIMULATOR_H
