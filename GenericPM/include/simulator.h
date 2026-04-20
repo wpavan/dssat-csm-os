@@ -74,17 +74,13 @@ public:
         return Plant::getInstance();
     }
 
+    void resetInitialCondition() {
+        initialCondition = InitialCondition(disease->getFamily());
+        initialCondition.setCloud(Manager::getInstance()->getCloudF(disease->getFamily()));
+    }
+
     InitialCondition* getInitialCondition() {
-        InitialCondition* ic = &initialCondition;
-        return ic;
-    }
-
-    void setCurrentYearDoy(int currentYearDoy) {
-        this->currentYearDoy = currentYearDoy;
-    }
-
-    int getCurrentYearDoy() const {
-        return currentYearDoy;
+        return &initialCondition;
     }
 
     Disease* getDisease() {

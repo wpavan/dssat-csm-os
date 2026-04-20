@@ -15,6 +15,7 @@
 #include <memory>
 #include "cloudf.h"
 #include "plant.h"
+#include "manager.h"
 
 class InitialCondition : public Basic, virtual public BasicInterface {
 private:
@@ -41,7 +42,12 @@ public:
     }
 
     std::shared_ptr<CloudF> getCloud() {
-        return cloudF;
+        if (!cloudF) {
+            std::cerr << "Warning: InitialCondition for family " << family << " has no CloudF set." << std::endl;
+            throw std::runtime_error("InitialCondition has no CloudF set.");
+        } else {
+            return cloudF;
+        }
     }
 
     void setCloud(std::shared_ptr<CloudF> cloudF) {

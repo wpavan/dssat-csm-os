@@ -57,18 +57,20 @@ extern "C" {
 // couplingInit refers to the seasonal initialization of the GDM
 int couplingInit(int *YRDOY, int *YRPLT) {
     std::cout << "Running SEASINIT for year: " << *YRDOY / 1000 << std::endl;
+    // Get necessary instances for seasinit
     Manager *manager = Manager::getInstance();
 
     // Initialize the simulators with relevant data
     manager->setCurrentSimDate(*YRDOY);
-    std::cout << "Incoming Planting Date (INIT): " << (YRPLT ? *YRPLT : -1) << std::endl;
     manager->setPlantingDate(*YRPLT);
 
+    // Reset cloudsF from previous season
     manager->resetCloudsF();
 
     // Reset existing crop interface data year to year
     for (auto& s : manager->getSimulators()) {
         s->getCropInterface()->start();
+        s->resetInitialCondition();
     }
 
     return (1);
