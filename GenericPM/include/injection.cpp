@@ -111,31 +111,34 @@ static double TE_linear(double x, double x_at_max, double x_at_min) {
 }
 
 static double TE_fio_real(double group, double varname) {
+    FlexibleIO* fio = FlexibleIO::getInstance();
     FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
     std::string groupStr = converter->decode(group);
     std::string varnameStr = converter->decode(varname);
-    return FlexibleIO::getInstance()->getReal(groupStr, varnameStr);
+    return fio->getReal(groupStr, varnameStr);
 }
 
 static double TE_fio_real_yrdoy(double group, double yrdoy, double varname) {
+    FlexibleIO* fio = FlexibleIO::getInstance();
     FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
     std::string groupStr = converter->decode(group);
     std::string varnameStr = converter->decode(varname);
 
     if (yrdoy == -1) {
-        // This is the case where the second part of the FIO reference was a sim date keyword like CURRENT_YRDOY. We need to get the current simulation date from the Weather singleton and pass it to FlexibleIO.
-        int currentYrdoy = Weather::getInstance()->getYearDoy();
-        return FlexibleIO::getInstance()->getRealYrdoy(groupStr, std::to_string(currentYrdoy), varnameStr);
+        // This is the case where the second part of the FIO reference was a sim date keyword like CURRENT_YRDOY.
+        int currentYrdoy = fio->getInteger("CONTROL", "CURRENT_YRDOY");
+        return fio->getRealYrdoy(groupStr, std::to_string(currentYrdoy), varnameStr);
 
     }
-    return FlexibleIO::getInstance()->getRealYrdoy(groupStr, std::to_string((int)yrdoy), varnameStr);
+    return fio->getRealYrdoy(groupStr, std::to_string((int)yrdoy), varnameStr);
 }
 
 static double TE_fio_real_index(double group, double varname, double index) {
+    FlexibleIO* fio = FlexibleIO::getInstance();
     FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
     std::string groupStr = converter->decode(group);
     std::string varnameStr = converter->decode(varname);
-    return FlexibleIO::getInstance()->getRealIndex(groupStr, varnameStr, (int)index);
+    return fio->getRealIndex(groupStr, varnameStr, (int)index);
 }
 
 

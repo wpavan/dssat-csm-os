@@ -92,16 +92,12 @@ public:
      */
     void output();
 
-    void addSporesCreated(float sporesCreated) {
-        #if DIAG_SPORES
-        std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " CloudF::addSporesCreated sporesCreated=" << sporesCreated << std::endl;
-        #endif
-        this->sporesCreated += sporesCreated;
-    }
+    void addInoculumCreated(float activeInoculumCreated) override;
+    void addInoculumCreated(float inoculumCreated, InoculumDestination destination) override;
 
-    void setSporesCreated(float sporesCreated) {
+    void setSporesCreated(float activeInoculumCreated) {
         values.clear();
-        values.push_back(sporesCreated);
+        values.push_back(activeInoculumCreated);
     }
 
     void setFirstSporeCloud(float firstSporeCloud) {

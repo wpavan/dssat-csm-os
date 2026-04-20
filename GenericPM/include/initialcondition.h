@@ -23,13 +23,16 @@ private:
 protected:
     float acumulateFavorability = 0, dailyFavorability = 0;
     bool favorabilityAccumulated = false;
-    int doc = Basic::getWeather()->getDoy();
+    int doc; // Day of creation of the initial condition
     static int qtd;
     int ID = ++qtd;
     std::string family;
 
 public:
     InitialCondition(std::string family) : family(family){
+        // doc = FlexibleIO::getInstance()->getInteger("CONTROL", "YEARDOY");
+        doc = Manager::getInstance()->getCurrentSimDate();
+        std::cout << "Creating InitialCondition for family: " << family << " with ID: " << ID << " on YEARDOY: " << doc << std::endl;
         Basic::output.push_back("Day of Simulation, Acumulated Favorability");
     }
 

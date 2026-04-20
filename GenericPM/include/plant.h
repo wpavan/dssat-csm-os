@@ -45,7 +45,7 @@ struct OrganSet {
 class Plant : public Basic, virtual public BasicInterface {
 protected:
     static Plant* instance;
-    int doc = Basic::getWeather()->getDoy();
+    int doc = FlexibleIO::getInstance()->getInteger("CONTROL", "YEARDOY"); // Day of plant creation
     // NOTE: When do we create the organ set?
     std::vector<OrganSet> organSets;
     std::vector<CloudP> cloudsP;

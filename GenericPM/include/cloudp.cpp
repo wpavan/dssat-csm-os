@@ -61,19 +61,14 @@ void CloudP::integration() {
     //         addSporesToBeRemoved(getValue() - disease->getMaxSporeCloudsDensity());
     //     }
 
-    //     if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
-    //         float percent = 1 - exp(-0.035f * Basic::getWeather()->getRain());
-    //         // removed amount = oldTotal - newTotal = oldTotal * (1 - percent)
-    //         float removed = getValue() - (getValue() * percent);
-    //         addSporesToBeRemoved(removed);
-    //     }
-    // }
+    // if rain > threshold:
+    // - queue removal of 1 - exp(-0.035f * getRain()) %
 
     // // Update values according to additions and removals queued
     // Cloud::integration();
 
     std::ostringstream convert;
-    convert << Basic::getWeather()->getYearDoy() << "," << getValue();
+    convert << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << "," << getValue();
     for (unsigned int i = 0; i < values.size(); i++) {
         convert << "," << values[i];
     }

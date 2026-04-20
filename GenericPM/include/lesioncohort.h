@@ -48,14 +48,14 @@ public:
         this->cloudo = cloudo;
         this->visibleValue = 0;
         this->invisibleValue = (lesionsInThisCohort * cloudo->getDisease()->getInitialPustuleSize());
-        this->doc = getWeather()->getDoy();
+        this->doc = FlexibleIO::getInstance()->getInteger("CONTROL", "YEARDOY");
     }
 
     int getID() {
         return ID;
     }
     int getAge() {
-        return (Basic::getWeather()->getDoy() - doc);
+        return (FlexibleIO::getInstance()->getInteger("CONTROL", "YEARDOY") - doc);
     }
     void integration();
     int getVisibleLesions();

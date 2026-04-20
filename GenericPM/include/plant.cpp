@@ -180,44 +180,27 @@ void Plant::integration() {
                 visibleLesions += organ.getVisibleLesions();
                 totalLesions += organ.getTotalLesions();
 
-                // Printing for debug
-                // std::cout << "YEARDOY: " << getWeather()->getYearDoy() << " invis | vis | healthy: " <<
-                // organ.getInvisibleValue() << " | " <<
-                // organ.getVisibleValue() << " | " <<
-                // organ.getHealthyValue() << std::endl;
-
                 // std::cout << "Total lesions today so far: " << totalLesions << std::endl;
             }
         }
     }
-    //std::cout << "---------------" << std::endl;
-
-    // THIS IS WHERE NEW ORGAN CREATION +++WAS+++
-    
-    // INSERT ABOVE TO REVERT
-
-    // These could be moved into the convert block below instead of adding to memory
-    //cloudPValue = cloud->getValue();
-    //cloudFvalue = cloud->getCloudF()->getValue();
 
     #ifdef OUTPUT_PLANT
     std::ostringstream convert;
     //YearDoy, TotalValue, HealthyValue, InvisibleValue, VisibleValue, TotalLesions
-    convert << Basic::getWeather()->getYearDoy() << "," << getTotalValue() << "," << healthyValue << ","
+    convert << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << "," << getTotalValue() << "," << healthyValue << ","
             << invisibleValue << "," << visibleValue << "," << totalLesions;
     Basic::output.push_back(convert.str());
     #endif // OUTPUT_PLANT
 }
 
 void Plant::output() {
+    // Speedup the model by removing outputs
     #ifdef OUTPUT_PLANT
     std::ostringstream convert;
     Basic::getOutput("Cpp_Plant.txt", this->firstOutputCall);
     this->firstOutputCall++;
-    #endif // OUTPUT_PLANT
 
-    // Speedup the model removing outputs
-    #ifdef OUTPUT_PLANT
     std::cout << "\nPlant " << getID() << ":\n";
     for(unsigned int i=0; i<Basic::output.size(); i++) {
        std::cout << Basic::output[i] << std::endl;

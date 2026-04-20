@@ -10,8 +10,6 @@
 #ifndef BASIC_H 
 #define BASIC_H
 
-#include "weather.h"
-
 #include <vector>
 #include <string>
 #include <fstream>
@@ -19,7 +17,6 @@
 class Basic {
 protected:
     std::vector<std::string> output;
-    Weather *weather;
     int firstCall = 1;
 
 public:
@@ -45,10 +42,6 @@ public:
         }
         out.close();
         output.clear();
-    }
-
-    Weather* getWeather() {
-        return weather = Weather::getInstance();
     }
 };
 

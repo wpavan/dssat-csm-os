@@ -18,19 +18,16 @@
 int CloudF::firstOutputCall = 0;
 
 void CloudF::rate() {
-    if (lastRate != Basic::getWeather()->getDoy()) {
+    FlexibleIO *fio = FlexibleIO::getInstance();
+    if (lastRate != fio->getInteger("CONTROL", "YEARDOY")) {
         // Set current cloud for context
         gEqContext->cloud = this;
 
         // Run the generic cloud rate function
         Cloud::rate();
 
-        #ifdef DEBUGX        
-        std::cout << "YEARDOY: " << weather->getYearDoy() << "\n\t- CloudF family: " << family << "\n\t- Total Spores in CloudF: " << getValue() << std::endl;
-        #endif // DEBUG
-
         // Ensure we only run this once per day
-        lastRate = Basic::getWeather()->getDoy();
+        lastRate = fio->getInteger("CONTROL", "YEARDOY");
 
         // Add the inoculum value into FlexibleIO
         FlexibleIO *fio = FlexibleIO::getInstance();
@@ -42,20 +39,21 @@ void CloudF::rate() {
 }
 
 void CloudF::integration() {
-    if (lastIntegration != Basic::getWeather()->getDoy()) {
+    FlexibleIO *fio = FlexibleIO::getInstance();
+    if (lastIntegration != fio->getInteger("CONTROL", "YEARDOY")) {
         if (firstSporeCloud > 0) {
-                #if DIAG_SPORES
-                std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " CloudF::integration seeding firstSporeCloud=" << firstSporeCloud << std::endl;
-                #endif
-                values.push_back(firstSporeCloud);
-                firstSporeCloud = 0;
+            #if DIAG_SPORES
+            std::cout << "[DIAG] YEARDOY:" << fio->getReal("CONTROL", "YEARDOY") << " CloudF::integration seeding firstSporeCloud=" << firstSporeCloud << std::endl;
+            #endif
+            values.push_back(firstSporeCloud);
+            firstSporeCloud = 0;
         }
 
         // Refactor
         else if (REMOVAL_METHOD == 1) {
             if (values.size() == (unsigned) disease->getVectorSizeCloudF()) {
                 #if DIAG_SPORES
-                std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " CloudF::integration queueing age removal (size==vectorSizeCloudF)" << std::endl;
+                std::cout << "[DIAG] YEARDOY:" << fio->getReal("CONTROL", "YEARDOY") << " CloudF::integration queueing age removal (size==vectorSizeCloudF)" << std::endl;
                 #endif
                 queueAgeRemoval();
             }
@@ -78,27 +76,28 @@ void CloudF::integration() {
         //         addSporesToBeRemoved(getValue() - disease->getMaxSporeCloudsDensity());
         //     }
 
-        //     if (Basic::getWeather()->getRain() >= disease->getMRRS()) {
-        //         float percent = 1 - exp(-0.035f * Basic::getWeather()->getRain());
+        //     if (getRain() >= disease->getMRRS()) {
+        //         float percent = 1 - exp(-0.035f * getRain());
         //         float removed = getValue() - (getValue() * percent);
         //         addSporesToBeRemoved(removed);
         //     }
         // }
         
         std::ostringstream convert;
-        convert << Basic::getWeather()->getYearDoy() << "," << getValue();
+        convert << fio->getReal("CONTROL", "YEARDOY") << "," << getValue();
         for (auto& value : values) {
             convert << "," << value;
         }
         Basic::output.push_back(convert.str());
         
         // Ensure we only run this once per day
-        lastIntegration = Basic::getWeather()->getDoy();
+        lastIntegration = fio->getInteger("CONTROL", "YEARDOY");
     }
 }
 
 void CloudF::output() {
-    if (lastOutput != Basic::getWeather()->getDoy()) {
+    FlexibleIO *fio = FlexibleIO::getInstance();
+    if (lastOutput != fio->getInteger("CONTROL", "YEARDOY")) {
         Cloud::output();
 
         std::ostringstream convert;
@@ -115,7 +114,26 @@ void CloudF::output() {
         #endif // OUTPUT
 
         // Ensure we only run this once per day
-        lastOutput = Basic::getWeather()->getDoy();
+        lastOutput = fio->getInteger("CONTROL", "YEARDOY");
     }
     
+}
+
+void CloudF::addInoculumCreated(float activeInoculumCreated) {
+    #if DIAG_SPORES
+    FlexibleIO* fio = FlexibleIO::getInstance();
+    std::cout << "[DIAG] YEARDOY:" << fio->getReal("CONTROL", "YEARDOY") << " CloudF::addInoculumCreated activeInoculumCreated=" << activeInoculumCreated << std::endl;
+    #endif
+    this->activeInoculumCreated += activeInoculumCreated;
+}
+
+void CloudF::addInoculumCreated(float inoculumCreated, InoculumDestination destination) {
+    switch (destination) {
+        case InoculumDestination::DORMANT:
+            DormantInoculum::getInstance()->addDormantInoculum(inoculumCreated, this->family);
+            break;
+        case InoculumDestination::INFECTIVE:
+            this->activeInoculumCreated += inoculumCreated;
+            break;
+    }
 }

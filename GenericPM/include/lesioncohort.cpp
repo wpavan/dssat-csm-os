@@ -143,13 +143,13 @@ void LesionCohort::integration() {
         }
 
         if(newSpores > 0) {
-            cloudo->addSporesCreated(newSpores);
+            cloudo->addInoculumCreated(newSpores);
         }        
 
         physiologicalAge += dailyAge;
 
         std::ostringstream convert;
-        convert << Basic::getWeather()->getYearDoy() << "," << getTotalValue() << "," << lesionsInThisCohort << "," << getPhysiologicalDaysAcumm() << ","
+        convert << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << "," << getTotalValue() << "," << lesionsInThisCohort << "," << getPhysiologicalDaysAcumm() << ","
                 << getOrganDiseasedValueProportion() << "," << getLatentValue() << "," << getInfectionValue() << "," << getNecroticValue() << ","
                 << newSpores << "," << dailyVisibleValue << "," << dailyInvisibleValue;
         Basic::output.push_back(convert.str());

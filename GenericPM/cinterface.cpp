@@ -130,8 +130,6 @@ int couplingRate(int *YRDOY,
     manager->updateCurrentYearDoy(*YRDOY);
     fio->setIntegerMemory("PEST", "YRDOY", *YRDOY);
 
-    Weather::getInstance()->update();
-
     if (*YRPLT == *YRDOY) {
         Plant::newInstance();
     }
