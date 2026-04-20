@@ -54,9 +54,11 @@ public:
      * The number of spores created is partitioned into the CloudO and parent CloudP objects 
      * according to the proportion defined in the Disease object.
      * 
-     * @param sporesCreated Number of spores created.
+     * @param activeInoculumCreated Number of spores created.
      */
-    void addSporesCreated(float sporesCreated);
+    void addInoculumCreated(float activeInoculumCreated);
+
+    void addInoculumCreated(float inoculumCreated, InoculumDestination destination);
 };
 
 #endif // CLOUDO_H

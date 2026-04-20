@@ -91,14 +91,28 @@ void CloudO::output() {
     #endif // OUTPUT
 }
 
-void CloudO::addSporesCreated(float sporesCreated) {
-    float toParent = sporesCreated * disease->getProportionFromOrganToPlantCloud();
-    float toSelf = sporesCreated - toParent;
+void CloudO::addInoculumCreated(float activeInoculumCreated) {
+    float toParent = activeInoculumCreated * disease->getProportionFromOrganToPlantCloud();
+    float toSelf = activeInoculumCreated - toParent;
     #if DIAG_SPORES
-    std::cout << "[DIAG] CloudO::addSporesCreated total=" << sporesCreated << " toSelf=" << toSelf << " toParent=" << toParent << std::endl;
+    std::cout << "[DIAG] CloudO::addInoculumCreated total=" << activeInoculumCreated << " toSelf=" << toSelf << " toParent=" << toParent << std::endl;
     #endif
-    Cloud::sporesCreated += toSelf;
+    Cloud::activeInoculumCreated += toSelf;
     if (cloudP) {
-        cloudP->addSporesCreated(toParent);
+        cloudP->addInoculumCreated(toParent);
+    }
+}
+
+void CloudO::addInoculumCreated(float inoculumCreated, InoculumDestination destination) {
+    float toParent, toSelf;
+    switch (destination) {
+        case InoculumDestination::DORMANT:
+            DormantInoculum::getInstance()->addDormantInoculum(inoculumCreated, this->disease->getFamily());
+            break;
+        case InoculumDestination::INFECTIVE:
+            toParent = inoculumCreated * disease->getProportionFromOrganToPlantCloud();
+            this->activeInoculumCreated += inoculumCreated - toParent;
+            cloudP->addInoculumCreated(toParent, destination);
+            break;
     }
 }

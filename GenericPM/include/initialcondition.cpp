@@ -44,18 +44,28 @@ void InitialCondition::integration() {
 
 void InitialCondition::integration(Disease *disease) {
     if (!favorabilityAccumulated) {
+        int yearDoy = Manager::getInstance()->getCurrentSimDate();
         acumulateFavorability += dailyFavorability;
         // NOTE: If we have one simulator for each disease, should the line below
         //       be getting the disease from a disease object or simulator object instead 
         //       of the current implementation?
-        if (acumulateFavorability >= disease->getAcumulateFavorability() && Basic::getWeather()->getDoy() >= 0) {
-            printf("Accumulated Favorability reached: %.2f on day %d\n", acumulateFavorability, Basic::getWeather()->getDoy());
-            cloudF->setFirstSporeCloud(disease->getInitialInoculum());
+        if (acumulateFavorability >= disease->getAcumulateFavorability() && yearDoy >= 0) {
+            printf("Accumulated Favorability reached: %.2f on YEARDOY: %d\n", acumulateFavorability, yearDoy);
+            DormantInoculum* dormantInoc = DormantInoculum::getInstance();
+            float dormantInoculum = dormantInoc->getFamilyInoculum(disease->getFamily());
+            if (dormantInoculum > 0) {
+                cloudF->setFirstSporeCloud(dormantInoculum);
+                dormantInoc->clear(disease->getFamily());
+                printf("Using dormant inoculum for family %s: %.2f\n", disease->getFamily().c_str(), dormantInoculum);
+            } else {
+                cloudF->setFirstSporeCloud(disease->getInitialInoculum());
+                printf("No dormant inoculum for family %s. Using initial inoculum: %.2f\n", disease->getFamily().c_str(), disease->getInitialInoculum());
+            }
             favorabilityAccumulated = true;
         }
 
         std::ostringstream convert;
-        convert << Basic::getWeather()->getYearDoy() << "," << acumulateFavorability;
+        convert << yearDoy << "," << acumulateFavorability;
         Basic::output.push_back(convert.str());
     }
 }

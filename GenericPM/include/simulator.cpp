@@ -82,7 +82,7 @@ void Simulator::rate() {
         CloudField = Utilities::runExpressionFunction(SW, plants[0].getCloudsP()[0].getDisease()->getSWF()); 
         // 0.0000005*exp(0.20*x) 
 
-        plants[0].getCloudsP()[0].getCloudF()->addSporesCreated(CloudField);
+        plants[0].getCloudsP()[0].getCloudF()->addInoculumCreated(CloudField);
     }*/
     
     /* GDM2 Implementation of spore generation
@@ -209,11 +209,11 @@ void Simulator::rate() {
     initialCondition.getCloud()->rate();
 
     try {
-        initialCondition.getCloud()->addSporesCreated(disease->getINOC_EXT()->evaluate());
+        initialCondition.getCloud()->addInoculumCreated(disease->getINOC_EXT()->evaluate(), disease->getINOC_DEST());
     } catch (const std::runtime_error& e) {
         std::cerr << "Error evaluating INOC_EXT expression for DiseaseID: " << disease->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
         // Default to 0 inoculum if evaluation fails
-        initialCondition.getCloud()->addSporesCreated(0.0f);
+        initialCondition.getCloud()->addInoculumCreated(0.0f);
     }
 
     /** Call the rate function for the Plant */

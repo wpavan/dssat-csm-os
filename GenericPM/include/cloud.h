@@ -24,19 +24,83 @@ enum class CloudLevel {
     ORGAN
 };
 
+class DormantInoculum {
+protected:
+    static std::unordered_map<std::string, float> amountByFamily;
+    static DormantInoculum* instance;
+    DormantInoculum() {}
+public:
+    static DormantInoculum* getInstance(void) {
+        if (!instance) {
+            return new DormantInoculum();
+        } else {
+            return instance;
+        }
+    }
+
+    DormantInoculum* newInstance(void) {
+        instance = nullptr;
+        return getInstance();
+    }
+
+    void setFamilyInoculum(std::string family, float amount) {
+        amountByFamily[family] = amount;
+    }
+
+    bool hasInoculum() {
+        return !amountByFamily.empty();
+    }
+
+    const float getFamilyInoculum(std::string family) {
+        auto it = amountByFamily.find(family);
+        if (it != amountByFamily.end()) {
+            return it->second;
+        } else {
+            return -99.0f;
+        }
+    }
+
+    const std::unordered_map<std::string, float>& getDormantInoc() {
+        return amountByFamily;
+    }
+
+    void addDormantInoculum(float amount, std::string family) {
+        amountByFamily[family] += amount;
+    }
+
+    void clear(std::string family) {
+        amountByFamily.erase(family);
+    }
+
+    void clear() {
+        amountByFamily.clear();
+    }
+
+    void show() {
+        std::cout << "Dormant Inoculum by Family:" << std::endl;
+        for (const auto& pair : amountByFamily) {
+            std::cout << "  " << pair.first << ": " << pair.second << std::endl;
+        }
+    }
+};
+
 class Cloud : public Basic, virtual public BasicInterface {
 private:
     bool removeByAge = false;
 
 protected:
-    std::vector<float> values;
+    // Declare storage variables for cloud inoculum.
+    std::vector<float> values;    // Infective inoculum values optionally divided into age cohorts
+    float dormantInoculum = 0.0f; // Inoculum that is present but not yet infective
+
+    // Reference to the associated disease
     Disease *disease;
+
     // Use float to avoid truncation and preserve fractional spores
-    float sporesCreated = 0.0f;
-    float sporesToBeRemoved = 0.0f;
+    float activeInoculumCreated, activeInoculumRemoved = 0.0f;
+    float dormantInoculumCreated, dormantInoculumRemoved = 0.0f;
     
 public:
-
     void rate() {}
     void integration();
     void output() {}
@@ -52,9 +116,10 @@ public:
         this->disease = disease;
     }
 
-    float getValue();
+    float getValue(); // Returns active inoculum value (sum of values vector)
 
-    virtual void addSporesCreated(float sporesCreated) = 0;
+    virtual void addInoculumCreated(float activeInoculumCreated) = 0;
+    virtual void addInoculumCreated(float inoculumCreated, InoculumDestination destination) = 0;
     
     void removeSporesVal(float toBeRemove);
     void removeSporesPct(float percent);
@@ -64,7 +129,7 @@ public:
     void diagSnapshot(const char *ctx) {
 #if DIAG_SPORES
         std::ostringstream ss;
-        ss << "[DIAG] " << ctx << " :: " << "sporesCreated=" << sporesCreated << ", sporesToBeRemoved=" << sporesToBeRemoved << ", total=" << getValue();
+        ss << "[DIAG] " << ctx << " :: " << "activeInoculumCreated=" << activeInoculumCreated << ", activeInoculumRemoved=" << activeInoculumRemoved << ", total=" << getValue();
         ss << ", values=[";
         for (unsigned i=0;i<values.size();++i) {
             if (i) ss << ",";
@@ -78,15 +143,15 @@ public:
     virtual CloudLevel getLevel() const = 0;
 
     float getSporesToBeRemoved() {
-        return sporesToBeRemoved;
+        return activeInoculumRemoved;
     }
 
-    void setSporesToBeRemoved(float sporesToBeRemoved) {
-        this->sporesToBeRemoved = sporesToBeRemoved;
+    void setSporesToBeRemoved(float activeInoculumRemoved) {
+        this->activeInoculumRemoved = activeInoculumRemoved;
     }
 
-    void addSporesToBeRemoved(float sporesToBeRemoved) {
-        this->sporesToBeRemoved += sporesToBeRemoved;
+    void addSporesToBeRemoved(float activeInoculumRemoved) {
+        this->activeInoculumRemoved += activeInoculumRemoved;
     }
 
     void queueAgeRemoval() {
@@ -95,8 +160,8 @@ public:
 
     void reset() {
         values.clear();
-        sporesCreated = 0.0f;
-        sporesToBeRemoved = 0.0f;
+        activeInoculumCreated = 0.0f;
+        activeInoculumRemoved = 0.0f;
     }
 };
 

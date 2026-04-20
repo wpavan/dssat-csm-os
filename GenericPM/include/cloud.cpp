@@ -47,6 +47,9 @@ namespace {
     static FunctionRegistrar registrar;
 }
 
+std::unordered_map<std::string, float> DormantInoculum::amountByFamily; 
+DormantInoculum* DormantInoculum::instance = nullptr;
+
 // All clouds share the same integration logic:
 //   1. Remove spores that were used to infect tissue.
 //   2. Add the queued spores to the values vector.

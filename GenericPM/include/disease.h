@@ -23,6 +23,11 @@
 #include <algorithm>
 #include <iostream>
 
+enum class InoculumDestination {
+    DORMANT,
+    INFECTIVE
+};
+
 /**
  * @class Disease
  * 
@@ -73,6 +78,7 @@ protected:
     Expression INOC_EXT; // Expression for external inoculum amount
     Expression INOC_LES; // Expression for lesion-based inoculum production
     Expression INOC_REM; // Expression for daily proportional removal of inoculum
+    InoculumDestination INOC_DEST; // Destination for inoculum produced by the disease (dormant or infective)
 
     Expression DAMAGE; // Expression for organ damage due to this disease
 
@@ -611,6 +617,31 @@ public:
      */
     void setINOC_REM(Expression INOC_REM) {
         this->INOC_REM = INOC_REM;
+    }
+
+    /**
+     * Get the inoculum destination.
+     * 
+     * @return Inoculum destination.
+     */
+    InoculumDestination getINOC_DEST() {
+        return INOC_DEST;
+    }
+
+    /**
+     * Set the inoculum destination.
+     * 
+     * @param INOC_DEST Inoculum destination.
+     */
+    void setINOC_DEST(std::string dest_arg) {
+        if (dest_arg == "DORMANT") {
+            this->INOC_DEST = InoculumDestination::DORMANT;
+        } else if (dest_arg == "INFECTIVE") {
+            this->INOC_DEST = InoculumDestination::INFECTIVE;
+        } else {
+            std::cerr << "Warning: Invalid INOC_DEST value '" << dest_arg << "'; defaulting to INFECTIVE." << std::endl;
+            this->INOC_DEST = InoculumDestination::INFECTIVE;
+        }
     }
 };
 
