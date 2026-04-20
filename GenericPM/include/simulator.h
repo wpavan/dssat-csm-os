@@ -35,7 +35,6 @@ private:
     Utilities util;
 
 protected:
-    static int currentYearDoy;
     InitialCondition initialCondition;
     Disease *disease;
     CropInterface *cropinterface;
@@ -65,7 +64,7 @@ public:
     void integration();
     void output();
     void rate();
-    void updateCurrentYearDoy(int yearDoy);
+    void updateCurrentYearDoy(YearDoy yearDoy);
     bool allPlantsSenesced();
 
     void clearOutputLog();

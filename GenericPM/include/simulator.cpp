@@ -15,7 +15,6 @@
 #include "disease.h"
 #include "cropinterface.h"
 #include "initialcondition.h"
-#include "weather.h"
 #include "utilities.h"
 #include "coupling.h"
 
@@ -42,8 +41,6 @@ bool diseaseHasOutput(Disease *disease) {
     }
     return false;
 }
-
-int Simulator::currentYearDoy = -99;
 
 void Simulator::clearOutputLog() {
     this->loggedOutputs.clear();
@@ -365,7 +362,7 @@ void Simulator::output() {
         // Then, report all injections that have the "OUTPUT" endpoint (from all steps)
         outputFile.open(outputFileName, std::ios::app);
         for (const auto& output : loggedOutputs) {
-            outputFile << currentYearDoy << "\t" << output.varName << "\t" << output.value << "\n";
+            outputFile << Manager::getInstance()->getCurrentSimDate() << "\t" << output.varName << "\t" << output.value << "\n";
             // std::cout << currentYearDoy << "\t" << output.varName << "\t" << output.value << "\n";
         }
         outputFile.close();
@@ -373,26 +370,4 @@ void Simulator::output() {
         // Finally, clear the logged outputs for the next step.
         clearOutputLog();
     }
-}
-    
-/**
- * Synchronize the current DSSAT and simulator dates
- * 
- * This function takes the current YEARDOY from DSSAT and updates the simulator date accordingly. 
- * This can happen because DSSAT may run for days without calling the GDM, leading to a mismatch. 
- * This function runs the integration and rate functions of the simulator as well, meaning 
- * information is synchronized.
- * 
- * @param yearDoy The current DSSAT date
- */
-void Simulator::updateCurrentYearDoy(int yearDoy) {
-    // std::cout << "- Updating current YEARDOY from " << getCurrentYearDoy() << " to " << yearDoy << std::endl;
-    while(util.addOneDay(getCurrentYearDoy()) < yearDoy) {
-        setCurrentYearDoy(util.addOneDay(getCurrentYearDoy()));
-        Weather::getInstance()->update(getCurrentYearDoy());
-        // Weather::getInstance()->update();
-        rate();
-        integration();
-    }
-    setCurrentYearDoy(yearDoy);
 }

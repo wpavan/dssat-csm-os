@@ -41,7 +41,8 @@ class Manager : virtual public BasicInterface {
         Manager();
         static Manager* instance;
         static std::vector<std::unique_ptr<Simulator>> simulators;
-        static int plantingDate;     
+        static YearDoy plantingDate;  
+        static YearDoy currentGDMDate; // The current simulation date. Not updated with each CSM day, but each GDM day.   
         static std::vector<std::string> families;   
         static std::vector<CouplingPointID> couplingPointIDs;
         static std::vector<std::unique_ptr<CropInterface>> cropInterfaces;
@@ -73,7 +74,7 @@ class Manager : virtual public BasicInterface {
             cloudsF.emplace_back(std::make_shared<CloudF>(family));
         }
 
-        void updateCurrentYearDoy(int yearDoy);
+        void updateCurrentYearDoy(YearDoy yearDoy);
 
         static void resetCloudsF() {
             for (auto& cloudF : cloudsF) {
@@ -127,11 +128,11 @@ class Manager : virtual public BasicInterface {
             return outputStatus;
         }
 
-        static void setPlantingDate(int YRPLT) {
+        static void setPlantingDate(YearDoy YRPLT) {
             plantingDate = YRPLT;
         }
 
-        static int getPlantingDate() {
+        static YearDoy getPlantingDate() {
             return plantingDate;
         }
 
@@ -143,9 +144,9 @@ class Manager : virtual public BasicInterface {
             outfileName = name;
         }
         
-        static void setCurrentSimDate(int yearDoy);
+        static void setCurrentSimDate(YearDoy yearDoy);
 
-        static int getCurrentSimDate();
+        static YearDoy getCurrentSimDate();
 
         static void addUniqueFamily(std::string fam) {
             families.push_back(fam);

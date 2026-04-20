@@ -175,13 +175,13 @@ void Cloud::removeSporesVal(float toBeRemoved) {
     float total = getValue();
 
 #if DIAG_SPORES
-    std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " removeSporesVal requested=" << toBeRemoved << " total=" << total << std::endl;
+    std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesVal requested=" << toBeRemoved << " total=" << total << std::endl;
 #endif
 
     // If there is nothing in the cloud, nothing to remove.
     if (!std::isfinite(total) || total <= 0.0f) {
 #if DIAG_SPORES
-        std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " removeSporesVal: nothing to remove (total non-finite or <=0)" << std::endl;
+        std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesVal: nothing to remove (total non-finite or <=0)" << std::endl;
 #endif
         values.clear();
         return;
@@ -190,7 +190,7 @@ void Cloud::removeSporesVal(float toBeRemoved) {
     // If trying to remove >= total, just zero all entries
     if (toBeRemoved >= total) {
 #if DIAG_SPORES
-        std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " removeSporesVal: removing all entries (toBeRemoved >= total)" << std::endl;
+        std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesVal: removing all entries (toBeRemoved >= total)" << std::endl;
 #endif
         values.clear();
         return;
@@ -206,7 +206,7 @@ void Cloud::removeSporesVal(float toBeRemoved) {
         if (!std::isfinite(value)) value = 0.0f;
         if (value < 0.0f) value = 0.0f;
 #if DIAG_SPORES
-        std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " removeSporesVal bucket before=" << before << " after=" << value << std::endl;
+        std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesVal bucket before=" << before << " after=" << value << std::endl;
 #endif
     }
 }
@@ -214,7 +214,7 @@ void Cloud::removeSporesVal(float toBeRemoved) {
 void Cloud::removeSporesPct(float percent) {
     for (auto& value : values) {
 #if DIAG_SPORES
-        std::cout << "[DIAG] YEARDOY:" << Basic::getWeather()->getYearDoy() << " removeSporesPct bucket before=" << value;
+        std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesPct bucket before=" << value;
 #endif
         value *= percent;
 #if DIAG_SPORES

@@ -54,7 +54,8 @@ struct UniqueFamilies {
 // Define all static members
 Manager* Manager::instance = nullptr;
 std::vector<std::unique_ptr<Simulator>> Manager::simulators;
-int Manager::plantingDate = -99;
+YearDoy Manager::plantingDate = YearDoy(-99);
+YearDoy Manager::currentGDMDate = YearDoy(-99);
 std::vector<std::string> Manager::families;
 std::vector<CouplingPointID> Manager::couplingPointIDs;
 std::vector<std::unique_ptr<CropInterface>> Manager::cropInterfaces;
@@ -78,7 +79,7 @@ Manager* Manager::newInstance() {
   // accumulate simulators, clouds, or crop interfaces.
   instance = nullptr;
   simulators.clear();
-  plantingDate = -99;
+  plantingDate = YearDoy(-99);
   families.clear();
   couplingPointIDs.clear();
   cropInterfaces.clear();
@@ -272,42 +273,14 @@ void Manager::createCloudsF() {
         sim->getInitialCondition()->setCloud(getCloudF(simFamily));
     }
   }
-
-  // Old version
-  /*for (const auto& fam : families) {
-    addCloudF(fam);
-    CloudF *cloudFPtr = getCloudF(fam);
-    if (cloudFPtr == nullptr) {
-      std::cout << "Error: CloudF pointer is null in Manager::createCloudsF for family " << fam << std::endl;
-      continue;
-    }
-    for (const auto& sim : simulators) {
-      std::cout << "Family for this simulator: " << sim->getDisease()->getFamily() << std::endl;
-      if (sim->getDisease()->getFamily() == fam) {
-        diseasePtr = sim->getDisease();
-        if (diseasePtr == nullptr) {
-          std::cout << "Error: Disease pointer is null in Manager::createCloudsF for family " << fam << std::endl;
-          continue;
-        }
-        cloudFPtr->setDisease(diseasePtr);
-        sim->getInitialCondition()->setCloud(cloudFPtr);
-      }
-    }
-  }*/
 }
 
-void Manager::setCurrentSimDate(int yearDoy) {
-    for (auto& simulator : simulators) {
-        simulator->setCurrentYearDoy(yearDoy);
-    }
+void Manager::setCurrentSimDate(YearDoy yearDoy) {
+  currentGDMDate = yearDoy;
 }
 
-int Manager::getCurrentSimDate() {
-    if (simulators.size() > 0) {
-        return simulators[0]->getCurrentYearDoy();
-    } else {
-        return -99;
-    }
+YearDoy Manager::getCurrentSimDate() {
+  return currentGDMDate;
 }
 
 void Manager::rate() {
@@ -757,24 +730,18 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
   return 1;
 } 
 
-void Manager::updateCurrentYearDoy(int yearDoy) {
-  while(Utilities::addOneDay(simulators[0]->getCurrentYearDoy()) < yearDoy) {
-    for (const auto& sim : simulators) {
-      sim->setCurrentYearDoy(Utilities::addOneDay(sim->getCurrentYearDoy()));
-    }
-    Weather::getInstance()->update(simulators[0]->getCurrentYearDoy());
-    
-    for (const auto& sim : simulators) {
-      sim->rate();
-    }
-    for (const auto& sim : simulators) {
-      sim->integration();
-    }
-  }
-  for (const auto& sim : simulators) {
-    sim->setCurrentYearDoy(yearDoy);
+void Manager::updateCurrentYearDoy(YearDoy yearDoy) {
+  // Check if the currentGDMDate is less than the new yearDoy
+  while(currentGDMDate.addOneDay() <= yearDoy) {
+    // Simulate the currentGDMDate
+    rate();
+    integration();
+
+    // Update the date by one day
+    currentGDMDate += 1;  
   }
 }
+
 /*
 Execution workflow:
 0. Coupling functions are the only ones that are called by fortran.

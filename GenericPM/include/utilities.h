@@ -52,6 +52,83 @@ class StepParser {
         }
 };
 
+struct YearDoy {
+    int year;
+    int doy;
+
+    YearDoy(int yearDoy) {
+        year = yearDoy / 1000;
+        doy = yearDoy % 1000;
+    }
+
+    operator int() const {
+        return (year * 1000) + doy;
+    }
+
+    operator std::string() const {
+        return std::to_string((year * 1000) + doy);
+    }
+
+    bool operator>(const YearDoy& other) const {
+        return (year > other.year) || (year == other.year && doy > other.doy);
+    }
+
+    bool operator<(const YearDoy& other) const {
+        return (year < other.year) || (year == other.year && doy < other.doy);
+    }
+
+    bool operator==(const YearDoy& other) const {
+        return (year == other.year) && (doy == other.doy);
+    }
+
+    bool operator!=(const YearDoy& other) const {
+        return !(*this == other);
+    }
+
+    bool operator>=(const YearDoy& other) const {
+        return (*this > other) || (*this == other);
+    }
+
+    bool operator<=(const YearDoy& other) const {
+        return (*this < other) || (*this == other);
+    }
+
+    bool operator>(const int& yearDoy) const {
+        return *this > YearDoy(yearDoy);
+    }
+
+    bool operator<(const int& yearDoy) const {
+        return *this < YearDoy(yearDoy);
+    }
+
+    bool operator==(const int& yearDoy) const {
+        return *this == YearDoy(yearDoy);
+    }
+
+    bool operator!=(const int& yearDoy) const {
+        return !(*this == YearDoy(yearDoy));
+    }
+
+    YearDoy addOneDay() {
+        int newYear = year;
+        int newDoy = doy + 1;
+
+        int daysInYear = (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) ? 366 : 365;
+        if (newDoy > daysInYear) {
+            newDoy = 1;
+            newYear += 1;
+        }
+        return YearDoy(newYear * 1000 + newDoy);
+    }
+
+    YearDoy& operator+=(int days) {
+        for (int i = 0; i < days; i++) {
+            *this = this->addOneDay();
+        }
+        return *this;
+    }
+};
+
 class Utilities {
     private:
         static const std::string BASE52_CODING;
