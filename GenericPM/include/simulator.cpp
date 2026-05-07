@@ -315,6 +315,12 @@ void Simulator::integration() {
             couplingData->overwriteCouplingValue(damageCP, 0);
         }        
     }
+
+    FlexibleIO *fio = FlexibleIO::getInstance();
+    std::cout << "DEBUG for " << fio->getInteger("CONTROL", "YRDOY") << 
+    ":\n\tOriginal Expression: " << disease->getDEBUG().getOriginal() << 
+    "\n\tTranslated Expr:     " << disease->getDEBUG().getTranslated() << 
+    "\n\tEvaluated Expr:      " << disease->getDEBUG().evaluate() << std::endl;
 }
 
 void Simulator::output() {

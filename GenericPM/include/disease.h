@@ -91,6 +91,8 @@ protected:
     Expression VGF; // Expression for visible growth function
     Expression IGF; // Expression for invisible growth function
 
+    Expression DEBUG_EXPR; // Expression evaluated and printed at the end of each integration step
+
 public:
     Disease() {
         listDiseases.push_back(this);

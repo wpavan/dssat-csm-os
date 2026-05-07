@@ -237,6 +237,9 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
   disease->setIGF(diseaseData["IGF"]);
   disease->setVGF(diseaseData["VGF"]);
 
+  // Implement debugging expression to test expression functionality without impacting evaluation.
+  disease->setDEBUG(diseaseData["DEBUG"]);
+
   // Use the *disease to find a new slot in the simulators 
   // vector and then initialize a new Simulator inside it.
   std::cout << "NEW SIMULATOR\n";
