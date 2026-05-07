@@ -6,10 +6,9 @@
 ! REVISION HISTORY
 ! 04/14/2026 VC Written with PUT_FIO_WEATHER subroutine
 !=======================================================================
-
 SUBROUTINE PUT_FIO_WEATHER (WEATHER_arg, YEARDOY)
     ! Use only necessary external definitions
-    USE ModuleDefs, ONLY: WeatherType
+    USE ModuleDefs, ONLY: WeatherType, TS
     USE flexibleio
 
     IMPLICIT NONE
@@ -17,6 +16,11 @@ SUBROUTINE PUT_FIO_WEATHER (WEATHER_arg, YEARDOY)
     ! Declare input-only arguments
     TYPE(WeatherType), INTENT(IN) :: WEATHER_arg
     TYPE(INTEGER)    , INTENT(IN) :: YEARDOY
+
+    ! Declare local variables
+    CHARACTER(len=2) :: HR_NUM
+    INTEGER :: hour
+    REAL :: retrieved_rhumhr
 
     ! Daily weather data.
     ! REAL: 
@@ -59,6 +63,34 @@ SUBROUTINE PUT_FIO_WEATHER (WEATHER_arg, YEARDOY)
     ! Use the MERGE function, which can return a value based on a logical condition.
     CALL fio%set("WTH", YEARDOY, "NOTDEW", MERGE(1, 0, WEATHER_arg % NOTDEW))
     CALL fio%set("WTH", YEARDOY, "NOWIND", MERGE(1, 0, WEATHER_arg % NOWIND))
+
+    ! Hourly weather data
+    ! REAL, DIMENSION(TS): 
+    ! AMTRH, AZZON, BETA, FRDIFP, FRDIFR, PARHR
+    ! RADHR, RHUMHR, TAIRHR, TGRO, WINDHR
+
+    ! Add all values by hour
+    DO hour = 1, TS, 1
+        WRITE(HR_NUM, '(I2.2)') hour
+        CALL fio%set("WTH", YEARDOY, "AMTRH" // TRIM(HR_NUM), WEATHER_arg % AMTRH(hour))
+        CALL fio%set("WTH", YEARDOY, "AZZON" // TRIM(HR_NUM), WEATHER_arg % AZZON(hour))
+        CALL fio%set("WTH", YEARDOY, "BETA" // TRIM(HR_NUM), WEATHER_arg % BETA(hour))
+        CALL fio%set("WTH", YEARDOY, "FRDIFP" // TRIM(HR_NUM), WEATHER_arg % FRDIFP(hour))
+        CALL fio%set("WTH", YEARDOY, "FRDIFR" // TRIM(HR_NUM), WEATHER_arg % FRDIFR(hour))
+        CALL fio%set("WTH", YEARDOY, "PARHR" // TRIM(HR_NUM), WEATHER_arg % PARHR(hour))
+        CALL fio%set("WTH", YEARDOY, "RADHR" // TRIM(HR_NUM), WEATHER_arg % RADHR(hour))
+        CALL fio%set("WTH", YEARDOY, "RHUMHR" // TRIM(HR_NUM), WEATHER_arg % RHUMHR(hour))
+        CALL fio%set("WTH", YEARDOY, "TAIRHR" // TRIM(HR_NUM), WEATHER_arg % TAIRHR(hour))
+        CALL fio%set("WTH", YEARDOY, "TGRO" // TRIM(HR_NUM), WEATHER_arg % TGRO(hour))
+        CALL fio%set("WTH", YEARDOY, "WINDHR" // TRIM(HR_NUM), WEATHER_arg % WINDHR(hour))
+
+        ! Debug to determine if values in fio get stored properly
+        ! CALL fio%get("WTH", YEARDOY, "RHUMHR" // TRIM(HR_NUM), retrieved_rhumhr)
+        ! WRITE(*,'(A, I0, A, I2.2, A, F0.4, A, F0.4)') &
+        !     'DEBUG FIO RHUMHR: WTH/', YEARDOY, '/RHUMHR', hour, &
+        !     ' | Input=', WEATHER_arg % RHUMHR(hour), &
+        !     ' | Retrieved=', retrieved_rhumhr
+    END DO
 END SUBROUTINE
 
 SUBROUTINE PUT_FIO_SOILPROP (SOILPROP_arg)
