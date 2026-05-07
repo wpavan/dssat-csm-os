@@ -1018,7 +1018,6 @@ C  tillage and rainfall kinetic energy
 
 !     Store initial soil properties in flexibleio for GDM usage
       CALL PUT_FIO_SOILPROP(SOILPROP)
-      WRITE(*,*) 'SOILDYN: Initial soil properties stored in FIO'
 
 !***********************************************************************
 !***********************************************************************
@@ -1424,6 +1423,7 @@ c** wdb orig          SUMKEL = SUMKE * EXP(-0.15*MCUMDEP)
       CALL PUT(SOILPROP)
 
 !     Update soil properties in flexibleio after daily integration if modified
+!     NOTE: This still needs some work, as some experiments call for updates every day.
       IF (FIOUpdateNeeded()) THEN
         CALL PUT_FIO_SOILPROP(SOILPROP)
         WRITE(*,*) 'SOILDYN: Daily soil properties updated in FIO'

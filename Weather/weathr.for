@@ -543,7 +543,6 @@ C-----------------------------------------------------------------------
 
 ! 04/14/2026 VLC Added call to push GDM-relevant variables to fio
       IF (DYNAMIC .EQ. RATE) THEN
-            WRITE(*,*) "WEATHER FOR DAY: ", YRDOY, " ADDED NOW."
             CALL PUT_FIO_WEATHER(WEATHER, YRDOY)
       ENDIF
 

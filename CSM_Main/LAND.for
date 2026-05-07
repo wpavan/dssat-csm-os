@@ -247,7 +247,6 @@ C-----------------------------------------------------------------------
      &    STGDOY, SW, WEATHER,                            !Input
      &    YREND, FERTDATA, HARVFRAC, IRRAMT,              !Output
      &    MDATE, OMADATA, TILLVALS, YRPLT)                !Output
-      WRITE(*,*) "SEASINIT YRPLT: ", YRPLT
 C-----------------------------------------------------------------------
       IF (YRPLT < YRSIM .AND. CROP /= 'FA' .AND.
      &    INDEX('AF', IPLTI) == 0) THEN
