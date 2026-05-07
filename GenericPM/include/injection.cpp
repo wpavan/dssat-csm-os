@@ -126,9 +126,8 @@ static double TE_fio_real_yrdoy(double group, double yrdoy, double varname) {
 
     if (yrdoy == -1) {
         // This is the case where the second part of the FIO reference was a sim date keyword like CURRENT_YRDOY.
-        int currentYrdoy = fio->getInteger("CONTROL", "CURRENT_YRDOY");
+        int currentYrdoy = fio->getInteger("CONTROL", "YRDOY");
         return fio->getRealYrdoy(groupStr, std::to_string(currentYrdoy), varnameStr);
-
     }
     return fio->getRealYrdoy(groupStr, std::to_string((int)yrdoy), varnameStr);
 }
@@ -141,6 +140,130 @@ static double TE_fio_real_index(double group, double varname, double index) {
     return fio->getRealIndex(groupStr, varnameStr, (int)index);
 }
 
+static double TE_hours_VAR_above(double var, double yrdoy, double threshold) {
+    FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+    FlexibleIO* fio = FlexibleIO::getInstance();
+    std::string varStr = converter->decode(var);
+
+    // Convert a date from the "TODAY" placeholder to the actual current date.
+    if (yrdoy == -1) {
+        yrdoy = fio->getInteger("CONTROL", "YRDOY");
+    }
+
+    std::string yrdoyStr = std::to_string((int)yrdoy);
+
+    std::vector<float> hourlyValues;
+    hourlyValues.reserve(24);
+
+    std::string hourVarName = varStr;
+    size_t baseLen = varStr.length();
+
+    // Collect all of the hourly values for the variable on the specified date.
+    for (int i = 1; i <= 24; i++) {
+        hourVarName.resize(baseLen);
+        if (i < 10) {
+            hourVarName += char('0' + i);
+        } else {
+            hourVarName += std::to_string(i);
+        }
+        hourlyValues.push_back(fio->getRealYrdoy("WTH", yrdoyStr, hourVarName));
+    }
+
+    int hoursAbove = 0;
+    // Iterate through the 24 hours of the day to count hours of the variable over the threshold.
+    for (const float val : hourlyValues) {
+        if (val > threshold && val != -99.0f) {
+            hoursAbove++; 
+        }
+    }
+    return hoursAbove;
+}
+
+static double TE_hours_VAR_below(double var, double yrdoy, double threshold) {
+    FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+    FlexibleIO* fio = FlexibleIO::getInstance();
+    std::string varStr = converter->decode(var);
+
+    // Convert a date from the "TODAY" placeholder to the actual current date.
+    if (yrdoy == -1) {
+        yrdoy = fio->getInteger("CONTROL", "YRDOY");
+    }
+
+    std::string yrdoyStr = std::to_string((int)yrdoy);
+
+    std::vector<float> hourlyValues;
+    hourlyValues.reserve(24);
+
+    std::string hourVarName = varStr;
+    size_t baseLen = varStr.length();
+
+    // Collect all of the hourly values for the variable on the specified date.
+    for (int i = 1; i <= 24; i++) {
+        hourVarName.resize(baseLen);
+        if (i < 10) {
+            hourVarName += char('0' + i);
+        } else {
+            hourVarName += std::to_string(i);
+        }
+        hourlyValues.push_back(fio->getRealYrdoy("WTH", yrdoyStr, hourVarName));
+    }
+
+    int hoursBelow = 0;
+    // Iterate through the 24 hours of the day to count hours of the variable under the threshold.
+    for (const float val : hourlyValues) {
+        if (val < threshold && val != -99.0f) {
+            hoursBelow++; 
+        }
+    }
+    return hoursBelow;
+}
+
+static double TE_hours_VAR_between(double var, double yrdoy, double upperThreshold, double lowerThreshold) {
+    FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+    FlexibleIO* fio = FlexibleIO::getInstance();
+    std::string varStr = converter->decode(var);
+
+    // Convert a date from the "TODAY" placeholder to the actual current date.
+    if (yrdoy == -1) {
+        yrdoy = fio->getInteger("CONTROL", "YRDOY");
+    }
+
+    std::string yrdoyStr = std::to_string((int)yrdoy);
+
+    std::vector<float> hourlyValues;
+    hourlyValues.reserve(24);
+
+    std::string hourVarName = varStr;
+    size_t baseLen = varStr.length();
+
+    // Collect all of the hourly values for the variable on the specified date.
+    for (int i = 1; i <= 24; i++) {
+        hourVarName.resize(baseLen);
+        if (i < 10) {
+            hourVarName += char('0');
+            hourVarName += char('0' + i);
+        } else {
+            hourVarName += std::to_string(i);
+        }
+        hourlyValues.push_back(fio->getRealYrdoy("WTH", yrdoyStr, hourVarName));
+    }
+
+    int hoursBetween = 0;
+    // Iterate through the 24 hours of the day to count hours of the variable between the thresholds.
+    for (const float val : hourlyValues) {
+        if (val > lowerThreshold && val < upperThreshold && val != -99.0f) {
+            hoursBetween++;
+        }
+    }
+    return hoursBetween;
+}
+
+static double TE_growing_degree_days(double baseTemp) {
+    FlexibleIO* fio = FlexibleIO::getInstance();
+    int currentYrdoy = fio->getInteger("CONTROL", "YRDOY");
+    double dailyAvgTemp = fio->getRealYrdoy("WTH", std::to_string(currentYrdoy), "TAVG");
+    return std::max(0.0, dailyAvgTemp - baseTemp);
+}
 
 namespace {
     struct FunctionRegistrar {
@@ -160,6 +283,11 @@ namespace {
             getCustomFunctions().register_context_function({"FIO_REAL", TE_fio_real});
             getCustomFunctions().register_context_function({"FIO_REAL_YRDOY", TE_fio_real_yrdoy});
             getCustomFunctions().register_context_function({"FIO_REAL_INDEX", TE_fio_real_index});
+            getCustomFunctions().register_context_function({"HOURS_VAR_ABOVE", TE_hours_VAR_above});
+            getCustomFunctions().register_context_function({"HOURS_VAR_BELOW", TE_hours_VAR_below});
+            getCustomFunctions().register_context_function({"HOURS_VAR_BETWEEN", TE_hours_VAR_between});
+            getCustomFunctions().register_context_function({"gdd", TE_growing_degree_days});
+            getCustomFunctions().register_context_function({"GDD", TE_growing_degree_days});
         }
     };
 
