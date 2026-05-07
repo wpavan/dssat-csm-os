@@ -143,7 +143,7 @@ void LesionCohort::integration() {
         }
 
         if(newSpores > 0) {
-            cloudo->addInoculumCreated(newSpores, disease->getINOC_DEST());
+            cloudo->addInoculumCreated(newSpores, disease->getINOC_DEST().evaluate());
         }        
 
         physiologicalAge += dailyAge;

@@ -208,8 +208,16 @@ void Simulator::rate() {
     }
     initialCondition.getCloud()->rate();
 
+    float destination = -99.0f;
     try {
-        initialCondition.getCloud()->addInoculumCreated(disease->getINOC_EXT()->evaluate(), disease->getINOC_DEST());
+        destination = disease->getINOC_DEST().evaluate();
+    } catch (const std::runtime_error& e) {
+        std::cerr << "Error evaluating INOC_DEST expression for DiseaseID: " << disease->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
+        throw e;
+    }
+
+    try {
+        initialCondition.getCloud()->addInoculumCreated(disease->getINOC_EXT()->evaluate(), destination);
     } catch (const std::runtime_error& e) {
         std::cerr << "Error evaluating INOC_EXT expression for DiseaseID: " << disease->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
         // Default to 0 inoculum if evaluation fails

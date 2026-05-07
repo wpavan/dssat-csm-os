@@ -103,9 +103,9 @@ void CloudO::addInoculumCreated(float activeInoculumCreated) {
     }
 }
 
-void CloudO::addInoculumCreated(float inoculumCreated, InoculumDestination destination) {
+void CloudO::addInoculumCreated(float inoculumCreated, int destination) {
     float toParent, toSelf;
-    switch (destination) {
+    switch ((InoculumDestination)destination) {
         case InoculumDestination::DORMANT:
             DormantInoculum::getInstance()->addDormantInoculum(inoculumCreated, this->disease->getFamily());
             break;

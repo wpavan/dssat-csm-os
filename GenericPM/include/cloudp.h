@@ -58,9 +58,8 @@ public:
      * 
      * @param activeInoculumCreated Number of spores created.
      */
-    void addInoculumCreated(float activeInoculumCreated);
-
-    void addInoculumCreated(float inoculumCreated, InoculumDestination destination);
+    void addInoculumCreated(float activeInoculumCreated) override;
+    void addInoculumCreated(float inoculumCreated, int destination) override;
 };
 
 #endif // CLOUDP_H

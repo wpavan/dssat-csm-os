@@ -23,9 +23,10 @@
 #include <algorithm>
 #include <iostream>
 
+
 enum class InoculumDestination {
-    DORMANT,
-    INFECTIVE
+    DORMANT,    // Inoculum cannot infect until next season favorability reached.
+    INFECTIVE   // Inoculum can infect immediately.
 };
 
 /**
@@ -78,7 +79,7 @@ protected:
     Expression INOC_EXT; // Expression for external inoculum amount
     Expression INOC_LES; // Expression for lesion-based inoculum production
     Expression INOC_REM; // Expression for daily proportional removal of inoculum
-    InoculumDestination INOC_DEST; // Destination for inoculum produced by the disease (dormant or infective)
+    Expression INOC_DEST; // Destination for inoculum produced by the disease (dormant or infective)
 
     Expression DAMAGE; // Expression for organ damage due to this disease
 
@@ -624,7 +625,7 @@ public:
      * 
      * @return Inoculum destination.
      */
-    InoculumDestination getINOC_DEST() {
+    Expression getINOC_DEST() {
         return INOC_DEST;
     }
 
@@ -633,14 +634,29 @@ public:
      * 
      * @param INOC_DEST Inoculum destination.
      */
-    void setINOC_DEST(std::string dest_arg) {
-        if (dest_arg == "DORMANT") {
-            this->INOC_DEST = InoculumDestination::DORMANT;
-        } else if (dest_arg == "INFECTIVE") {
-            this->INOC_DEST = InoculumDestination::INFECTIVE;
+    void setINOC_DEST(Expression INOC_DEST) {
+        this->INOC_DEST = BoundExpression(INOC_DEST, std::vector<float>{0.0f, 1.0f});
+    }
+
+    /**
+     * Get the debug expression.
+     * 
+     * @return Debug expression.
+     */
+    Expression getDEBUG() {
+        return DEBUG_EXPR;
+    }
+
+    /**
+     * Set the debug expression.
+     * 
+     * @param DEBUG Debug expression.
+     */
+    void setDEBUG(Expression DEBUG_EXPR) {
+        if (DEBUG_EXPR.getOriginal().empty()) {
+            this->DEBUG_EXPR = Expression("-99.0"); // Default to a no-op expression if empty
         } else {
-            std::cerr << "Warning: Invalid INOC_DEST value '" << dest_arg << "'; defaulting to INFECTIVE." << std::endl;
-            this->INOC_DEST = InoculumDestination::INFECTIVE;
+            this->DEBUG_EXPR = DEBUG_EXPR;
         }
     }
 };

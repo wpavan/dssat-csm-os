@@ -119,7 +119,7 @@ public:
     float getValue(); // Returns active inoculum value (sum of values vector)
 
     virtual void addInoculumCreated(float activeInoculumCreated) = 0;
-    virtual void addInoculumCreated(float inoculumCreated, InoculumDestination destination) = 0;
+    virtual void addInoculumCreated(float inoculumCreated, int destination) = 0;
     
     void removeSporesVal(float toBeRemove);
     void removeSporesPct(float percent);

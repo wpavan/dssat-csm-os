@@ -88,7 +88,7 @@ public:
     void output();
 
     void addInoculumCreated(float activeInoculumCreated) override;
-    void addInoculumCreated(float inoculumCreated, InoculumDestination destination) override;
+    void addInoculumCreated(float inoculumCreated, int destination) override;
 
     void setSporesCreated(float activeInoculumCreated) {
         values.clear();

@@ -127,8 +127,8 @@ void CloudF::addInoculumCreated(float activeInoculumCreated) {
     this->activeInoculumCreated += activeInoculumCreated;
 }
 
-void CloudF::addInoculumCreated(float inoculumCreated, InoculumDestination destination) {
-    switch (destination) {
+void CloudF::addInoculumCreated(float inoculumCreated, int destination) {
+    switch ((InoculumDestination)destination) {
         case InoculumDestination::DORMANT:
             DormantInoculum::getInstance()->addDormantInoculum(inoculumCreated, this->family);
             break;
