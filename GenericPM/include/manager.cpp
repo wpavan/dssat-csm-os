@@ -218,7 +218,7 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
   disease->setINOC_EXT(diseaseData["INOC_EXT"]);
   disease->setINOC_LES(diseaseData["INOC_LES"]);
   disease->setINOC_REM(diseaseData["INOC_REM"]);
-  disease->setINOC_DEST(diseaseData["INOC_DEST"].getOriginal());
+  disease->setINOC_DEST(diseaseData["INOC_DEST"]);
 
 
   // Implement organ damage parameter
