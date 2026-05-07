@@ -548,17 +548,22 @@
           ELSEIF (XSTAGE.GT.(2.0+pd2fr(1)) .AND. XSTAGE.LE.3.0) THEN
             ZSTAGE = 30.0 + 10.0*(XSTAGE-(2.0+pd2fr(1)))/(1.0-pd2fr(1))
           ELSEIF (XSTAGE.GT.3.0 .AND. XSTAGE.LE.4.0) THEN
-            ZSTAGE = 40.0 + 10.0*(XSTAGE-3.0)
+            ZSTAGE = 40.0 + 17.0*(XSTAGE-3.0)
           ELSEIF (XSTAGE.GT.4.0 .AND. XSTAGE.LE.5.0) THEN
+            ! 04/30/2026 - V.L.C: Two options to modify 
+            !   XSTAGE -> ZSTAGE conversion to match with 
+            !   comments on lines above.
             IF (XSTAGE.LT.ASTAGE) THEN
-              ZSTAGE = 50.0 + 10.0*((XSTAGE-4.0)/(ASTAGE-4.0))
+              ZSTAGE = 57.0 + 3.0*((XSTAGE-4.0)/(ASTAGE-4.0))
             ELSEIF (XSTAGE.GE.ASTAGE.AND.XSTAGE.LT.ASTAGEND) THEN
               ZSTAGE = 60.0 + 10.0*((XSTAGE-ASTAGE)/(ASTAGEND-ASTAGE))
             ELSE
-              ZSTAGE = 70.0 + 10.0*((XSTAGE-ASTAGEND)/(5.0-ASTAGEND))
+              ZSTAGE = 70.0 + 1.4*((XSTAGE-ASTAGEND)/(5.0-ASTAGEND))
             ENDIF
-          ELSEIF (XSTAGE.GT.5.0 .AND. XSTAGE.LE.6.0) THEN
-            ZSTAGE = 80.0 + 10.0*(XSTAGE-5.0)
+          ELSEIF (XSTAGE.GT.5.0 .AND. XSTAGE.LE.5.5) THEN
+            ZSTAGE = 71.4 + 9.3*((XSTAGE-5.0)/(5.5-5.0))
+          ELSEIF (XSTAGE.GT.5.5 .AND. XSTAGE.LE.6.0) THEN
+            ZSTAGE = 80.7 + 9.3*((XSTAGE-5.5)/(6.0-5.5))
           ELSEIF (XSTAGE.GT.6.0 .AND. XSTAGE.LE.7.0) THEN
             ZSTAGE = 90.0 + 10.0*(XSTAGE-6.0)
           ENDIF

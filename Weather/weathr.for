@@ -1,5 +1,5 @@
 C=======================================================================
-C  COPYRIGHT 1998-2024 DSSAT Foundation
+C  COPYRIGHT 1998-2026 DSSAT Foundation
 C                      University of Florida, Gainesville, Florida
 C                      International Fertilizer Development Center
 C                     
@@ -38,6 +38,7 @@ C  02/13/2006 JIL Export AMTRH (R/R0) for leaf rolling calculation
 !  07/25/2014 CHP Added daily CO2 read from weather file (DCO2)
 !  01/26/2023 CHP Reduce compile warnings: add EXTERNAL stmts, remove 
 !                 unused variables, shorten lines. 
+C  03/27/2026 GH Fixed calculation of TA for TAMP as TAMP/2
 C-----------------------------------------------------------------------
 C  Called by: Main
 c  Calls:     DAYLEN, ERROR, HMET, IPWTH, SOLAR, WGEN, WTHMDB, WTHMOD
@@ -227,7 +228,7 @@ C         message to the WARNING.OUT file.
      &   ('Value of TAV, average annual soil temperature, is missing.')
   110 FORMAT('Value of TAMP, amplitude of soil temperature function,',
      &            ' is missing.')
-  120 FORMAT('A default value of', F5.1, 'ºC is being used for this',
+  120 FORMAT('A default value of', F5.1, 'ï¿½C is being used for this',
      &            ' simulation,')
   130 FORMAT('which may produce undesirable results.')
 
@@ -303,7 +304,9 @@ C     Calculate hourly weather data.
      &    TGROAV, TGRODY, WINDHR)                         !Output
 
 C     Compute daily normal temperature.
-      TA = TAV - SIGN(1.0,XLAT) * TAMP * COS((DOY-20.0)*RAD)
+
+C-GH  TA = TAV - SIGN(1.0,XLAT) * TAMP * COS((DOY-20.0)*RAD)
+      TA = TAV - SIGN(1.0,XLAT) * (TAMP/2) * COS((DOY-20.0)*RAD)
 
       CALL OpWeath(CONTROL, ISWITCH, 
      &    CLOUDS, CO2, DAYL, FYRDOY, OZON7, PAR, RAIN,    !Daily values
@@ -427,6 +430,9 @@ c                   available.
           NOTDEW = .FALSE.
       ENDIF      
       
+!     Cumulative weather data
+      WEATHER % CPRED  = WEATHER % CPRED + RAIN
+            
 C     Calculate hourly weather data.
       CALL HMET(
      &    CLOUDS, DAYL, DEC, ISINB, PAR, REFHT,           !Input
@@ -437,7 +443,8 @@ C     Calculate hourly weather data.
      &    TGROAV, TGRODY, WINDHR)                         !Output
 
 C     Compute daily normal temperature.
-      TA = TAV - SIGN(1.0,XLAT) * TAMP * COS((DOY-20.0)*RAD)
+C-GH  TA = TAV - SIGN(1.0,XLAT) * TAMP * COS((DOY-20.0)*RAD)
+      TA = TAV - SIGN(1.0,XLAT) * (TAMP/2) * COS((DOY-20.0)*RAD)
 
 !     CALL OPSTRESS(CONTROL, WEATHER=WEATHER)
 
@@ -591,19 +598,20 @@ C-----------------------------------------------------------------------
 ! SNDN       Time of sunset (hr)
 ! SNUP       Time of sunrise (hr)
 ! SRAD       Solar radiation (MJ/m2-d)
-! TAIRHR(TS) Hourly air temperature (in some routines called TGRO) (°C)
+! TAIRHR(TS) Hourly air temperature (in some routines called TGRO) (ï¿½C)
 ! TAMP       Amplitude of temperature function used to calculate soil 
-!              temperatures (°C)
+!              temperatures (range between longterm warmest and coldest
+!              month (ï¿½C)
 ! TAV        Average annual soil temperature, used with TAMP to calculate 
-!              soil temperature. (°C)
-! TAVG       Average daily temperature (°C)
-! TDAY       Average temperature during daylight hours (°C)
-! TDEW       Dewpoint temperature (°C)
-! TGRO(I)    Hourly air temperature (°C)
-! TGROAV     Average daily canopy temperature (°C)
-! TGRODY     Average temperature during daylight hours (°C)
-! TMAX       Maximum daily temperature (°C)
-! TMIN       Minimum daily temperature (°C)
+!              soil temperature. (ï¿½C)
+! TAVG       Average daily temperature (ï¿½C)
+! TDAY       Average temperature during daylight hours (ï¿½C)
+! TDEW       Dewpoint temperature (ï¿½C)
+! TGRO(I)    Hourly air temperature (ï¿½C)
+! TGROAV     Average daily canopy temperature (ï¿½C)
+! TGRODY     Average temperature during daylight hours (ï¿½C)
+! TMAX       Maximum daily temperature (ï¿½C)
+! TMIN       Minimum daily temperature (ï¿½C)
 ! TS         Number of intermediate time steps per day (usually 24)
 !                    set = 240 on 9JAN17 by Bruce Kimball      
 ! WINDHR(TS) Hourly wind speed (m/s)
