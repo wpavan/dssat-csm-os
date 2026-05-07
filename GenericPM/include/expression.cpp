@@ -1,3 +1,5 @@
+#include <regex>
+
 #include "../TinyExpr++/tinyexpr.h"
 
 #include "expression.h"
@@ -33,10 +35,19 @@ te_parser* ParserCache::getParser(const std::string& expression) {
             {
             // Use the method of encoding *every* symbol and let the functions 
             // handle errors on their own
-            FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+            // First, check if the symbol is referring to the current simulation date.
+            //   This is a special case used in many functions and should be encoded 
+            //   to a value of -1. Each function expecting a YRDOY can check for this
+            //   special value and replace it dynamically.
+            if (std::regex_match(symbol.begin(), symbol.end(), GDM::RegexPatterns::SIM_DATE_PATTERN)) {
+                return -1.0;  // Special value for current simulation date
+            } else {
+                // For all other symbols, encode them to unique double IDs for tinyexpr parsing
+                FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
 
-            // Encode the symbol to a unique double ID for tinyexpr parsing
-            return converter->encode(std::string(symbol));
+                // Encode the symbol to a unique double ID for tinyexpr parsing
+                return converter->encode(std::string(symbol));
+            }
             }
         );
         // Attempt to compile the new parser
