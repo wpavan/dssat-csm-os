@@ -162,6 +162,23 @@ float Expression::evaluate() {
     return result;
 }
 
+float BoundExpression::evaluate() {
+    float result = Expression::evaluate();
+    switch(this->boundType) {
+        case BoundType::UNSET:
+            throw std::runtime_error("Bounds not set for this expression. Evaluation is not valid.");
+        case BoundType::ALLOWED_VALUES:
+            if (std::find(allowedOutputs.begin(), allowedOutputs.end(), result) == allowedOutputs.end()) {
+                throw std::runtime_error("Evaluation result " + std::to_string(result) + " is not in the list of allowed output values.");
+            }
+        case BoundType::MIN_MAX:
+            if (result < bounds[0] || result > bounds[1]) {
+                throw std::runtime_error("Evaluation result " + std::to_string(result) + " is out of bounds. Allowed range: [" + std::to_string(bounds[0]) + ", " + std::to_string(bounds[1]) + "]");
+            }
+    }
+    return result;
+}
+
 /*
 // Compile expression from string and with provided context (variables & functions)
     bool compile_success = parser.compile(expression_string.c_str());

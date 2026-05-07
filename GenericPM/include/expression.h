@@ -37,7 +37,7 @@ public:
     const std::string& getTranslated();
     
     // Evaluate with globally provided context
-    float evaluate();
+    virtual float evaluate();
     
     // Determination if expression is empty
     const bool empty();
@@ -46,6 +46,34 @@ public:
     const std::string& getOriginal() const { return originalExpr; }
 };
 
+class BoundExpression : public Expression {
+private:
+    std::vector<float> allowedOutputs; // Vector of allowed output values enforceed by evaluate().
+    float bounds[2]; // Optional bounds (min, max) for the expression output. (-99.0f,-99.0f) implies no bounds.
+    
+    enum class BoundType {
+        UNSET,          // Bounds not set yet. Evaluation results in error. 
+        ALLOWED_VALUES, // Evaluation must be one of the values in allowedOutputs.
+        MIN_MAX         // Evaluation must be >= bounds[0] and <= bounds[1].
+    };
+
+    BoundType boundType;
+public:
+    BoundExpression() : Expression(), allowedOutputs(), bounds{-99.0f, -99.0f}, boundType(BoundType::UNSET) {}
+    explicit BoundExpression(const std::string& raw) : Expression(raw), allowedOutputs(), bounds{-99.0f, -99.0f}, boundType(BoundType::UNSET) {}
+    explicit BoundExpression(const Expression& expr) : Expression(expr), allowedOutputs(), bounds{-99.0f, -99.0f}, boundType(BoundType::UNSET) {}
+    explicit BoundExpression(const std::string& raw, const std::vector<float>& allowed) : Expression(raw), allowedOutputs(allowed), bounds{-99.0f, -99.0f}, boundType(BoundType::ALLOWED_VALUES) {}
+    explicit BoundExpression(const Expression& expr, const std::vector<float>& allowed) : Expression(expr), allowedOutputs(allowed), bounds{-99.0f, -99.0f}, boundType(BoundType::ALLOWED_VALUES) {}
+    explicit BoundExpression(const std::string& raw, float minBound, float maxBound) : Expression(raw), allowedOutputs(), bounds{minBound, maxBound}, boundType(BoundType::MIN_MAX) {}
+    explicit BoundExpression(const Expression& expr, float minBound, float maxBound) : Expression(expr), allowedOutputs(), bounds{minBound, maxBound}, boundType(BoundType::MIN_MAX) {}
+
+    void setRange(float bounds[2]);
+    void setAllowedOutputs(std::vector<float>& allowed);
+
+    float evaluate() override;
+};
+
+// NOTE: we should add a way to explicitly check for if the expression is empty.
 class ParserCache {
     private:
         ParserCache() {};
