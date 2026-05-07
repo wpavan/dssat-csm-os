@@ -129,6 +129,7 @@ void Organ::rate() {
     // Determine the number of new lesions on the organ today
     if(suceptible) {
         for (auto& cloudo : cloudsO) {
+            gEqContext->cloud = &cloudo; // Set the current cloud for context
             // Record that new lesions should be created
             int newLesionsVal = 0;
             try {
@@ -145,15 +146,13 @@ void Organ::rate() {
                 fio->setIntegerMemory(cloudo.getDisease()->getDiseaseID(), "DAILY_NEW_LESIONS", fio->getInteger(cloudo.getDisease()->getDiseaseID(), "DAILY_NEW_LESIONS") + newLesions.getTotalLesions());
             }
             
+            gEqContext->cloud = nullptr; // Clear the current cloud from context
         }
     }
-
-    
     // NOTE: This should be divided by which disease is creating the lesions
     
-
     // Recalculate the ratio due senescence and take the difference from previous ratio
-    //ratioSenescence = (this->senescenceValue / this->getTotalValue()) - ratioSenescence;
+    // ratioSenescence = (this->senescenceValue / this->getTotalValue()) - ratioSenescence;
 
     // Update the total organ area (current day) - (shouldn't do anything)
     // this->totalArea = cropinterface->getOrganArea(organNumber);
