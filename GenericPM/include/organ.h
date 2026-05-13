@@ -41,7 +41,7 @@ protected:
 
     int dailyTotalLesions = 0;
     int dailyVisibleLesions = 0;
-    bool suceptible = false;
+    bool suceptible = true;
     float organLastSize = 0;
 
     float proportionFromTotalValue = 0;
