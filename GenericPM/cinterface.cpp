@@ -69,7 +69,8 @@ int couplingInit(int *YRDOY, int *YRPLT) {
     // Reset existing crop interface data year to year
     for (auto& s : manager->getSimulators()) {
         s->getCropInterface()->start();
-        s->resetInitialCondition();
+        // std::cout << "Reset IC called." << std::endl;
+        // s->resetInitialCondition();
     }
 
     return (1);
