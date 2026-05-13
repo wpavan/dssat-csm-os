@@ -63,14 +63,14 @@ void Cloud::integration() {
     if (values.empty()) {
         values.push_back(activeInoculumCreated);
     } else {
-        if (REMOVAL_METHOD == 1) {
+        if (disease->getINOC_AGE()) {
             incrementSporesAge();
         }
         values.back() += activeInoculumCreated;
     }
 
     // Add new dormant inoculum into cloud
-    dormantInoculum += dormantInoculumCreated;
+    // dormantInoculum += dormantInoculumCreated;
 
     // ===== Remove inoculum =====
     // Remove active inoculum according to queued removal (INOC_REM expression)

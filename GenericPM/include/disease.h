@@ -78,6 +78,7 @@ protected:
     Expression INOC_LES; // Expression for lesion-based inoculum production
     Expression INOC_REM; // Expression for daily proportional removal of inoculum
     Expression INOC_DEST; // Destination for inoculum produced by the disease (dormant or infective)
+    bool INOC_AGE; // Indicates whether this disease is set to track inoculum age (tipping bucket) for removal purposes.
 
     Expression DAMAGE; // Expression for organ damage due to this disease
 
@@ -506,6 +507,14 @@ public:
      */
     void setINOC_LES(Expression INOC_LES) {
         this->INOC_LES = INOC_LES;
+    }
+
+    bool const getINOC_AGE() {
+        return INOC_AGE;
+    }
+
+    void setINOC_AGE(bool INOC_AGE) {
+        this->INOC_AGE = INOC_AGE;
     }
 
     /**

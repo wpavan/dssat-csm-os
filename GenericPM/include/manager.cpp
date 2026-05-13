@@ -153,24 +153,28 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
   // - RHFactor
   // - SWF
   
-  disease->setMaxSporeCloudsDensity(safe_assign_float(diseaseData["MSCD"].getOriginal()));
+  // Removed " 05/08/2026:
+  // - MSCD
+
+  // Modified " ":
+  // - IPS -> INIT_LES
   
-  disease->setProportionFromOrganToPlantCloud(safe_assign_float(diseaseData["SPO2P"].getOriginal()));
-  disease->setProportionFromPlantToFieldCloud(safe_assign_float(diseaseData["SPP2F"].getOriginal()));
+  disease->setProportionFromOrganToPlantCloud(safe_assign_float(diseaseData["INOC_ORG_PLANT"].getOriginal()));
+  disease->setProportionFromPlantToFieldCloud(safe_assign_float(diseaseData["INOC_PLANT_FIELD"].getOriginal()));
   
-  disease->setVectorSizeCloudF(safe_assign_float(diseaseData["CCFPO:1"].getOriginal()));
-  disease->setVectorSizeCloudP(safe_assign_float(diseaseData["CCFPO:2"].getOriginal()));
-  disease->setVectorSizeCloudO(safe_assign_float(diseaseData["CCFPO:3"].getOriginal()));
-  
-  disease->setInitialInoculum(safe_assign_float(diseaseData["II"].getOriginal()));
-  
-  disease->setAcumulateFavorability(safe_assign_float(diseaseData["AFII"].getOriginal()));    
-  
-  disease->setInitialPustuleSize(safe_assign_float(diseaseData["IPS"].getOriginal()));
-  
-  disease->setLatentPeriod(safe_assign_int(diseaseData["LP"].getOriginal()));
-  
-  disease->setInfectionPeriod(safe_assign_int(diseaseData["IP"].getOriginal()));
+  if (diseaseData["CCFPO"].getOriginal().empty() || diseaseData["CCFPO"].evaluate() == -99.0f) {
+    // Do not track inoculum age in each cloud as a removal method.
+    disease->setINOC_AGE(false);
+    disease->setVectorSizeCloudF(1);
+    disease->setVectorSizeCloudP(1);
+    disease->setVectorSizeCloudO(1);
+  } else {
+    // Track inoculum age in each cloud as a removal method.
+    disease->setINOC_AGE(true);
+    disease->setVectorSizeCloudF(safe_assign_int(diseaseData["CCFPO:1"].getOriginal()));
+    disease->setVectorSizeCloudP(safe_assign_int(diseaseData["CCFPO:2"].getOriginal()));
+    disease->setVectorSizeCloudO(safe_assign_int(diseaseData["CCFPO:3"].getOriginal()));
+  }
 
   // BEGIN GDM2 Parameters - 9/22/2025
   // Added new parameters for input and output coupling points
