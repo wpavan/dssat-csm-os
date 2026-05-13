@@ -98,7 +98,6 @@ protected:
 
     // Use float to avoid truncation and preserve fractional spores
     float activeInoculumCreated, activeInoculumRemoved = 0.0f;
-    float dormantInoculumCreated, dormantInoculumRemoved = 0.0f;
     
 public:
     void rate() {}

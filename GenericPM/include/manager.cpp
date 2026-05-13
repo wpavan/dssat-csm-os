@@ -670,9 +670,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
         }
 
         ciPtr = manager->getCropInterface(tempCP);
-        if (ciPtr) {
-          std::cout << "getCropInterface -> valid " << cpIDToStr(ciPtr->getOrganCP()) << std::endl;
-        } else {
+        if (!ciPtr) {
           std::cout << "getCropInterface -> NULL" << std::endl;
         }
 

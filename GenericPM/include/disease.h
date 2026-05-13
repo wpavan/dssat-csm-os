@@ -52,11 +52,9 @@ protected:
     float maxSporeCloudsDensity = 12000;
     float proportionFromOrganToPlantCloud = 0.20;
     float proportionFromPlantToFieldCloud = 0.30;   
-    int latentPeriod = 7;
-    int infectionPeriod = 21;
     
     std::string depositionFrequency = "0.367753*(x+0.001)^0.129605*exp(-0.085252*(x+0.001))";
-    float initialPustuleSize = 0.00001;
+    
     
     float acumulateFavorability = 35;
     static std::vector<Disease*> listDiseases;
@@ -413,28 +411,6 @@ public:
      */
     void setAcumulateFavorability(float acumulateFavorability) {
         this->acumulateFavorability = acumulateFavorability;
-    }
-
-    /**
-     * Get the crop model.
-     * 
-     * NOTE: This is currently unused.
-     * 
-     * @return Crop model.
-     */
-    std::string getCropModel() const {
-        return cropModel;
-    }
-
-    /**
-     * Set the crop model.
-     * 
-     * NOTE: This is currently unused.
-     * 
-     * @param cropModel Crop model.
-     */
-    void setCropModel(std::string cropModel) {
-        this->cropModel = cropModel;
     }
     
     /**

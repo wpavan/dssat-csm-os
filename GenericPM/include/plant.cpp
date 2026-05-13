@@ -93,8 +93,6 @@ void Plant::rate() {
 
         // Algorithm 1:
         //   Check if there is a new organ and if so, how many need to be created
-        
-        
         newOrgan = ci->hasNewOrgan();
 
         //   If the number of new organs is greater than 0, create an organ with the
@@ -201,7 +199,7 @@ void Plant::output() {
     Basic::getOutput("Cpp_Plant.txt", this->firstOutputCall);
     this->firstOutputCall++;
 
-    std::cout << "\nPlant " << getID() << ":\n";
+    convert << "\nPlant " << getID() << ":\n";
     for(unsigned int i=0; i<Basic::output.size(); i++) {
        std::cout << Basic::output[i] << std::endl;
     }

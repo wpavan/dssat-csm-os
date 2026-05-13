@@ -56,7 +56,6 @@ extern "C" {
 
 // couplingInit refers to the seasonal initialization of the GDM
 int couplingInit(int *YRDOY, int *YRPLT) {
-    std::cout << "Running SEASINIT for year: " << *YRDOY / 1000 << std::endl;
     // Get necessary instances for seasinit
     Manager *manager = Manager::getInstance();
 
