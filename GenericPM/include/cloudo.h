@@ -58,6 +58,9 @@ public:
      */
     void addInoculumCreated(float activeInoculumCreated) override;
     void addInoculumCreated(float inoculumCreated, int destination) override;
+    
+    void addInoculumRemoved(float activeInoculumRemoved) override;
+    void addInoculumRemoved(float inoculumRemoved, int destination) override;
 };
 
 #endif // CLOUDO_H

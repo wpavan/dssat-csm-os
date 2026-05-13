@@ -68,6 +68,13 @@ public:
         amountByFamily[family] += amount;
     }
 
+    void removeDormantInoculum(float amount, std::string family) {
+        amountByFamily[family] -= amount;
+        if (amountByFamily[family] <= 0.0f) {
+            amountByFamily.erase(family);
+        }
+    }
+
     void clear(std::string family) {
         amountByFamily.erase(family);
     }
@@ -119,6 +126,9 @@ public:
 
     virtual void addInoculumCreated(float activeInoculumCreated) = 0;
     virtual void addInoculumCreated(float inoculumCreated, int destination) = 0;
+    
+    virtual void addInoculumRemoved(float activeInoculumRemoved) = 0;
+    virtual void addInoculumRemoved(float inoculumRemoved, int destination) = 0;
     
     void removeSporesVal(float toBeRemove);
     void removeSporesPct(float percent);

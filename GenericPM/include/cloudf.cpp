@@ -23,6 +23,9 @@ void CloudF::rate() {
         // Set current cloud for context
         gEqContext->cloud = this;
 
+        // Determine the daily inoculum removal from this cloud
+        this->addInoculumRemoved(disease->getINOC_REM()->evaluate());
+
         // Run the generic cloud rate function
         Cloud::rate();
 
@@ -134,6 +137,25 @@ void CloudF::addInoculumCreated(float inoculumCreated, int destination) {
             break;
         case InoculumDestination::INFECTIVE:
             this->activeInoculumCreated += inoculumCreated;
+            break;
+    }
+}
+
+void CloudF::addInoculumRemoved(float activeInoculumRemoved) {
+    #if DIAG_SPORES
+    FlexibleIO* fio = FlexibleIO::getInstance();
+    std::cout << "[DIAG] YEARDOY:" << fio->getReal("CONTROL", "YEARDOY") << " CloudF::addInoculumRemoved activeInoculumRemoved=" << activeInoculumRemoved << std::endl;
+    #endif
+    this->activeInoculumRemoved += activeInoculumRemoved;
+}
+
+void CloudF::addInoculumRemoved(float inoculumRemoved, int destination) {
+    switch ((InoculumDestination)destination) {
+        case InoculumDestination::DORMANT:
+            DormantInoculum::getInstance()->removeDormantInoculum(inoculumRemoved, this->family);
+            break;
+        case InoculumDestination::INFECTIVE:
+            this->activeInoculumRemoved += inoculumRemoved;
             break;
     }
 }
