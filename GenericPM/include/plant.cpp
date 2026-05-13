@@ -182,29 +182,9 @@ void Plant::integration() {
             }
         }
     }
-
-    #ifdef OUTPUT_PLANT
-    std::ostringstream convert;
-    //YearDoy, TotalValue, HealthyValue, InvisibleValue, VisibleValue, TotalLesions
-    convert << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << "," << getTotalValue() << "," << healthyValue << ","
-            << invisibleValue << "," << visibleValue << "," << totalLesions;
-    Basic::output.push_back(convert.str());
-    #endif // OUTPUT_PLANT
 }
 
 void Plant::output() {
-    // Speedup the model by removing outputs
-    #ifdef OUTPUT_PLANT
-    std::ostringstream convert;
-    Basic::getOutput("Cpp_Plant.txt", this->firstOutputCall);
-    this->firstOutputCall++;
-
-    convert << "\nPlant " << getID() << ":\n";
-    for(unsigned int i=0; i<Basic::output.size(); i++) {
-       std::cout << Basic::output[i] << std::endl;
-    }
-    #endif // OUTPUT_PLANT
-
     // Iterate through the organs and output
     for (auto& set : organSets) {
         //set.output();

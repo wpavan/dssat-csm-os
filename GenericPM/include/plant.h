@@ -10,8 +10,6 @@
 #ifndef PLANT_H
 #define PLANT_H
 
-#define OUTPUT_PLANT 1
-
 #include "basic.h"
 #include "basicinterface.h"
 #include "cloudp.h"
