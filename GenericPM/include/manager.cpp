@@ -11,6 +11,7 @@
 #include <regex>
 #include <variant>
 #include <algorithm>
+#include <cctype>
 #include <memory>
 
 #include "utilities.h"
@@ -215,6 +216,10 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
       disease->setOrganMode(OrganMode::COHORT);
   }
 
+  // Use Existing parameters for initial inoculum and favorability 
+  disease->setInitialInoculum(safe_assign_float(diseaseData["II"].getOriginal()));
+  disease->setAcumulateFavorability(safe_assign_float(diseaseData["AFII"].getOriginal()));    
+
   // Implement new inoculum parameters
   // - INOC_EXT for external inoculum production expression
   // - INOC_LES for lesion-based inoculum production expression
@@ -311,12 +316,134 @@ std::string hashDisease(std::string diseaseName) {
   return Utilities::base52Encode(std::hash<std::string>{}(diseaseName));
 }
 
-std::string replacePlaceholders(std::string originalValue, std::string originalType, YAML::Node disease){
-  // First, look for the special charcter '$' which indicates a variable reference.
+// Helper function to extract the variable key from a placeholder like "$KEY" or "$KEY:TRNO5"
+std::string extractPlaceholderKey(const std::string& placeholder) {
+  size_t colonPos = placeholder.find(':');
+  if (colonPos != std::string::npos) {
+    return placeholder.substr(1, colonPos - 1); // Between '$' and ':'
+  }
+  return placeholder.substr(1); // Just remove leading '$'
+}
+
+// Helper function to validate treatment selector format
+// Valid formats: empty (no selector), "TRNOx" where x is digits, or "DEFAULT"
+// Invalid: just a number like "5" or "123"
+void validateTreatmentSelector(const std::string& selector) {
+  if (selector.empty()) {
+    return; // Empty is valid (bare placeholder like $SOURCE)
+  }
+  
+  if (selector == "DEFAULT") {
+    return; // DEFAULT is valid
+  }
+  
+  // Check if it starts with TRNO
+  if (selector.rfind("TRNO", 0) == 0) {
+    std::string numberPart = selector.substr(4);
+    // Verify the rest is all digits
+    if (!numberPart.empty() && std::all_of(numberPart.begin(), numberPart.end(), ::isdigit)) {
+      return; // Valid TRNOx format
+    }
+  }
+  
+  // If we get here, the format is invalid
+  throw std::invalid_argument("Invalid treatment selector format '" + selector + "' in placeholder. "
+                              "Expected format: ':TRNOx' (where x is a number), ':DEFAULT', or no selector. "
+                              "Number-only selectors like ':5' are not allowed.");
+}
+
+// Helper function to extract the treatment selector from a placeholder like "$KEY:TRNO5" or "$KEY:DEFAULT"
+std::string extractTreatmentSelector(const std::string& placeholder) {
+  size_t colonPos = placeholder.find(':');
+  if (colonPos == std::string::npos) {
+    return "";
+  }
+  
+  std::string selector = placeholder.substr(colonPos + 1);
+  validateTreatmentSelector(selector);
+  return selector;
+}
+
+// Helper function to get a source value from a YAML node, handling treatment-keyed maps
+std::string getSourceValue(const YAML::Node& sourceNode, const std::string& treatmentKey) {
+  if (!sourceNode) {
+    return "";
+  }
+
+  std::string valueStr;
+  
+  if (sourceNode.IsScalar()) {
+    try {
+      valueStr = sourceNode.as<std::string>();
+    } catch (const std::exception &e) {
+      valueStr = "";
+    }
+  } else if (sourceNode.IsSequence()) {
+    // Join sequence elements with commas
+    std::ostringstream joined;
+    for (std::size_t si = 0; si < sourceNode.size(); ++si) {
+      if (si) joined << ",";
+      if (sourceNode[si].IsScalar()) {
+        try { joined << sourceNode[si].as<std::string>(); } catch (...) { /* ignore */ }
+      } else {
+        std::string dumped = YAML::Dump(sourceNode[si]);
+        dumped.erase(std::remove(dumped.begin(), dumped.end(), '\n'), dumped.end());
+        joined << dumped;
+      }
+    }
+    valueStr = joined.str();
+  } else if (sourceNode.IsMap()) {
+    // Treatment-keyed map: look for the specific treatment or DEFAULT
+    if (sourceNode[treatmentKey]) {
+      valueStr = getSourceValue(sourceNode[treatmentKey], "");
+    } else if (sourceNode["DEFAULT"]) {
+      valueStr = getSourceValue(sourceNode["DEFAULT"], "");
+    }
+  } else {
+    // For other types, dump to string
+    std::string dumped = YAML::Dump(sourceNode);
+    dumped.erase(std::remove(dumped.begin(), dumped.end(), '\n'), dumped.end());
+    valueStr = dumped;
+  }
+  
+  return valueStr;
+}
+
+std::string replacePlaceholders(std::string originalValue, std::string originalType, YAML::Node disease, const std::string& currentTrtKey = ""){
+  // First, check for invalid selector formats like $VAR:5 (number-only) or $VAR:INVALID
+  std::smatch invalidMatch;
+  
+  if (std::regex_search(originalValue, invalidMatch, GDM::RegexPatterns::INVALID_SELECTOR_PATTERN)) {
+    std::string invalidPlaceholder = invalidMatch.str(); // This is "$VAR:" without the selector
+    
+    // Find where the match ends in the original string to extract the actual invalid selector
+    size_t matchPos = originalValue.find(invalidPlaceholder);
+    size_t selectorStartPos = matchPos + invalidPlaceholder.length();
+    
+    // Extract everything after the colon until we hit a space, ), operator, or end of string
+    std::string invalidSelector;
+    size_t i = selectorStartPos;
+    while (i < originalValue.length() && !std::isspace(originalValue[i]) && 
+           originalValue[i] != ')' && originalValue[i] != '+' && originalValue[i] != '-' && 
+           originalValue[i] != '*' && originalValue[i] != '/' && originalValue[i] != ':') {
+      invalidSelector += originalValue[i];
+      i++;
+    }
+    
+    std::string key = extractPlaceholderKey(invalidPlaceholder);
+    
+    throw std::invalid_argument(
+      "Invalid treatment selector format in placeholder '" + invalidPlaceholder + invalidSelector + "'. "
+      "The selector '" + invalidSelector + "' is not recognized. "
+      "Expected format: ':TRNOx' (where x is a number), ':DEFAULT', or no selector. "
+      "Number-only selectors like ':5' are not allowed."
+    );
+  }
+  
+  // Look for the special character '$' which indicates a variable reference.
   // If the variable reference is not found, then return the original value.
   // If the variable reference is found, then look for the variable in the rest of the file.
-  
-  std::regex varPattern = GDM::RegexPatterns::VAR_PATTERN;
+
   std::smatch matchResults;
 
   bool replaced = true;
@@ -325,48 +452,32 @@ std::string replacePlaceholders(std::string originalValue, std::string originalT
     replaced = false;
     std::string tempStr = originalValue;
 
-    while (std::regex_search(tempStr, matchResults, varPattern)){
+    while (std::regex_search(tempStr, matchResults, GDM::RegexPatterns::VAR_PATTERN)){
       std::string placeholder = matchResults.str();
-      std::string key = placeholder.substr(1); // Remove the '$'
+      std::string key = extractPlaceholderKey(placeholder);
+      std::string treatmentSelector = extractTreatmentSelector(placeholder);
+      
       // Then, look for the variable name in the disease YAML::Node.
       if (disease[key] && disease[key]["VALUE"]) {
         std::string valueStr;
-        // If scalar, use the scalar string directly
-        if (disease[key]["VALUE"].IsScalar()) {
-          try {
-            valueStr = disease[key]["VALUE"].as<std::string>();
-          } catch (const std::exception &e) {
-            valueStr = "";
-          }
-        // If sequence, join elements with commas
-        } else if (disease[key]["VALUE"].IsSequence()) {
-          std::ostringstream joined;
-          for (std::size_t si = 0; si < disease[key]["VALUE"].size(); ++si) {
-            if (si) joined << ",";
-            if (disease[key]["VALUE"][si].IsScalar()) {
-              try { joined << disease[key]["VALUE"][si].as<std::string>(); } catch (...) { /* ignore */ }
-            } else {
-              // Fallback to dumping non-scalars
-              std::string dumped = YAML::Dump(disease[key]["VALUE"][si]);
-              dumped.erase(std::remove(dumped.begin(), dumped.end(), '\n'), dumped.end());
-              joined << dumped;
-            }
-          }
-          valueStr = joined.str();
-        } else {
-          // For maps or other types, dump to string (remove newlines)
-          std::string dumped = YAML::Dump(disease[key]["VALUE"]);
-          dumped.erase(std::remove(dumped.begin(), dumped.end(), '\n'), dumped.end());
-          valueStr = dumped;
-        }
+        
+        // Determine which treatment to use for source lookup
+        std::string effectiveTrtKey = treatmentSelector.empty() ? currentTrtKey : treatmentSelector;
+        std::cout << "Looking up value for placeholder '" << placeholder << "' with key '" << key << "' and treatment selector '" << treatmentSelector << "' (effective treatment key: '" << effectiveTrtKey << "')" << std::endl;
+        // Get the source value, handling treatment-keyed maps appropriately
+        valueStr = getSourceValue(disease[key]["VALUE"], effectiveTrtKey);
 
         if (originalType == "std::string" || originalType == "string"){
           valueStr = '(' + valueStr + ')';
         }
 
         // Finally, replace the variable reference with the actual value.
-        originalValue = std::regex_replace(originalValue, std::regex("\\" + placeholder), valueStr);
-        replaced = true;
+        // Use direct string replacement instead of regex_replace to avoid recompiling regex
+        size_t matchPos = originalValue.find(placeholder);
+        if (matchPos != std::string::npos) {
+          originalValue.replace(matchPos, placeholder.length(), valueStr);
+          replaced = true;
+        }
       }
       // Being sure to keep checking the rest of the string for placeholders.
       tempStr = matchResults.suffix();
@@ -501,7 +612,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
             if (value["TYPE"] && value["TYPE"].IsScalar()) {
               originalType = value["TYPE"].as<std::string>();
             }
-            value["VALUE"] = replacePlaceholders(originalValue, originalType, disease);
+            value["VALUE"] = replacePlaceholders(originalValue, originalType, disease, trtKey);
           // Check if the value is a sequence, so each one can be checked for placeholders.
           // This is necessary because automatic sequence -> string conversion is not supported.
           } else if (value["VALUE"].Type() == 3) {
@@ -518,7 +629,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
               if (value["TYPE"] && value["TYPE"].IsScalar()) {
                 originalType = value["TYPE"].as<std::string>();
               }
-              value["VALUE"][i] = replacePlaceholders(originalValue, originalType, disease);
+              value["VALUE"][i] = replacePlaceholders(originalValue, originalType, disease, trtKey);
             }
           } else if (value["VALUE"].Type() == 4) {
             // Iterate through each treatment's key-value pair.
@@ -533,7 +644,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
                   if (value["TYPE"] && value["TYPE"].IsScalar()) {
                     originalType = value["TYPE"].as<std::string>();
                   }
-                  value["VALUE"][trtKey] = replacePlaceholders(originalValue, originalType, disease);
+                  value["VALUE"][trtKey] = replacePlaceholders(originalValue, originalType, disease, trtKey);
                 } else {
                   std::cout << "Warning: Treatment value for " << trtKey << " is not a scalar and will be skipped for placeholder replacement." << std::endl;
                 }
