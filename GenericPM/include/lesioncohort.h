@@ -47,7 +47,7 @@ public:
         this->lesionsInThisCohort = lesionsInThisCohort;
         this->cloudo = cloudo;
         this->visibleValue = 0;
-        this->invisibleValue = (lesionsInThisCohort * cloudo->getDisease()->getInitialPustuleSize());
+        this->invisibleValue = (lesionsInThisCohort * cloudo->getDisease()->getInitialLesionSize().evaluate());
         this->doc = FlexibleIO::getInstance()->getInteger("CONTROL", "YEARDOY");
     }
 

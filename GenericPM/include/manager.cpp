@@ -237,16 +237,20 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
   // - LES_AGE is the expression that determines how quickly lesions age
   // - VGF is the expression that determines the visible growth of lesions
   // - IGF is the expression that determines the invisible growth of lesions
+  // - INIT_LES is the expression that determines the initial lesion size in unit of ORGAN_CP
   disease->setLES_AGE(diseaseData["LES_AGE"]);
-  disease->setIGF(diseaseData["IGF"]);
-  disease->setVGF(diseaseData["VGF"]);
+  disease->setIGF(diseaseData["VGF"]);
+  disease->setVGF(diseaseData["IGF"]);
+  disease->setInitialLesionSize(diseaseData["INIT_LES"]);
+  disease->setNEW_LES(diseaseData["NEW_LES"]);
+  disease->setP1_DUR(safe_assign_int(diseaseData["P1"].getOriginal()));
+  disease->setP2_DUR(safe_assign_int(diseaseData["P2"].getOriginal()));
 
   // Implement debugging expression to test expression functionality without impacting evaluation.
   disease->setDEBUG(diseaseData["DEBUG"]);
 
   // Use the *disease to find a new slot in the simulators 
   // vector and then initialize a new Simulator inside it.
-  std::cout << "NEW SIMULATOR\n";
   simulators.emplace_back(std::make_unique<Simulator>(disease, ci));
 }
 

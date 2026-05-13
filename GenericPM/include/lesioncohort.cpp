@@ -22,7 +22,7 @@ int LesionCohort::qtd = 0;
 
 bool LesionCohort::isLatentPeriod() const {
     Disease *disease = cloudo->getDisease();
-    if (getPhysiologicalDaysAcumm() <= disease->getLatentPeriod()) {
+    if (getPhysiologicalDaysAcumm() <= disease->getP1_DUR()) {
         return true;
     }
     return false;
@@ -30,7 +30,7 @@ bool LesionCohort::isLatentPeriod() const {
 
 bool LesionCohort::isInfectionPeriod() const {
     Disease *disease = cloudo->getDisease();
-    if (getPhysiologicalDaysAcumm() > disease->getLatentPeriod() && getPhysiologicalDaysAcumm() <= (disease->getLatentPeriod() + disease->getInfectionPeriod())) {
+    if (getPhysiologicalDaysAcumm() > disease->getP1_DUR() && getPhysiologicalDaysAcumm() <= (disease->getP1_DUR() + disease->getP2_DUR())) {
         return true;
     }
     return false;
@@ -38,7 +38,7 @@ bool LesionCohort::isInfectionPeriod() const {
 
 bool LesionCohort::isNecroticPeriod() const {
     Disease *disease = cloudo->getDisease();
-    if (getPhysiologicalDaysAcumm() > (disease->getLatentPeriod() + disease->getInfectionPeriod())) {
+    if (getPhysiologicalDaysAcumm() > (disease->getP1_DUR() + disease->getP2_DUR())) {
         return true;
     }
     return false;

@@ -90,6 +90,12 @@ protected:
     Expression VGF; // Expression for visible growth function
     Expression IGF; // Expression for invisible growth function
 
+    Expression INIT_LES; // Initial lesion size in unit of ORGAN_CP; used as the starting point for lesion growth
+
+    // A phase duration of -1 means that the phase is perpetual.
+    int P1_DUR = 7; // Duration of phase 1 of lesions development (usually latent); in units of LES_AGE
+    int P2_DUR = 21; // Duration of phase 2 of lesions development (usually infectious); in units of LES_AGE
+
     Expression DEBUG_EXPR; // Expression evaluated and printed at the end of each integration step
 
 public:
@@ -114,10 +120,10 @@ public:
         std::cout << "Max Spore Clouds Density: " << maxSporeCloudsDensity << std::endl;
         std::cout << "Proportion From Organ To Plant Cloud: " << proportionFromOrganToPlantCloud << std::endl;
         std::cout << "Proportion From Plant To Field Cloud: " << proportionFromPlantToFieldCloud << std::endl;
-        std::cout << "Latent Period: " << latentPeriod << std::endl;
-        std::cout << "Infection Period: " << infectionPeriod << std::endl;
+        std::cout << "Latent Period: " << P1_DUR << std::endl;
+        std::cout << "Infection Period: " << P2_DUR << std::endl;
         std::cout << "Deposition Frequency: " << depositionFrequency << std::endl;
-        std::cout << "Initial Pustule Size: " << initialPustuleSize << std::endl;
+        std::cout << "Initial Lesion Size: " << INIT_LES.getOriginal() << std::endl;
         std::cout << "Acumulate Favorability: " << acumulateFavorability << std::endl;
         std::cout << "Cardinal Temp Physiological Life: " << cardinalTempPhysiologicalLife[0] << " " << cardinalTempPhysiologicalLife[1] << " " << cardinalTempPhysiologicalLife[2] << " " << cardinalTempPhysiologicalLife[3] << std::endl;
     }
@@ -275,8 +281,8 @@ public:
      * 
      * @return Latent period.
      */
-    int getLatentPeriod() {
-        return latentPeriod;
+    int getP1_DUR() {
+        return P1_DUR;
     }
 
     /**
@@ -284,8 +290,8 @@ public:
      * 
      * @param latentPeriod Latent period.
      */
-    void setLatentPeriod(int latentPeriod) {
-        this->latentPeriod = latentPeriod;
+    void setP1_DUR(int P1_DUR) {
+        this->P1_DUR = P1_DUR;
     }
 
     /**
@@ -293,8 +299,8 @@ public:
      * 
      * @return Infection period.
      */
-    int getInfectionPeriod() {
-        return infectionPeriod;
+    int getP2_DUR() {
+        return P2_DUR;
     }
 
     /**
@@ -302,8 +308,8 @@ public:
      * 
      * @param infectionPeriod Infection period.
      */
-    void setInfectionPeriod(int infectionPeriod) {
-        this->infectionPeriod = infectionPeriod;
+    void setP2_DUR(int P2_DUR) {
+        this->P2_DUR = P2_DUR;
     }
 
     /**
@@ -361,21 +367,21 @@ public:
     }
 
     /**
-     * Get the initial pustule size.
+     * Get the initial Lesion size.
      * 
-     * @return Initial pustule size.
+     * @return Initial Lesion size.
      */
-    float getInitialPustuleSize() {
-        return initialPustuleSize;
+    Expression getInitialLesionSize() {
+        return INIT_LES;
     }
 
     /**
-     * Set the initial pustule size.
+     * Set the initial Lesion size.
      * 
-     * @param initialPustuleSize Initial pustule size.
+     * @param initialLesionSize Initial Lesion size.
      */
-    void setInitialPustuleSize(float initialPustuleSize) {
-        this->initialPustuleSize = initialPustuleSize;
+    void setInitialLesionSize(Expression initialLesionSize) {
+        this->INIT_LES = initialLesionSize;
     }
 
     /** 
