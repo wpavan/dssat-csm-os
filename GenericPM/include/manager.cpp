@@ -19,6 +19,7 @@
 #include "simulator.h"
 #include "injection.h"
 #include "expression.h"
+#include "debug_control.h"
 
 #include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
@@ -60,7 +61,6 @@ YearDoy Manager::currentGDMDate = YearDoy(-99);
 std::vector<std::string> Manager::families;
 std::vector<CouplingPointID> Manager::couplingPointIDs;
 std::vector<std::unique_ptr<CropInterface>> Manager::cropInterfaces;
-std::vector<std::shared_ptr<CloudF>> Manager::cloudsF;
 std::string Manager::outfileName;
 
 bool Manager::outputStatus = false;
@@ -69,6 +69,9 @@ Manager::Manager() {}
 
 Manager* Manager::getInstance() {
   if (instance == nullptr) {
+#if GENERICPM_DEBUG_ENABLED
+      std::cerr << "[MGR] Creating new Manager instance" << std::endl << std::flush;
+#endif
       instance = new Manager();
   }
   return instance;
@@ -78,13 +81,13 @@ Manager* Manager::newInstance() {
   // Reset the singleton instance and clear static collections so that
   // repeated initialization (e.g., multiple treatment runs) does not
   // accumulate simulators, clouds, or crop interfaces.
+  delete instance;
   instance = nullptr;
   simulators.clear();
   plantingDate = YearDoy(-99);
   families.clear();
   couplingPointIDs.clear();
   cropInterfaces.clear();
-  cloudsF.clear();
   outputStatus = false;
   return getInstance();
 }
@@ -130,11 +133,19 @@ int safe_assign_int(std::string valueStr) {
 
 void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseData, CropInterface *ci,
                            InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections) {
+#if GENERICPM_DEBUG_ENABLED
+  std::cerr << "[MGR] addSimulator() called for disease: " << diseaseData["PESTID"].getOriginal() << std::endl << std::flush;
+#endif
   if (ci == nullptr) {
     std::cerr << "Error: CropInterface pointer is null in Manager::addSimulator" << std::endl;
     return;
   }
   
+  std::unordered_map<std::string, std::string> diseaseContext;
+  for (const auto& pair : diseaseData) {
+    diseaseContext[pair.first] = pair.second.getOriginal();
+  } 
+
   // This function should create a simulator for a disease and add it to the list of simulators.
   // it should also create the associated disease object and associate that with the simulator =.
   Disease *disease = new Disease();
@@ -206,6 +217,7 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
   }
 
   // Added parameter to determine organ mode (cohort vs singular)
+  // NOTE: local inoculum seems to occasionally return some garbage huge value when running in COHORT mode. Unsure if happens in SINGULAR.
   if (diseaseData["ORGAN_MODE"].getOriginal() == "COHORT") {
       disease->setOrganMode(OrganMode::COHORT);
   } else if (diseaseData["ORGAN_MODE"].getOriginal() == "SINGULAR") {
@@ -244,8 +256,8 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
   // - IGF is the expression that determines the invisible growth of lesions
   // - INIT_LES is the expression that determines the initial lesion size in unit of ORGAN_CP
   disease->setLES_AGE(diseaseData["LES_AGE"]);
-  disease->setIGF(diseaseData["VGF"]);
-  disease->setVGF(diseaseData["IGF"]);
+  disease->setIGF(diseaseData["IGF"]);
+  disease->setVGF(diseaseData["VGF"]);
   disease->setInitialLesionSize(diseaseData["INIT_LES"]);
   disease->setNEW_LES(diseaseData["NEW_LES"]);
   disease->setP1_DUR(safe_assign_int(diseaseData["P1"].getOriginal()));
@@ -257,33 +269,6 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
   // Use the *disease to find a new slot in the simulators 
   // vector and then initialize a new Simulator inside it.
   simulators.emplace_back(std::make_unique<Simulator>(disease, ci));
-}
-
-void Manager::createCloudsF() {
-  Disease* diseasePtr;
-
-  // New version
-  for (const auto& fam : families) {
-    addCloudF(fam);
-  }
-
-  for (const auto& sim : simulators) {
-    std::string simFamily = sim->getDisease()->getFamily();
-    std::cout << "Family for this simulator: " << simFamily << std::endl;
-
-    if (std::find(families.begin(), families.end(), simFamily) != families.end()) {
-      diseasePtr = sim->getDisease();
-        if (diseasePtr == nullptr) {
-          std::cout << "Error: Disease pointer is null in Manager::createCloudsF for family " << simFamily << std::endl;
-          continue;
-        }
-        if (getCloudF(simFamily) == nullptr) {
-          std::cout << "Error: CloudF pointer is null in Manager::createCloudsF for family " << simFamily << std::endl;
-        }
-        getCloudF(simFamily)->setDisease(diseasePtr);
-        sim->getInitialCondition()->setCloud(getCloudF(simFamily));
-    }
-  }
 }
 
 void Manager::setCurrentSimDate(YearDoy yearDoy) {
@@ -298,6 +283,9 @@ void Manager::rate() {
   for (auto& simulator : simulators) {
     simulator->rate();
   }
+
+  /** Call the rate function for the Plant */
+    Plant::getInstance()->rate();
 }
 
 void Manager::integration() {
@@ -410,6 +398,8 @@ std::string getSourceValue(const YAML::Node& sourceNode, const std::string& trea
 }
 
 std::string replacePlaceholders(std::string originalValue, std::string originalType, YAML::Node disease, const std::string& currentTrtKey = ""){
+  std::string valueStr = originalValue;
+  
   // First, check for invalid selector formats like $VAR:5 (number-only) or $VAR:INVALID
   std::smatch invalidMatch;
   
@@ -463,9 +453,19 @@ std::string replacePlaceholders(std::string originalValue, std::string originalT
         
         // Determine which treatment to use for source lookup
         std::string effectiveTrtKey = treatmentSelector.empty() ? currentTrtKey : treatmentSelector;
-        std::cout << "Looking up value for placeholder '" << placeholder << "' with key '" << key << "' and treatment selector '" << treatmentSelector << "' (effective treatment key: '" << effectiveTrtKey << "')" << std::endl;
+        // std::cout << "Looking up value for placeholder '" << placeholder << "' with key '" << key << "' and treatment selector '" << treatmentSelector << "' (effective treatment key: '" << effectiveTrtKey << "')" << std::endl;
         // Get the source value, handling treatment-keyed maps appropriately
         valueStr = getSourceValue(disease[key]["VALUE"], effectiveTrtKey);
+
+        // OPTIMIZATION: Skip inlining if the value contains FIO references (#{...})
+        // This allows Expression class to handle variable resolution more efficiently
+        // and prevents issues with nested FIO reference translation
+        if (std::regex_search(valueStr, GDM::RegexPatterns::FIO_PATTERN)) {
+        //  std::cerr << "Skipping inline substitution for '" << placeholder << "' because source contains FIO references - will be resolved at expression evaluation time." << std::endl << std::flush;
+        //  std::cerr << "[REPL] Value preserved: " << valueStr << std::endl << std::flush;
+          tempStr = matchResults.suffix(); // Move past this match without replacing
+          continue;
+        }
 
         if (originalType == "std::string" || originalType == "string"){
           valueStr = '(' + valueStr + ')';
@@ -484,6 +484,7 @@ std::string replacePlaceholders(std::string originalValue, std::string originalT
     }
   }
 
+  // std::cout << "Final replaced value for '" << valueStr << "': " << originalValue << std::endl;
   return originalValue;
 }
 
@@ -595,8 +596,6 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
       if (disease.IsMap()) {
       // Disease YAML::Node is active and of proper type, so load it.
       // NOTE: Is checking disease.IsMap() necessary?
-
-
       // Step 1 to loading the disease is to process the input for variable references.
       for (auto it=disease.begin(); it!=disease.end(); ++it) {
         std::string key = it->first.as<std::string>();
@@ -635,16 +634,16 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
             // Iterate through each treatment's key-value pair.
             // Accepted keys are TRNO01-99 and DEFAULT. 
             for (auto trtValueIt = value["VALUE"].begin(); trtValueIt != value["VALUE"].end(); ++trtValueIt) {
-              std::string trtKey = trtValueIt->first.as<std::string>();
+              std::string nodeTrtKey = trtValueIt->first.as<std::string>();
               YAML::Node trtValue = trtValueIt->second;
-              if (trtKey.rfind("TRNO", 0) == 0 || trtKey == "DEFAULT") {
+              if (nodeTrtKey.rfind("TRNO", 0) == 0 || nodeTrtKey == "DEFAULT") {
                 if (trtValue.IsScalar()) {
                   std::string originalValue = trtValue.as<std::string>();
                   std::string originalType = "string";
                   if (value["TYPE"] && value["TYPE"].IsScalar()) {
                     originalType = value["TYPE"].as<std::string>();
                   }
-                  value["VALUE"][trtKey] = replacePlaceholders(originalValue, originalType, disease, trtKey);
+                  value["VALUE"][nodeTrtKey] = replacePlaceholders(originalValue, originalType, disease, trtKey);
                 } else {
                   std::cout << "Warning: Treatment value for " << trtKey << " is not a scalar and will be skipped for placeholder replacement." << std::endl;
                 }
@@ -793,30 +792,54 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
           std::cout << "getCropInterface -> NULL" << std::endl;
         }
 
+        // ============================================================================
         // Step 3b is to handle family grouping.
-        std::string family = diseaseData["FAMILY"].getOriginal();
+        // std::string family = diseaseData["FAMILY"].getOriginal();
 
-        CloudF *cloudFPtr = nullptr;
+        // std::shared_ptr<CloudF> cloudFPtr = nullptr;
         
-        if (!uniqueFamilies.contains(family)) {
-          std::cout << "Will create new CloudF for disease family: " << family << std::endl;
-          uniqueFamilies.families[family] = cloudParams;
+        // if (!uniqueFamilies.contains(family)) {
+        //   std::cout << "Will create new CloudF for disease family: " << family << std::endl;
+        //   uniqueFamilies.families[family] = cloudParams;
 
-          manager->addUniqueFamily(family);
-        } else {
-          std::cout << "Will use existing CloudF for shared inoculum: " << cpIDToStr(tempCP) << std::endl;
+        //   manager->addUniqueFamily(family);
+        // } else {
+        //   std::cout << "Will use existing CloudF for shared inoculum: " << cpIDToStr(tempCP) << std::endl;
 
-          if (cloudParams != uniqueFamilies.families[family]) {
-            throw std::runtime_error("Error: Cloud parameters for family " + family + " do not match previous definition.");
-          }
+        //   if (cloudParams != uniqueFamilies.families[family]) {
+        //     throw std::runtime_error("Error: Cloud parameters for family " + family + " do not match previous definition.");
+        //   }
+        // }
+        
+        // try 3b again but considering 1 cloud per disease instead
+        // family grouping will be tracked by the getInoculum function that uses family context
+        
+        // Can we just let the simulator creation create a new CloudF for each one initialized?
+
+        // ============================================================================
+
+
+        // ===== STEP 3C: Set up Expression variable context =====
+        // Before expressions are evaluated, provide the variable context so that
+        // $VARIABLE_NAME references can be resolved. This is more efficient than
+        // inlining variables during YAML parsing.
+
+        std::unordered_map<std::string, std::string> variableContext;
+        for (const auto& pair : diseaseData) {
+          variableContext[pair.first] = pair.second.getOriginal();
         }
+
+        for (auto& pair : diseaseData) {
+          pair.second.setContext(variableContext);
+        }
+
+        
         manager->addSimulator(diseaseData, ciPtr, rateInjections, integrationInjections, outputInjections);
       }
     }
   }
 
   manager->setCouplingPointIDs(uniqueCPs);
-  manager->createCloudsF();
   // No more diseases found in the YAML file.
   return 1;
 } 

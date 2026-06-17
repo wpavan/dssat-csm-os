@@ -13,6 +13,7 @@
 #include "basic.h"
 #include "basicinterface.h"
 #include "disease.h"
+#include "debug_control.h"
 
 #include <vector>
 #include <iostream>
@@ -26,7 +27,7 @@ enum class CloudLevel {
 
 class DormantInoculum {
 protected:
-    static std::unordered_map<std::string, float> amountByFamily;
+    static std::unordered_map<std::string, float> amountByID;
     static DormantInoculum* instance;
     DormantInoculum() {}
 public:
@@ -39,21 +40,22 @@ public:
     }
 
     DormantInoculum* newInstance(void) {
+        delete instance;
         instance = nullptr;
         return getInstance();
     }
 
-    void setFamilyInoculum(std::string family, float amount) {
-        amountByFamily[family] = amount;
+    void setDiseaseInoculum(std::string pestID, float amount) {
+        amountByID[pestID] = amount;
     }
 
     bool hasInoculum() {
-        return !amountByFamily.empty();
+        return !amountByID.empty();
     }
 
-    const float getFamilyInoculum(std::string family) {
-        auto it = amountByFamily.find(family);
-        if (it != amountByFamily.end()) {
+    const float getDiseaseInoculum(std::string pestID) {
+        auto it = amountByID.find(pestID);
+        if (it != amountByID.end()) {
             return it->second;
         } else {
             return -99.0f;
@@ -61,31 +63,31 @@ public:
     }
 
     const std::unordered_map<std::string, float>& getDormantInoc() {
-        return amountByFamily;
+        return amountByID;
     }
 
-    void addDormantInoculum(float amount, std::string family) {
-        amountByFamily[family] += amount;
+    void addDormantInoculum(float amount, std::string pestID) {
+        amountByID[pestID] += amount;
     }
 
-    void removeDormantInoculum(float amount, std::string family) {
-        amountByFamily[family] -= amount;
-        if (amountByFamily[family] <= 0.0f) {
-            amountByFamily.erase(family);
+    void removeDormantInoculum(float amount, std::string pestID) {
+        amountByID[pestID] -= amount;
+        if (amountByID[pestID] <= 0.0f) {
+            amountByID.erase(pestID);
         }
     }
 
-    void clear(std::string family) {
-        amountByFamily.erase(family);
+    void clear(std::string pestID) {
+        amountByID.erase(pestID);
     }
 
     void clear() {
-        amountByFamily.clear();
+        amountByID.clear();
     }
 
     void show() {
-        std::cout << "Dormant Inoculum by Family:" << std::endl;
-        for (const auto& pair : amountByFamily) {
+        std::cout << "Dormant Inoculum by ID:" << std::endl;
+        for (const auto& pair : amountByID) {
             std::cout << "  " << pair.first << ": " << pair.second << std::endl;
         }
     }
@@ -101,10 +103,11 @@ protected:
     float dormantInoculum = 0.0f; // Inoculum that is present but not yet infective
 
     // Reference to the associated disease
-    Disease *disease;
+    Disease* disease;
 
     // Use float to avoid truncation and preserve fractional spores
-    float activeInoculumCreated, activeInoculumRemoved = 0.0f;
+    float activeInoculumCreated = 0.0f;
+    float activeInoculumRemoved = 0.0f;
     
 public:
     void rate() {}

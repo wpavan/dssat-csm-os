@@ -31,7 +31,7 @@ protected:
 
     int lesionsInThisCohort;
     int doc = 0; // Day of creation (cohort)
-    CloudO *cloudo;
+    std::shared_ptr<CloudO> cloudo;
     int newSpores = 0;
     float physiologicalAge = 0; // Physiological days accumulation 
     float dailyAge = 0; // Physiological value on that day 
@@ -41,8 +41,7 @@ protected:
     int ID = ++qtd;
 
 public:
-
-    LesionCohort(int lesionsInThisCohort, CloudO *cloudo) {
+    LesionCohort(int lesionsInThisCohort, std::shared_ptr<CloudO> cloudo) {
         Basic::output.push_back("Day of Simulation, Area, Amount of Cohorts, Physiological days,Proportion Disease Area, Latent Area , Infection Area , Necrotic Area, New Spores, Temp.Favorability, dailyVisibleAreaGrow, dailyInvisibleAreaGrow");
         this->lesionsInThisCohort = lesionsInThisCohort;
         this->cloudo = cloudo;
@@ -60,7 +59,11 @@ public:
     void integration();
     int getVisibleLesions();
 
-    float getVisibleArea() {
+    float getDiseaseValue() const {
+        return visibleValue + invisibleValue;
+    }
+
+    float getVisibleArea() const {
         return visibleValue;
     }
     void output();
@@ -77,24 +80,28 @@ public:
      */
     void rate();
     
-    bool isInfectionPeriod() const;
-    bool isLatentPeriod() const;
-    bool isNecroticPeriod() const;
+    bool isPhase2() const;
+    bool isPhase1() const;
+    bool isPhase3() const;
 
     float getInfectionValue() const {
-        return isInfectionPeriod() ? getTotalValue() : 0;
+        return isPhase2() ? getTotalValue() : 0;
     }
 
     float getNecroticValue() const {
-        return isNecroticPeriod() ? getTotalValue() : 0;
+        return isPhase3() ? getTotalValue() : 0;
     }
 
     float getLatentValue() const {
-        return isLatentPeriod() ? getTotalValue() : 0;
+        return isPhase1() ? getTotalValue() : 0;
     }
 
     float getInvisibleValue() const {
         return invisibleValue;
+    }
+
+    Disease* getDisease() const {
+        return this->cloudo->getDisease();
     }
 
     float getVisibleValue() const {

@@ -52,14 +52,14 @@ void InitialCondition::integration(Disease *disease) {
         if (acumulateFavorability >= disease->getAcumulateFavorability() && yearDoy >= 0) {
             printf("Accumulated Favorability reached: %.2f on YEARDOY: %d\n", acumulateFavorability, yearDoy);
             DormantInoculum* dormantInoc = DormantInoculum::getInstance();
-            float dormantInoculum = dormantInoc->getFamilyInoculum(disease->getFamily());
+            float dormantInoculum = dormantInoc->getDiseaseInoculum(disease->getDiseaseID());
             if (dormantInoculum > 0) {
                 cloudF->setFirstSporeCloud(dormantInoculum);
-                dormantInoc->clear(disease->getFamily());
-                printf("Using dormant inoculum for family %s: %.2f\n", disease->getFamily().c_str(), dormantInoculum);
+                dormantInoc->clear(disease->getDiseaseID());
+                printf("Using dormant inoculum for disease %s: %.2f\n", disease->getDiseaseID().c_str(), dormantInoculum);
             } else {
                 cloudF->setFirstSporeCloud(disease->getInitialInoculum());
-                printf("No dormant inoculum for family %s. Using initial inoculum: %.2f\n", disease->getFamily().c_str(), disease->getInitialInoculum());
+                printf("No dormant inoculum for disease %s. Using initial inoculum: %.2f\n", disease->getDiseaseID().c_str(), disease->getInitialInoculum());
             }
             favorabilityAccumulated = true;
         }

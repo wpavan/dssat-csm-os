@@ -30,9 +30,10 @@ protected:
     std::string family;
 
 public:
-    InitialCondition(std::string family) : family(family){
+    InitialCondition(std::shared_ptr<CloudF> cloudF) : cloudF(cloudF){
         // doc = FlexibleIO::getInstance()->getInteger("CONTROL", "YEARDOY");
         doc = Manager::getInstance()->getCurrentSimDate();
+        family = cloudF ? cloudF->getDisease()->getFamily() : "";
         std::cout << "Creating InitialCondition for family: " << family << " with ID: " << ID << " on YEARDOY: " << doc << std::endl;
         Basic::output.push_back("Day of Simulation, Acumulated Favorability");
     }

@@ -10,12 +10,14 @@
 #define EQUATION_CONTEXT_H
 
 #include "..\TinyExpr++\tinyexpr.h"
+#include <memory>
 
 // Forward declarations to avoid circular dependencies
 class Organ;
 class LesionCohort;
 class Plant;
 class Cloud;
+class Disease;
 
 /**
  * @brief Context object passed to equation evaluators
@@ -28,9 +30,10 @@ struct EquationContext {
     Plant* plant;
     Organ* organ;
     LesionCohort* lesionCohort;
-    Cloud* cloud; 
+    std::shared_ptr<Cloud> cloud; 
+    Disease* disease;
     
-    EquationContext() : plant(nullptr), organ(nullptr), lesionCohort(nullptr), cloud(nullptr) {}
+    EquationContext() : plant(nullptr), organ(nullptr), lesionCohort(nullptr), cloud(nullptr), disease(nullptr) {}
 };
 
 /**

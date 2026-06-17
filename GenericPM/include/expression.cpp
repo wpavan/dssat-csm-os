@@ -3,6 +3,7 @@
 #include "../TinyExpr++/tinyexpr.h"
 
 #include "expression.h"
+#include "debug_control.h"
 #include "numericstringcache.h"
 #include "utilities.h"
 
@@ -58,21 +59,64 @@ te_parser* ParserCache::getParser(const std::string& expression) {
     }
 }
 
+// Helper method to create context signature for caching
+std::string Expression::createContextSignature() const {
+    std::vector<std::string> pairs;
+    for (const auto& pair : instanceContext) {
+        pairs.push_back(pair.first + ":" + pair.second);
+    }
+    std::sort(pairs.begin(), pairs.end());
+    
+    std::string signature;
+    for (const auto& pair : pairs) {
+        signature += pair + ";";
+    }
+    return std::to_string(std::hash<std::string>{}(signature));
+}
+
 const std::string& Expression::getTranslated() {
     if (!translated) {
+        std::string contextSignature = createContextSignature();
+        std::string cacheKey = originalExpr + "|CTX:" + contextSignature;
+
         // Check if this expression has already been translated globally
-        auto cacheIt = translationCache.find(originalExpr);
+        auto cacheIt = translationCache.find(cacheKey);
         if (cacheIt != translationCache.end()) {
             // Found in global cache, use it
             translatedExpr = cacheIt->second;
             translated = true;
             return translatedExpr;
         }
-
+        
         // Not in cache, perform translation
         translatedExpr = originalExpr; // Start with the original expression
-        FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+       
+        std::regex varPattern(R"(\$([A-Za-z_][A-Za-z0-9_]*))");
+        std::smatch match;
+        std::string working = translatedExpr;
+        
+        while (std::regex_search(working, match, varPattern)) {
+            std::string varName = match[1].str();
 
+            
+            // Look up this variable in the context
+            auto varIt = instanceContext.find(varName);
+            if (varIt != instanceContext.end()) {
+                // Found the variable, substitute it (wrapped in parentheses for safety)
+                std::string replacement = "(" + varIt->second + ")";
+
+                working.replace(match.position(0), match.length(0), replacement);
+
+                // Continue searching from the end of the replacement
+            } else {
+                // Variable not found - throw an error
+                throw std::runtime_error("Error: Variable reference '$" + varName + "' not found in expression context.");
+            }
+        }
+        translatedExpr = working;
+        
+        // ===== STEP 2: FIO Reference Translation =====
+        FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
         // Process all matches from right to left to avoid position shifts
         std::vector<std::smatch> allMatches;
         std::sregex_iterator iter(translatedExpr.begin(), translatedExpr.end(), GDM::RegexPatterns::FIO_PATTERN);
@@ -84,12 +128,14 @@ const std::string& Expression::getTranslated() {
         }
 
         // Process matches in reverse order to maintain string positions
+        int matchNum = 0;
         for (auto it = allMatches.rbegin(); it != allMatches.rend(); ++it) {
             const std::smatch& match = *it;
+            matchNum++;
 
             // The constructed string that replaces the flexibleIO reference.
             std::string fnCall;
-            
+         
             std::string group = match[1].str();
             std::string second = match[2].str();
             std::string third = match[3].str();
@@ -134,16 +180,13 @@ const std::string& Expression::getTranslated() {
                 } else {
                     throw std::runtime_error("Error: Second part of FIO reference '" + second + "' is neither YRDOY nor is the third part of FIO reference: '" + third + "' an INDEX.");
                 }
-                // Show result.
-                printf("Constructed function call for FIO fn: %s\n", fnCall.c_str());
             }
-
             // Replace this specific match with its value
             translatedExpr.replace(match.position(), match.length(), fnCall);
         }
 
-        // Store in global cache for future use
-        translationCache[originalExpr] = translatedExpr;
+        // Store in cache with context aware signature
+        translationCache[cacheKey] = translatedExpr;
         translated = true;
     }
     return translatedExpr;
@@ -156,7 +199,7 @@ float Expression::evaluate() {
     // Evaluate and return value
     te_type result = ParserCache::getInstance()->getParser(this->getTranslated())->evaluate();
     if (std::isnan(result)) {
-        std::string errorMsg = "Evaluation resulted in NaN for expression:\n\tOriginal:   " + originalExpr + "\n\tTranslated: " + this->getTranslated();
+        std::string errorMsg = "Evaluation resulted in NaN for expression:\n\tOriginal:   " + originalExpr + "\n\tTranslated: " + this->getTranslated() + "\n\tError Message: '" + ParserCache::getInstance()->getParser(this->getTranslated())->get_last_error_message() + "'";
         throw std::runtime_error(errorMsg);
     }
     return result;

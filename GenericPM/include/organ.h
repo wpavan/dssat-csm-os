@@ -55,10 +55,10 @@ protected:
     // Structure to track new lesions by disease
     struct NewLesions {
         // Data structure to track new lesions
-        std::unordered_map<CloudO*, int> lesions;
+        std::unordered_map<std::shared_ptr<CloudO>, int> lesions;
 
         // Add new lesions from a CloudO
-        void addLesions(CloudO* cloud, int count) {
+        void addLesions(std::shared_ptr<CloudO> cloud, int count) {
             lesions[cloud] += count;
         }
 
@@ -72,7 +72,7 @@ protected:
         }
 
         // Get the lesions for one disease
-        int getLesionsFromCloudO(CloudO* cloud) const {
+        int getLesionsFromCloudO(std::shared_ptr<CloudO> cloud) const {
             auto it = lesions.find(cloud);
             return it != lesions.end() ? it->second : 0;
         }
@@ -81,20 +81,20 @@ protected:
     NewLesions newLesions;
 
     std::vector<LesionCohort> lesionCohorts;
-    std::vector<CloudO> cloudsO;
+    std::vector<std::shared_ptr<CloudO>> cloudsO;
     static int firstOutputCall;
     CouplingPointID organCP;
     Expression ORGAN_AGE;
 
 public:
-    Organ(CouplingPointID cp, std::vector<CloudP>& cloudsP, int organNumber, float initialValue, Expression ORGAN_AGE) : organCP(cp), ORGAN_AGE(ORGAN_AGE) {
+    Organ(CouplingPointID cp, std::vector<std::shared_ptr<CloudP>>& cloudsP, int organNumber, float initialValue, Expression ORGAN_AGE) : organCP(cp), ORGAN_AGE(ORGAN_AGE) {
         //Basic::output.push_back("Organ, YearDoy, TotalValue, Senesced, Diseased, VisibleValue, InvisibleValue, LesionDensity, Age, NewLesions, TotalLesions, CloudO, CloudP, CloudF, HealthValueProportion");
         this->organNumber = organNumber;
         this->initialValue += initialValue;
         this->healthyValue += initialValue;
-        CloudP *cloud;
-        for (auto& cloud : cloudsP) {
-            this->cloudsO.emplace_back(cloud.getDisease(), &cloud);
+
+        for (auto& cloudPtr : cloudsP) {
+            this->cloudsO.emplace_back(std::make_shared<CloudO>(cloudPtr->getDisease(), cloudPtr));
         }
     }
 
@@ -124,8 +124,27 @@ public:
         return lesionCohorts;
     }
 
-    std::vector<CloudO>& getCloudsO() {
+    std::vector<std::shared_ptr<CloudO>>& getCloudsO() {
         return cloudsO;
+    }
+
+    std::vector<std::shared_ptr<CloudO>> getCloudsO(std::string family) {
+        std::vector<std::shared_ptr<CloudO>> result;
+        for (auto& cloudO : cloudsO) {
+            if (cloudO->getDisease()->getFamily() == family) {
+                result.push_back(cloudO);
+            }
+        }
+        return result;
+    }
+
+    std::shared_ptr<CloudO> getCloudO(Disease* disease) {
+        for (auto& cloudO : cloudsO) {
+            if (cloudO->getDisease() == disease) {
+                return cloudO;
+            }
+        }
+        throw std::runtime_error("CloudO for specified disease not found.");
     }
 
     void setLesionCohorts(std::vector<LesionCohort> lesionCohorts) {
@@ -150,6 +169,16 @@ public:
 
     void grow(float newValue) {
         this->healthyValue += newValue;
+    }
+
+    float doSenescence(float value) {
+        this->healthyValue -= value;
+        float remainder = 0.0;
+        if (this->healthyValue < 0) {
+            remainder = -this->healthyValue;
+            this->healthyValue = 0;
+        }
+        return remainder;
     }
 
     void setDoc(int doc) {
@@ -301,7 +330,12 @@ public:
     }
 
     float getDiseaseValue() const {
-        return getInvisibleValue() + getVisibleValue();
+        float invVal = 0, visVal = 0;
+        for (auto& lc : lesionCohorts) {
+            invVal += lc.getInvisibleValue();
+            visVal += lc.getVisibleValue();
+        }
+        return invVal + visVal;
     }
 
     int getNewLesionsFromOrgan() {

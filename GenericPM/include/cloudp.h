@@ -15,7 +15,7 @@
 #include <memory>
 #include "cloudf.h"
 
-class CloudP : public Cloud, virtual public BasicInterface {
+class CloudP : public Cloud, virtual public BasicInterface, public std::enable_shared_from_this<CloudP> {
 private:
     std::shared_ptr<CloudF> cloudF;
 
@@ -25,15 +25,22 @@ protected:
     static int firstOutputCall;
 
 public:
-    CloudP(Disease *disease, std::shared_ptr<CloudF> cloudF) {
+    CloudP(Disease *disease, std::shared_ptr<CloudF> cloudF) : cloudF(cloudF) {
         this->disease = disease;
-        this->cloudF = cloudF;
         // Should we use this opportunity to use parent class constructors?
         this->values = {0};
     } 
 
+    bool operator==(const CloudP& other) const {
+        return this->cloudF->getFamily() == other.cloudF->getFamily();
+    }
+
     int getID() {
         return ID;
+    }
+
+    const std::string getFamily() {
+        return cloudF->getFamily();
     }
 
     static constexpr CloudLevel cloudLevel = CloudLevel::PLANT;
@@ -42,7 +49,10 @@ public:
         return cloudLevel;
     }
 
-    std::shared_ptr<CloudF> getCloudF() {
+    std::shared_ptr<CloudF>& getCloudF() {
+        if (!cloudF) {
+            throw std::runtime_error("CloudP has nullptr CloudF.");
+        }
         return cloudF;
     }
 

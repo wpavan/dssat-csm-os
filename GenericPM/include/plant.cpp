@@ -19,23 +19,87 @@
 #include <string>
 
 static double TE_getHealthyValue() {
-    return gEqContext && gEqContext->plant ? static_cast<double>(gEqContext->plant->getTotalValue()-gEqContext->plant->getDiseaseValue()) : 0.0;
+    if (gEqContext) {
+        if (gEqContext->plant) {
+            return static_cast<double>(gEqContext->plant->getTotalValue() - gEqContext->plant->getDiseaseValue());
+        } else {
+            std::cerr << "Warning: TE_getHealthyValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 static double TE_getDiseaseValue() {
-    return gEqContext && gEqContext->plant ? static_cast<double>(gEqContext->plant->getDiseaseValue()) : 0.0;
+    if (gEqContext) {
+        if (gEqContext->plant) {
+            return static_cast<double>(gEqContext->plant->getDiseaseValue());
+        } else {
+            std::cerr << "Warning: TE_getDiseaseValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 static double TE_getTotalValue() {
-    return gEqContext && gEqContext->plant ? static_cast<double>(gEqContext->plant->getTotalValue()) : 0.0;
+    if (gEqContext) {
+        if (gEqContext->plant) {
+            return static_cast<double>(gEqContext->plant->getTotalValue());
+        } else {
+            std::cerr << "Warning: TE_getTotalValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 static double TE_getInvisibleDiseaseValue() {
-    return gEqContext && gEqContext->plant ? static_cast<double>(gEqContext->plant->getInvisibleValue()) : 0.0;
+    if (gEqContext) {
+        if (gEqContext->plant) {
+            return static_cast<double>(gEqContext->plant->getInvisibleValue());
+        } else {
+            std::cerr << "Warning: TE_getInvisibleDiseaseValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 static double TE_getVisibleDiseaseValue() {
-    return gEqContext && gEqContext->plant ? static_cast<double>(gEqContext->plant->getVisibleValue()) : 0.0;
+    if (gEqContext) {
+        if (gEqContext->plant) {
+            return static_cast<double>(gEqContext->plant->getVisibleValue());
+        } else {
+            std::cerr << "Warning: TE_getVisibleDiseaseValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
+}
+
+static double TE_getThisDiseaseInvisibleValue() {
+    if (gEqContext) {
+        if (gEqContext->plant && gEqContext->disease) {
+            return static_cast<double>(gEqContext->plant->getInvisibleValue(gEqContext->disease));
+        } else {
+            std::cerr << "Warning: TE_getThisDiseaseInvisibleValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
+}
+
+static double TE_getThisDiseaseTotalValue() {
+    if (gEqContext) {
+        if (gEqContext->plant && gEqContext->disease) {
+            return static_cast<double>(gEqContext->plant->getTotalValue(gEqContext->disease));
+        } else {
+            std::cerr << "Warning: TE_getThisDiseaseTotalValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 namespace {
@@ -46,7 +110,12 @@ namespace {
             getCustomFunctions().register_context_function({"PLANT_DISEASE_VALUE", TE_getDiseaseValue});
             getCustomFunctions().register_context_function({"PLANT_HEALTHY_VALUE", TE_getHealthyValue});
             getCustomFunctions().register_context_function({"PLANT_INV_DIS_VALUE", TE_getInvisibleDiseaseValue});
-            getCustomFunctions().register_context_function({"PLANT_VIS_DIS_VALUE", TE_getVisibleDiseaseValue});            
+            getCustomFunctions().register_context_function({"PLANT_VIS_DIS_VALUE", TE_getVisibleDiseaseValue});
+            
+            getCustomFunctions().register_context_function({"PLANT_THIS_DIS_VALUE", TE_getThisDiseaseTotalValue});
+            getCustomFunctions().register_context_function({"PLANT_THIS_DIS_INV_VALUE", TE_getThisDiseaseInvisibleValue});
+
+            // NOTE: Add in this dis vis value
         }
     };
 
@@ -60,19 +129,20 @@ int Plant::firstOutputCall = 0;
 Plant* Plant::instance = nullptr;
 
 Plant::Plant() {
-    std::vector<std::unique_ptr<Simulator>>& simulators = Manager::getInstance()->getSimulators(); 
     std::vector<CouplingPointID> cps = Manager::getInstance()->getCouplingPointIDs();
 
     for (auto& cp : cps) {
         organSets.emplace_back(cp);
     }
-    
-    // NOTE: This currently makes as many clouds as there are 
-    //       simulators. This is a good start, but we need to make it 
-    //       such that it only creates one per unique disease type (WB
-    //       preseason and in-season should be combined).
-    for (auto& simulatorPtr : simulators) {
-        cloudsP.emplace_back(simulatorPtr.get()->getDisease(), simulatorPtr.get()->getInitialCondition()->getCloud());
+
+    // NOTE: Move forward assuming that every disease creates a CloudF and "family" affiliation will be determined at function call time.
+    for (auto& sim : Manager::getInstance()->getSimulators()) {
+        if (sim->getCloudF() == nullptr) {
+            throw std::runtime_error("Simulator has nullptr CloudF. Ensure that CloudF is created in Simulator constructor.");
+        } else {
+            std::cout << "=====================================\nSimulator has valid CloudF for family: " << sim->getDisease()->getFamily() << "\n====================================="<< std::endl;
+        }
+        cloudsP.emplace_back(std::make_shared<CloudP>(sim->getDisease(), sim->getCloudF()));
     }
 }
 
@@ -88,28 +158,56 @@ void Plant::rate() {
         CropInterface *ci = Manager::getCropInterface(set.CP);
         Expression ORGAN_AGE = ci->getORGAN_AGE();
 
+        // get all diseases for this organCP
+        // get all families for those diseases
+        // get all clouds for those families and add to this organ's cloudsO
+        Manager *manager = Manager::getInstance();
+        std::vector<std::unique_ptr<Simulator>>& sims = manager->getSimulators();
+        std::vector<std::shared_ptr<CloudP>> relevantCloudsP;
+
+        for (auto& sim : sims) {
+            Disease* disease = sim->getDisease();
+            if (disease->getOrganCP() == set.CP) {
+                for (auto& cloudP : cloudsP) {
+                    if (cloudP->getDisease() == disease && (std::find(relevantCloudsP.begin(), relevantCloudsP.end(), cloudP) == relevantCloudsP.end())) {
+                        relevantCloudsP.push_back(cloudP);
+                    }
+                }
+            }
+        }
+
         // If the user has indicated that new organs can be created, we
         // follow algorithm 1. Otherwise we use algorithm 2.
 
         // Algorithm 1:
-        //   Check if there is a new organ and if so, how many need to be created
+        // ORGAN_MODE: COHORT
+        // Check if there is a new organ and if so, how many need to be created
         newOrgan = ci->hasNewOrgan();
 
-        //   If the number of new organs is greater than 0, create an organ with the
-        //   corresponding data and index in the crop interface.
+        // If the number of new organs is greater than 0, create an organ with the
+        // corresponding data and index in the crop interface.
         if (newOrgan > 0) {
-            set.organs.emplace_back(set.CP, cloudsP, newOrgan, ci->getOrganArea(newOrgan), ORGAN_AGE);
+            set.organs.emplace_back(set.CP, relevantCloudsP, newOrgan, ci->getOrganArea(newOrgan), ORGAN_AGE);
         }
 
         // Algorithm 2:
-        //   Debug statement for reporting growth queue
+        // ORGAN_MODE: SINGULAR
+        // If there is growth queued (only in SINGULAR mode), add it to the organ.
         if (set.growthQueue > 0) {
+            // Create the first organ if there are none yet.
             if (set.organs.size() == 0) {
-                set.organs.emplace_back(set.CP, cloudsP, 1, set.growthQueue, ORGAN_AGE);
-            } else {
+                set.organs.emplace_back(set.CP, relevantCloudsP, 1, set.growthQueue, ORGAN_AGE);
+            } 
+            // Otherwise, grow the existing organ(s).
+            else {
                 set.organs.back().grow(set.growthQueue);
             }
+            // Only count growth once.
             set.clearGrowthQueue();
+        }
+    
+        if (set.senescenceQueue > 0) {
+            set.doSenescence();
         }
     }
 
@@ -194,6 +292,6 @@ void Plant::output() {
     }
     // Iterate through the plant clouds and output
     for (auto& cloudP : cloudsP) {
-        cloudP.output();
+        cloudP->output();
     }
 }

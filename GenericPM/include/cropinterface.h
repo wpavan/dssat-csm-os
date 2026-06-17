@@ -13,10 +13,15 @@
 
 #include "coupling.h"
 #include "expression.h"
+#include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <string>
+#include <sstream>
+#include <iomanip>
+
 struct OrganData {
     float totalArea{0.0f};             // cm2/m2
     float senescenceArea{0.0f};        // cm2/m2
@@ -67,8 +72,11 @@ public:
     }
 
     int hasNewOrgan() {
+        FlexibleIO* fio = FlexibleIO::getInstance();
         if (newOrgan) {
             newOrgan = false;
+            std::cout << "YEARDOY: " << fio->getInteger("CONTROL", "YEARDOY") << " newOrgan = true, size: " << data.size() << std::endl;
+            showData();
             return data.size();
         }
         return 0;
@@ -192,10 +200,17 @@ public:
 
     void showData() {
         std::cout << "CropInterface Data:" << std::endl;
-        // Initialize an index counter
+        // Initialize a 2-digit, 0-padded, index counter
         size_t index = 0; 
+
+        std::ostringstream padded;
+
         for (auto& organData : data) {
-            std::cout << "Organ " << (index + 1) << ": Area: " << organData.totalArea
+            padded.str("");
+            padded.clear();
+            padded << std::setw(2) << std::setfill('0') << index + 1;
+
+            std::cout << "Organ " << padded.str() << ": Area: " << organData.totalArea
                       << ", Senescence Area: " << organData.senescenceArea
                       << ", Previous Area: " << organData.previousArea
                       << ", Previous Senescence Area: " << organData.previousSenescenceArea

@@ -14,9 +14,9 @@
 #include "basicinterface.h"
 #include "cloudp.h"
 
-class CloudO : public Cloud, virtual public BasicInterface {
+class CloudO : public Cloud, virtual public BasicInterface, public std::enable_shared_from_this<CloudO> {
 private:
-    CloudP *cloudP;
+    std::shared_ptr<CloudP> cloudP;
 
 protected:
     static int qtd;
@@ -24,7 +24,7 @@ protected:
     static int firstOutputCall;
 
 public:
-    CloudO(Disease *disease, CloudP *cloudP) {
+    CloudO(Disease *disease, std::shared_ptr<CloudP> cloudP) {
         this->disease = disease;
         this->cloudP = cloudP;
     }
@@ -41,7 +41,7 @@ public:
 
     void rate();
 
-    CloudP* getCloudP() {
+    std::shared_ptr<CloudP> getCloudP() {
         return cloudP;
     }
     

@@ -21,9 +21,8 @@
  * This class is responsible for the field spore cloud. It is a subclass of the Cloud class.
  * This cloud is accessible by all of the plants in the simulation.
  */
-class CloudF : public Cloud, virtual public BasicInterface {
+class CloudF : public Cloud, virtual public BasicInterface, public std::enable_shared_from_this<CloudF> {
 protected:
-    std::string family;
     int qtd;
     int ID = ++qtd;
     float firstSporeCloud = 0;
@@ -33,7 +32,8 @@ protected:
     int lastOutput = -99;
 
 public:
-    CloudF(std::string fam) : family(fam) {
+    CloudF(Disease* disease) {
+        this->setDisease(disease);
         Basic::output.push_back("Day of Simulation, Total Spores in CloudF");
     }
 
@@ -44,16 +44,12 @@ public:
     }
 
     std::string getFamily() {
-        return family;
-    }
-
-    void setFamily(std::string family) {
-        this->family = family;
+        return this->disease ? this->disease->getFamily() : "";
     }
 
     void setDisease(Disease *disease) {
         if (disease == nullptr) {
-            std::cout << "Warning: Setting CloudF disease to nullptr for family: " << family << std::endl;
+            std::cout << "Warning: Setting CloudF disease to nullptr for family: " << getFamily() << std::endl;
         }
         this->disease = disease;
     }

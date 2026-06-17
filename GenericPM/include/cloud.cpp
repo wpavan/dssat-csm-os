@@ -12,25 +12,60 @@
 #include "disease.h"
 #include "simulator.h"
 #include "project_config.h"
+#include "debug_control.h"
 
 #include <cmath>
 #include <iostream>
 #include <sstream>
 
 static double TE_isFieldCloud(void) {
-    return gEqContext && gEqContext->cloud && (gEqContext->cloud->getLevel() == CloudLevel::FIELD) ? 1.0 : 0.0;
+    if (gEqContext) {
+        if (gEqContext->cloud) {
+            return (gEqContext->cloud->getLevel() == CloudLevel::FIELD) ? 1.0 : 0.0;
+        } else {
+            std::cerr << "Warning: TE_isFieldCloud called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 static double TE_isPlantCloud(void) {
-    return gEqContext && gEqContext->cloud && (gEqContext->cloud->getLevel() == CloudLevel::PLANT) ? 1.0 : 0.0;
+    if (gEqContext) {
+        if (gEqContext->cloud) {
+            return (gEqContext->cloud->getLevel() == CloudLevel::PLANT) ? 1.0 : 0.0;
+        } else {
+            std::cerr << "Warning: TE_isPlantCloud called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 static double TE_isOrganCloud(void) {
-    return gEqContext && gEqContext->cloud && (gEqContext->cloud->getLevel() == CloudLevel::ORGAN) ? 1.0 : 0.0;
+    if (gEqContext) {
+        if (gEqContext->cloud) {
+            return (gEqContext->cloud->getLevel() == CloudLevel::ORGAN) ? 1.0 : 0.0;
+        } else {
+            std::cerr << "Warning: TE_isOrganCloud called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 static double TE_getThisCloudValue(void) {
-    return gEqContext && gEqContext->cloud ? static_cast<double>(gEqContext->cloud->getValue()) : 0.0;
+    // NOTE: Add a yeardoy piece to the debug statement so we can figure out if it's calling too many times?
+    // I wonder if calling it a bunch is either moving a pointer from where it should be, or moving a value into garbage memory.
+    if (gEqContext) {
+        if (gEqContext->cloud) {
+            return static_cast<double>(gEqContext->cloud->getValue());
+        } else {
+            std::cerr << "Warning: TE_getThisCloudValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 namespace {
@@ -47,7 +82,7 @@ namespace {
     static FunctionRegistrar registrar;
 }
 
-std::unordered_map<std::string, float> DormantInoculum::amountByFamily; 
+std::unordered_map<std::string, float> DormantInoculum::amountByID; 
 DormantInoculum* DormantInoculum::instance = nullptr;
 
 // All clouds share the same integration logic:
@@ -59,7 +94,10 @@ DormantInoculum* DormantInoculum::instance = nullptr;
 // vector.
 void Cloud::integration() {
     // ===== Add new inoculum =====
-    // Add new infective inoculum into cloud
+    // Add new infective inoculum into clouds
+#if GENERICPM_DEBUG_ENABLED
+    std::cerr << "[CLOUD] integration() called, activeInoculumCreated=" << activeInoculumCreated << ", values.size()=" << values.size() << std::endl << std::flush;
+#endif
     if (values.empty()) {
         values.push_back(activeInoculumCreated);
     } else {
@@ -108,6 +146,7 @@ float Cloud::getValue() {
                 value = 0.0f;
             }
             sum += value;
+            // std::cout << "Index: " << i << "\tValue: " << value << std::endl;
         } catch (const std::exception& e) {
             std::cout << "Exception while checking cloud value for finiteness: " << e.what() << std::endl;
         }  
@@ -119,13 +158,13 @@ void Cloud::removeSporesVal(float toBeRemoved) {
     if (toBeRemoved <= 0.0f) return;
     float total = getValue();
 
-#if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
     std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesVal requested=" << toBeRemoved << " total=" << total << std::endl;
 #endif
 
     // If there is nothing in the cloud, nothing to remove.
     if (!std::isfinite(total) || total <= 0.0f) {
-#if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
         std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesVal: nothing to remove (total non-finite or <=0)" << std::endl;
 #endif
         values.clear();
@@ -134,7 +173,7 @@ void Cloud::removeSporesVal(float toBeRemoved) {
 
     // If trying to remove >= total, just zero all entries
     if (toBeRemoved >= total) {
-#if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
         std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesVal: removing all entries (toBeRemoved >= total)" << std::endl;
 #endif
         values.clear();
@@ -150,7 +189,7 @@ void Cloud::removeSporesVal(float toBeRemoved) {
         // Guard again against any rounding errors producing non-finite
         if (!std::isfinite(value)) value = 0.0f;
         if (value < 0.0f) value = 0.0f;
-#if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
         std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesVal bucket before=" << before << " after=" << value << std::endl;
 #endif
     }
@@ -158,11 +197,11 @@ void Cloud::removeSporesVal(float toBeRemoved) {
 
 void Cloud::removeSporesPct(float percent) {
     for (auto& value : values) {
-#if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
         std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesPct bucket before=" << value;
 #endif
         value *= percent;
-#if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
         std::cout << " after=" << value << std::endl;
 #endif
     }

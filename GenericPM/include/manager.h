@@ -41,12 +41,12 @@ class Manager : virtual public BasicInterface {
         Manager();
         static Manager* instance;
         static std::vector<std::unique_ptr<Simulator>> simulators;
+        static std::unordered_map<std::unique_ptr<Simulator>, std::string> simulatorFamilies;
         static YearDoy plantingDate;  
         static YearDoy currentGDMDate; // The current simulation date. Not updated with each CSM day, but each GDM day.   
         static std::vector<std::string> families;   
         static std::vector<CouplingPointID> couplingPointIDs;
         static std::vector<std::unique_ptr<CropInterface>> cropInterfaces;
-        static std::vector<std::shared_ptr<CloudF>> cloudsF;
         static std::string outfileName;
 
         static bool outputStatus;
@@ -70,26 +70,7 @@ class Manager : virtual public BasicInterface {
         static void addSimulator(std::unordered_map<std::string, Expression> diseaseData, CropInterface *ci, 
                                  InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections);
 
-        static void addCloudF(std::string family) {
-            cloudsF.emplace_back(std::make_shared<CloudF>(family));
-        }
-
         void updateCurrentYearDoy(YearDoy yearDoy);
-
-        static void resetCloudsF() {
-            for (auto& cloudF : cloudsF) {
-                cloudF->reset();
-            }
-        }
-
-        static std::shared_ptr<CloudF> getCloudF(std::string family) {
-            for (auto& cF : cloudsF) {
-                if (cF->getFamily() == family) {
-                    return cF;
-                }
-            }
-            return std::shared_ptr<CloudF>();
-        }
 
         static void addCropInterface(CouplingPointID cp, Expression ORGAN_AGE) {
             cropInterfaces.emplace_back(std::make_unique<CropInterface>(cp, ORGAN_AGE));
@@ -155,8 +136,6 @@ class Manager : virtual public BasicInterface {
         static std::vector<std::string> getFamilies() {
             return families;
         }
-
-        static void createCloudsF();
 };
 
 #endif // MANAGER_H

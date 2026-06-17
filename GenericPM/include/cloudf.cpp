@@ -10,6 +10,7 @@
 
 #include "cloudf.h"
 #include "project_config.h"
+#include "debug_control.h"
 
 #include <iostream>
 #include <sstream>
@@ -21,10 +22,14 @@ void CloudF::rate() {
     FlexibleIO *fio = FlexibleIO::getInstance();
     if (lastRate != fio->getInteger("CONTROL", "YEARDOY")) {
         // Set current cloud for context
-        gEqContext->cloud = this;
+        gEqContext->cloud = shared_from_this();
 
         // Determine the daily inoculum removal from this cloud
-        this->addInoculumRemoved(disease->getINOC_REM()->evaluate());
+        float inocRemovalValue = disease->getINOC_REM()->evaluate();
+#if GENERICPM_DEBUG_ENABLED
+        std::cout << "[DIAG] CloudF INOC_REM on YEARDOY " << fio->getInteger("CONTROL", "YEARDOY") << ": " << inocRemovalValue << std::endl;
+#endif
+        this->addInoculumRemoved(inocRemovalValue);
 
         // Run the generic cloud rate function
         Cloud::rate();
@@ -34,7 +39,7 @@ void CloudF::rate() {
 
         // Add the inoculum value into FlexibleIO
         FlexibleIO *fio = FlexibleIO::getInstance();
-        fio->setRealMemory(family, "INOCULUM", getValue());
+        fio->setRealMemory(disease->getDiseaseID(), "INOCULUM", getValue());
         
         // Free the context
         gEqContext->cloud = nullptr;
@@ -45,9 +50,9 @@ void CloudF::integration() {
     FlexibleIO *fio = FlexibleIO::getInstance();
     if (lastIntegration != fio->getInteger("CONTROL", "YEARDOY")) {
         if (firstSporeCloud > 0) {
-            #if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
             std::cout << "[DIAG] YEARDOY:" << fio->getReal("CONTROL", "YEARDOY") << " CloudF::integration seeding firstSporeCloud=" << firstSporeCloud << std::endl;
-            #endif
+#endif
             values.push_back(firstSporeCloud);
             firstSporeCloud = 0;
         }
@@ -55,9 +60,9 @@ void CloudF::integration() {
         // Refactor
         else if (REMOVAL_METHOD == 1) {
             if (values.size() == (unsigned) disease->getVectorSizeCloudF()) {
-                #if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
                 std::cout << "[DIAG] YEARDOY:" << fio->getReal("CONTROL", "YEARDOY") << " CloudF::integration queueing age removal (size==vectorSizeCloudF)" << std::endl;
-                #endif
+#endif
                 queueAgeRemoval();
             }
         }
@@ -123,36 +128,55 @@ void CloudF::output() {
 }
 
 void CloudF::addInoculumCreated(float activeInoculumCreated) {
-    #if DIAG_SPORES
     FlexibleIO* fio = FlexibleIO::getInstance();
+#if GENERICPM_DEBUG_ENABLED
     std::cout << "[DIAG] YEARDOY:" << fio->getReal("CONTROL", "YEARDOY") << " CloudF::addInoculumCreated activeInoculumCreated=" << activeInoculumCreated << std::endl;
-    #endif
+#endif
     this->activeInoculumCreated += activeInoculumCreated;
 }
 
 void CloudF::addInoculumCreated(float inoculumCreated, int destination) {
+#if GENERICPM_DEBUG_ENABLED
+    std::cerr << "[CLOUDF] addInoculumCreated called for family=" << family << ", inoculumCreated=" << inoculumCreated << ", destination=" << destination << ", this=" << (void*)this << std::endl << std::flush;
+#endif
     switch ((InoculumDestination)destination) {
         case InoculumDestination::DORMANT:
-            DormantInoculum::getInstance()->addDormantInoculum(inoculumCreated, this->family);
+            DormantInoculum::getInstance()->addDormantInoculum(inoculumCreated, this->disease->getDiseaseID());
+#if GENERICPM_DEBUG_ENABLED
+            std::cerr << "[CLOUDF] Added to DORMANT inoculum" << std::endl << std::flush;
+#endif
             break;
-        case InoculumDestination::INFECTIVE:
+        case InoculumDestination::INFECTIVE: {
+            FlexibleIO* fio = FlexibleIO::getInstance();
+#if GENERICPM_DEBUG_ENABLED
+            std::cout << "[DIAG] YEARDOY:" << fio->getReal("CONTROL", "YEARDOY") << " CloudF::addInoculumCreated activeInoculumCreated=" << activeInoculumCreated << std::endl;
+#endif
             this->activeInoculumCreated += inoculumCreated;
+#if GENERICPM_DEBUG_ENABLED
+            std::cerr << "[CLOUDF] After increment, activeInoculumCreated=" << this->activeInoculumCreated << std::endl << std::flush;
+#endif
+            break;
+        }
+        default:
+#if GENERICPM_DEBUG_ENABLED
+            std::cerr << "[CLOUDF] ERROR: Unknown destination enum value: " << destination << " (expected 0=DORMANT or 1=INFECTIVE)" << std::endl << std::flush;
+#endif
             break;
     }
 }
 
 void CloudF::addInoculumRemoved(float activeInoculumRemoved) {
-    #if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
     FlexibleIO* fio = FlexibleIO::getInstance();
     std::cout << "[DIAG] YEARDOY:" << fio->getReal("CONTROL", "YEARDOY") << " CloudF::addInoculumRemoved activeInoculumRemoved=" << activeInoculumRemoved << std::endl;
-    #endif
+#endif
     this->activeInoculumRemoved += activeInoculumRemoved;
 }
 
 void CloudF::addInoculumRemoved(float inoculumRemoved, int destination) {
     switch ((InoculumDestination)destination) {
         case InoculumDestination::DORMANT:
-            DormantInoculum::getInstance()->removeDormantInoculum(inoculumRemoved, this->family);
+            DormantInoculum::getInstance()->removeDormantInoculum(inoculumRemoved, this->disease->getDiseaseID());
             break;
         case InoculumDestination::INFECTIVE:
             this->activeInoculumRemoved += inoculumRemoved;

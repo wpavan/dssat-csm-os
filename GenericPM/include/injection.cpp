@@ -10,20 +10,21 @@ static const double inverse_sqrt_2pi = 0.3989422804014337;
 
 // NOTE: We should add a function for automatic gdd calculation.
 // Define custom functions for tinyexpr for the user.
-static double TE_max(double a, double b) {
-    return (a > b) ? a : b;
-}
-
-static double TE_min(double a, double b) {
-    return (a < b) ? a : b;
-}
-
 static double TE_amp_gaussian(double x, double mean, double stddev, double amplitude) {
+    if (stddev <= 0.0) {
+        throw std::invalid_argument("Gaussian function: standard deviation (sigma) must be positive (> 0)");
+    }
+    if (amplitude < 0.0) {
+        throw std::invalid_argument("Gaussian function: amplitude must be non-negative (>= 0)");
+    }
     double a = (x - mean) / stddev;
     return amplitude * std::exp(-0.5 * a * a);
 }
 
 static double TE_norm_gaussian(double x, double mean, double stddev) {
+    if (stddev <= 0.0) {
+        throw std::invalid_argument("Gaussian function: standard deviation (sigma) must be positive (> 0)");
+    }
     double a = (x - mean) / stddev;
     return (inverse_sqrt_2pi * stddev) * std::exp(-0.5 * a * a);
 }
@@ -38,13 +39,41 @@ static double TE_rand_norm(double mean, double stddev) {
     return dist(rng);
 }
 
-static double TE_bounded_beta(double x, double max, double opt, double min) {
+static double TE_weibull_pdf(double x, double shape, double scale) {
+    if (shape <= 0.0) {
+        throw std::invalid_argument("Weibull PDF: shape parameter must be positive (> 0)");
+    }
+    if (scale <= 0.0) {
+        throw std::invalid_argument("Weibull PDF: scale parameter must be positive (> 0)");
+    }
+    if (x < 0.0) {
+        return 0.0;
+    }
+    double a = std::pow(x / scale, shape - 1);
+    double b = std::exp(-std::pow(x / scale, shape));
+    return (shape / scale) * a * b;
+}
+
+static double TE_weibull_cdf(double x, double shape, double scale) {
+    if (shape <= 0.0) {
+        throw std::invalid_argument("Weibull CDF: shape parameter must be positive (> 0)");
+    }
+    if (scale <= 0.0) {
+        throw std::invalid_argument("Weibull CDF: scale parameter must be positive (> 0)");
+    }
+    if (x < 0.0) {
+        return 0.0;
+    }
+    return 1.0 - std::exp(-std::pow(x / scale, shape));
+}
+
+static double TE_beta(double x, double max, double opt, double min) {
     if (x == -99 || max == -99.0 || opt == -99.0 || min == -99.0) {
         return 0.0;
     } else if (x < min || x > max) {
         return 0.0;
     } else if (min >= opt || opt >= max) {
-        return 1.0;
+        throw std::invalid_argument("Beta function: parameters do not follow the order min < opt < max");
     } else if (!std::isfinite(x) || !std::isfinite(min) || !std::isfinite(opt) || !std::isfinite(max)) {
         return 0.0;
     } else {
@@ -52,18 +81,8 @@ static double TE_bounded_beta(double x, double max, double opt, double min) {
     }
 }
 
-static double TE_unit_beta(double x, double max, double opt, double min) {
-    double tf, a, b;
-
-    b = ((max - opt) / (opt - min));
-    a = (1 / ((opt - min) * pow(max - opt, b)));
-    if(x > max) {
-        x = max;
-    } else if(x < min) {
-        x = min;
-    }
-    tf = (a * (x - min) * pow(max - x, b));
-    return (fmax(0,tf));
+static double TE_logistic(double x, double a, double h) {
+    return 1.0 / (1.0 + std::exp(-a * (x - h)));
 }
 
 static double TE_trapezoidal(double x, double max, double opt_max, double opt_min, double min) {
@@ -115,7 +134,11 @@ static double TE_fio_real(double group, double varname) {
     FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
     std::string groupStr = converter->decode(group);
     std::string varnameStr = converter->decode(varname);
-    return fio->getReal(groupStr, varnameStr);
+    float fioValue = fio->getReal(groupStr, varnameStr);
+    if (fioValue == -99.0f) {
+        std::cerr << "Warning: FIO_REAL returned -99.0f for group '" << groupStr << "', variable '" << varnameStr << "'. This may indicate a missing value or invalid index." << std::endl;
+    }
+    return fioValue;
 }
 
 static double TE_fio_real_yrdoy(double group, double yrdoy, double varname) {
@@ -124,12 +147,15 @@ static double TE_fio_real_yrdoy(double group, double yrdoy, double varname) {
     std::string groupStr = converter->decode(group);
     std::string varnameStr = converter->decode(varname);
 
-    if (yrdoy == -1) {
-        // This is the case where the second part of the FIO reference was a sim date keyword like CURRENT_YRDOY.
-        int currentYrdoy = fio->getInteger("CONTROL", "YRDOY");
-        return fio->getRealYrdoy(groupStr, std::to_string(currentYrdoy), varnameStr);
+    float fioValue;
+
+    yrdoy = yrdoy == -1 ? fio->getInteger("CONTROL", "YRDOY") : yrdoy;
+    fioValue = fio->getRealYrdoy(groupStr, std::to_string((int)yrdoy), varnameStr);
+
+    if (fioValue == -99.0f) {
+        std::cerr << "Warning: FIO_REAL_YRDOY returned -99.0f for group '" << groupStr << "', variable '" << varnameStr << "', YEARDOY " << (int)yrdoy << ". This may indicate a missing value or invalid index." << std::endl;
     }
-    return fio->getRealYrdoy(groupStr, std::to_string((int)yrdoy), varnameStr);
+    return fioValue;
 }
 
 static double TE_fio_real_index(double group, double varname, double index) {
@@ -137,9 +163,14 @@ static double TE_fio_real_index(double group, double varname, double index) {
     FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
     std::string groupStr = converter->decode(group);
     std::string varnameStr = converter->decode(varname);
-    return fio->getRealIndex(groupStr, varnameStr, (int)index);
+    float fioValue = fio->getRealIndex(groupStr, varnameStr, (int)index);
+    if (fioValue == -99.0f) {
+        std::cerr << "Warning: FIO_REAL_INDEX returned -99.0f for group '" << groupStr << "', variable '" << varnameStr << "', index " << (int)index << ". This may indicate a missing value or invalid index." << std::endl;
+    }
+    return fioValue;
 }
 
+// NOTE: I should combine the backend of the ABOVE, BELOW, and BETWEEN functions to help with readability.
 static double TE_hours_VAR_above(double var, double yrdoy, double threshold) {
     FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
     FlexibleIO* fio = FlexibleIO::getInstance();
@@ -162,6 +193,7 @@ static double TE_hours_VAR_above(double var, double yrdoy, double threshold) {
     for (int i = 1; i <= 24; i++) {
         hourVarName.resize(baseLen);
         if (i < 10) {
+            hourVarName += char('0');
             hourVarName += char('0' + i);
         } else {
             hourVarName += std::to_string(i);
@@ -201,6 +233,7 @@ static double TE_hours_VAR_below(double var, double yrdoy, double threshold) {
     for (int i = 1; i <= 24; i++) {
         hourVarName.resize(baseLen);
         if (i < 10) {
+            hourVarName += char('0');
             hourVarName += char('0' + i);
         } else {
             hourVarName += std::to_string(i);
@@ -258,6 +291,7 @@ static double TE_hours_VAR_between(double var, double yrdoy, double upperThresho
     return hoursBetween;
 }
 
+// NOTE: Implement some sort of high temperature kill option
 static double TE_growing_degree_days(double baseTemp) {
     FlexibleIO* fio = FlexibleIO::getInstance();
     int currentYrdoy = fio->getInteger("CONTROL", "YRDOY");
@@ -265,18 +299,26 @@ static double TE_growing_degree_days(double baseTemp) {
     return std::max(0.0, dailyAvgTemp - baseTemp);
 }
 
+static double TE_growing_degree_days_max(double baseTemp, double maxTemp) {
+    FlexibleIO* fio = FlexibleIO::getInstance();
+    int currentYrdoy = fio->getInteger("CONTROL", "YRDOY");
+    double dailyAvgTemp = fio->getRealYrdoy("WTH", std::to_string(currentYrdoy), "TAVG");
+    std::cerr << "Debug: In TE_growing_degree_days_max, dailyAvgTemp = " << dailyAvgTemp << ", baseTemp = " << baseTemp << ", maxTemp = " << maxTemp << std::endl;
+    return std::max(0.0, std::min(dailyAvgTemp, maxTemp) - baseTemp);
+}
+
 namespace {
     struct FunctionRegistrar {
         FunctionRegistrar() {
-            getCustomFunctions().register_context_function({"max", TE_max});
-            getCustomFunctions().register_context_function({"min", TE_min});
+            getCustomFunctions().register_context_function({"logistic", TE_logistic});
             getCustomFunctions().register_context_function({"norm_gaussian", TE_norm_gaussian});
             getCustomFunctions().register_context_function({"gaussian", TE_norm_gaussian});
             getCustomFunctions().register_context_function({"amp_gaussian", TE_amp_gaussian});
+            getCustomFunctions().register_context_function({"weibull_pdf", TE_weibull_pdf});
+            getCustomFunctions().register_context_function({"weibull_cdf", TE_weibull_cdf});
             getCustomFunctions().register_context_function({"rand_unif", TE_rand_unif});
             getCustomFunctions().register_context_function({"rand_norm", TE_rand_norm});
-            getCustomFunctions().register_context_function({"bounded_beta", TE_bounded_beta});
-            getCustomFunctions().register_context_function({"unit_beta", TE_unit_beta});
+            getCustomFunctions().register_context_function({"beta", TE_beta});
             getCustomFunctions().register_context_function({"trapezoidal", TE_trapezoidal});
             getCustomFunctions().register_context_function({"triangular", TE_triangular});
             getCustomFunctions().register_context_function({"linear", TE_linear});
@@ -287,6 +329,7 @@ namespace {
             getCustomFunctions().register_context_function({"HOURS_VAR_BELOW", TE_hours_VAR_below});
             getCustomFunctions().register_context_function({"HOURS_VAR_BETWEEN", TE_hours_VAR_between});
             getCustomFunctions().register_context_function({"gdd", TE_growing_degree_days});
+            getCustomFunctions().register_context_function({"gdd_max", TE_growing_degree_days_max});
             getCustomFunctions().register_context_function({"GDD", TE_growing_degree_days});
         }
     };

@@ -2,11 +2,38 @@
 #define EXPRESSION_H
 
 #include "equation_context.h"
+#include "debug_control.h"
 
 #include <string>
 #include <set>
 #include <regex>
+#include <iostream>
 
+/**
+ * Expression: Manages lazy translation and evaluation of disease model expressions
+ * 
+ * Translation Pipeline (2-phase):
+ * 1. Variable Substitution: Replace $VARIABLE_NAME with expression text from context
+ *    Example: "$SOIL_FAC" -> "(#{SOIL:SW:1} - #{SOIL:LL:1}) / ..."
+ * 
+ * 2. FIO Translation: Convert #{GROUP:VAR:INDEX} references to FIO_REAL_INDEX(...) calls
+ *    Example: "#{SOIL:SW:1}" -> "FIO_REAL_INDEX(encode("SOIL"), encode("SW"), 1)"
+ * 
+ * Caching Strategy:
+ * - Translation Cache: Maps original expression -> translated expression (per variable context)
+ * - Parser Cache: Maps translated expression -> compiled TinyExpr++ parser
+ * - Invalidation: Translation cache clears when variable context changes
+ * 
+ * Performance Notes:
+ * - Lazy evaluation: Expressions translate on first evaluate() call
+ * - Efficient lookups: Hash-based caches avoid repeated work
+ * - Minimal overhead: Variable substitution happens once per unique expression per context
+ * 
+ * Usage:
+ * 1. Create Expression with raw string containing $VARIABLES and #{FIO} references
+ * 2. Call Expression::setVariableContext() to provide variable definitions
+ * 3. Call evaluate() to get the numeric result
+ */
 class Expression {
 private:
     std::string originalExpr;            // #{GROUP:VAR} form
@@ -16,12 +43,15 @@ private:
     // Static cache for all translated expressions (keyed by original expression)
     static std::unordered_map<std::string, std::string> translationCache;
     
+    std::unordered_map<std::string, std::string> instanceContext;
+    
+    std::string createContextSignature() const;
 public:
     // Default constructor
     Expression() : originalExpr("") {}
 
     // Constructor
-    explicit Expression(const std::string& raw) : originalExpr(raw) {}
+    explicit Expression(const std::string& raw, const std::unordered_map<std::string, std::string>& context = {}) : originalExpr(raw), instanceContext(context) {}
 
     // Equivalence operator
     bool operator==(const Expression& other) const {
@@ -32,6 +62,43 @@ public:
     bool operator!=(const Expression& other) const {
         return !(*this == other);
     }
+
+    void setContext(const std::unordered_map<std::string, std::string>& context) {
+        instanceContext = context;
+        translated = false; // Mark for re-translation with new context
+    }
+
+    const std::unordered_map<std::string, std::string>& getContext() const {
+        return instanceContext;
+    }
+
+//     // Set the variable context for resolving $VARIABLE_NAME references
+//     // This should be called once before evaluating expressions that use variables
+//     // Calling this with a different context will invalidate cached translations
+//     static void setVariableContext(const std::unordered_map<std::string, std::string>& context) {
+// #if GENERICPM_DEBUG_ENABLED
+//         std::cerr << "[EXPR] setVariableContext called with " << context.size() << " variables" << std::endl << std::flush;
+// #endif
+//         // Only invalidate cache if context actually changed
+//         if (variableContext != context) {
+// #if GENERICPM_DEBUG_ENABLED
+//             std::cerr << "[EXPR] Context changed - old size: " << variableContext.size() << " new size: " << context.size() << std::endl << std::flush;
+//             std::cerr << "[EXPR] Clearing translation cache (previous size: " << translationCache.size() << ")" << std::endl << std::flush;
+// #endif
+//             variableContext = context;
+//             // Clear translation cache since variable substitutions may change
+//             translationCache.clear();
+//         } else {
+// #if GENERICPM_DEBUG_ENABLED
+//             std::cerr << "[EXPR] Context unchanged - keeping cache" << std::endl << std::flush;
+// #endif
+//         }
+//     }
+
+//     // Clear the variable context
+//     static void clearVariableContext() {
+//         variableContext.clear();
+//     }
 
     // Modify the original expression to replace FIO references with function calls
     const std::string& getTranslated();
@@ -120,6 +187,7 @@ class ParserCache {
         static ParserCache* instance;
     public:
         static ParserCache* newInstance() {
+            delete instance;
             instance = nullptr;
             return getInstance();
         }

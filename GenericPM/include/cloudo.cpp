@@ -10,6 +10,7 @@
 
 #include "cloudo.h"
 #include "project_config.h"
+#include "debug_control.h"
 //#include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
 #include <iostream>
@@ -24,10 +25,14 @@ int CloudO::firstOutputCall = 0;
 
 void CloudO::rate() {
     // Set current cloud for context
-    gEqContext->cloud = this;
+    gEqContext->cloud = shared_from_this();
 
     // Determine the daily inoculum removal from this cloud
-    this->addInoculumRemoved(this->getDisease()->getINOC_REM()->evaluate());
+    float inocRemovalValue = this->getDisease()->getINOC_REM()->evaluate();
+#if GENERICPM_DEBUG_ENABLED
+    std::cout << "[DIAG] CloudO INOC_REM on YEARDOY " << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << ": " << inocRemovalValue << std::endl;
+#endif
+    this->addInoculumRemoved(inocRemovalValue);
 
     // Run the generic cloud rate function
     Cloud::rate();
@@ -40,9 +45,9 @@ void CloudO::integration() {
     // Refactor
     if (REMOVAL_METHOD == 1) {
         if (values.size() == (unsigned) disease->getVectorSizeCloudO()) {
-            #if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
             std::cout << "[DIAG] CloudO::integration queueing age removal (size==vectorSizeCloudO)" << std::endl;
-            #endif
+#endif
             queueAgeRemoval();
         }
     }
@@ -97,9 +102,9 @@ void CloudO::output() {
 void CloudO::addInoculumCreated(float activeInoculumCreated) {
     float toParent = activeInoculumCreated * disease->getProportionFromOrganToPlantCloud();
     float toSelf = activeInoculumCreated - toParent;
-    #if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
     std::cout << "[DIAG] CloudO::addInoculumCreated total=" << activeInoculumCreated << " toSelf=" << toSelf << " toParent=" << toParent << std::endl;
-    #endif
+#endif
     Cloud::activeInoculumCreated += toSelf;
     if (cloudP) {
         cloudP->addInoculumCreated(toParent);
@@ -115,16 +120,19 @@ void CloudO::addInoculumCreated(float inoculumCreated, int destination) {
         case InoculumDestination::INFECTIVE:
             toParent = inoculumCreated * disease->getProportionFromOrganToPlantCloud();
             this->activeInoculumCreated += inoculumCreated - toParent;
+#if GENERICPM_DEBUG_ENABLED
+            std::cout << "[DIAG] CloudO::addInoculumCreated total=" << activeInoculumCreated << " toSelf=" << inoculumCreated - toParent << " toParent=" << toParent << std::endl;
+#endif
             cloudP->addInoculumCreated(toParent, destination);
             break;
     }
 }
 
 void CloudO::addInoculumRemoved(float activeInoculumRemoved) {
-    #if DIAG_SPORES
+#if GENERICPM_DEBUG_ENABLED
     FlexibleIO* fio = FlexibleIO::getInstance();
     std::cout << "[DIAG] YEARDOY:" << fio->getReal("CONTROL", "YEARDOY") << " CloudO::addInoculumRemoved activeInoculumRemoved=" << activeInoculumRemoved << std::endl;
-    #endif
+#endif
     this->activeInoculumRemoved += activeInoculumRemoved;
 }
 

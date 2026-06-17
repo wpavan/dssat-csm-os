@@ -26,30 +26,110 @@
 #include <cmath>
 
 static double TE_getHealthyValue(void) {
-    return gEqContext && gEqContext->organ ? static_cast<double>(gEqContext->organ->getHealthyValue()) : 0.0;
+    if (gEqContext) {
+        if (gEqContext->organ) {
+            return static_cast<double>(gEqContext->organ->getHealthyValue());
+        } else {
+            std::cerr << "Warning: TE_getHealthyValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 static double TE_getDiseaseValue(void) {
-    return gEqContext && gEqContext->organ ? static_cast<double>(gEqContext->organ->getDiseaseValue()) : 0.0;
+    if (gEqContext) {
+        if (gEqContext->organ) {
+            return static_cast<double>(gEqContext->organ->getDiseaseValue());
+        } else {
+            std::cerr << "Warning: TE_getDiseaseValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
+}
+
+static double TE_getInvisibleDiseaseValue(void) {
+    if (gEqContext) {
+        if (gEqContext->organ) {
+            return static_cast<double>(gEqContext->organ->getInvisibleValue());
+        } else {
+            std::cerr << "Warning: TE_getInvisibleDiseaseValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
+}
+
+static double TE_getVisibleDiseaseValue(void) {
+    if (gEqContext) {
+        if (gEqContext->organ) {
+            return static_cast<double>(gEqContext->organ->getVisibleValue());
+        } else {
+            std::cerr << "Warning: TE_getVisibleDiseaseValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 static double TE_getTotalValue(void) {
-    return gEqContext && gEqContext->organ ? static_cast<double>(gEqContext->organ->getTotalValue()) : 0.0;
+    if (gEqContext) {
+        if (gEqContext->organ) {
+            return static_cast<double>(gEqContext->organ->getTotalValue());
+        } else {
+            std::cerr << "Warning: TE_getTotalValue called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
 
 static double TE_getAge(void) {
-    return gEqContext && gEqContext->organ ? static_cast<double>(gEqContext->organ->getPhysiologicalLife()) : 0.0;
+    if (gEqContext) {
+        if (gEqContext->organ) {
+            return static_cast<double>(gEqContext->organ->getPhysiologicalLife());
+        } else {
+            std::cerr << "Warning: TE_getAge called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
 }
-
+// TE function to get the inoculum around an organ (considers field, plant, and organ clouds).
+// Takes a disease context either from a disease directly or a cloud and returns inoculum for all diseases that share a family. 
 static double TE_getLocalInoculum(void) {
     float totalInoc = 0.0f;
+
     if (gEqContext && gEqContext->organ) {
-        for (auto& cloudo : gEqContext->organ->getCloudsO()) {
-            totalInoc += cloudo.getValue();
-            totalInoc += cloudo.getCloudP()->getValue();
-            totalInoc += cloudo.getCloudP()->getCloudF()->getValue();
+        std::string family;
+        if (gEqContext->disease) {
+            family = gEqContext->disease->getFamily();
+        } else if (gEqContext->cloud) {
+            family = gEqContext->cloud->getDisease()->getFamily();
+        } else {
+            std::cerr << "Warning: TE_getLocalInoculum called without disease or cloud context. Unable to determine family for inoculum calculation." << std::endl;
+            return 0.0;
+        }
+
+        for (const auto& simulator : Manager::getInstance()->getSimulators()) {
+            if (simulator->getDisease()->getFamily() != family) {
+                continue; // Skip diseases that are not in the same family
+            }
+            std::shared_ptr<CloudO> cloudO = gEqContext->organ->getCloudO(simulator->getDisease());
+            if (cloudO) {
+                totalInoc += cloudO->getValue();
+                if (cloudO->getCloudP()) {
+                    totalInoc += cloudO->getCloudP()->getValue();
+                    if (cloudO->getCloudP()->getCloudF()) {
+                        totalInoc += cloudO->getCloudP()->getCloudF()->getValue();
+                    }
+                }
+            }
         }
         return static_cast<double>(totalInoc);
+    } else {
+        std::cerr << "Warning: TE_getLocalInoculum called outside of the appropriate context." << std::endl;
     }
     return 0.0;
 }
@@ -71,16 +151,18 @@ static double TE_getLocalInoculumByFamily(double family) {
         float totalInoc = 0.0f;
         if (gEqContext && gEqContext->organ) {
             for (auto& cloudo : gEqContext->organ->getCloudsO()) {
-                if (familyStr == cloudo.getCloudP()->getCloudF()->getFamily()) {
-                    totalInoc += cloudo.getValue();
-                    totalInoc += cloudo.getCloudP()->getValue();
-                    totalInoc += cloudo.getCloudP()->getCloudF()->getValue();
+                if (familyStr == cloudo->getCloudP()->getCloudF()->getFamily()) {
+                    totalInoc += cloudo->getValue();
+                    totalInoc += cloudo->getCloudP()->getValue();
+                    totalInoc += cloudo->getCloudP()->getCloudF()->getValue();
                     return static_cast<double>(totalInoc);
                 }
             }
+        } else if (gEqContext && !gEqContext->organ) {
+            std::cerr << "Warning: TE_getLocalInoculumByFamily called outside of the appropriate context." << std::endl;
         }
+        return 0.0;
     }
-    return 0.0;
 }
 
 namespace {
@@ -88,6 +170,8 @@ namespace {
         FunctionRegistrar() {
             getCustomFunctions().register_context_function({"ORGAN_VALUE", TE_getTotalValue});
             getCustomFunctions().register_context_function({"ORGAN_DISEASE_VALUE", TE_getDiseaseValue});
+            getCustomFunctions().register_context_function({"ORGAN_VIS_DIS_VALUE", TE_getVisibleDiseaseValue});
+            getCustomFunctions().register_context_function({"ORGAN_INV_DIS_VALUE", TE_getInvisibleDiseaseValue});
             getCustomFunctions().register_context_function({"ORGAN_HEALTHY_VALUE", TE_getHealthyValue});
             getCustomFunctions().register_context_function({"ORGAN_AGE", TE_getAge});
             getCustomFunctions().register_context_function({"ORGAN_LOCAL_INOC", TE_getLocalInoculum});
@@ -107,6 +191,8 @@ void Organ::rate() {
 
     // Get the manager instance to access crop interfaces and coupling data
     Manager *manager = Manager::getInstance();
+
+    // std::cout << "\nStarting rate for Organ " << organNumber << " (CP: " << cpIDToStr(organCP) << ") On day" << manager->getCurrentSimDate() << std::endl;
 
     // Get the flexible IO instance for new lesion storage updating.
     FlexibleIO *fio = FlexibleIO::getInstance();
@@ -128,22 +214,30 @@ void Organ::rate() {
 
     // Determine the number of new lesions on the organ today
     if(suceptible) {
+        int i = 0;
         for (auto& cloudo : cloudsO) {
-            gEqContext->cloud = &cloudo; // Set the current cloud for context
+            gEqContext->cloud = cloudo; // Set the current cloud for context
+            gEqContext->disease = cloudo->getDisease(); // Set current disease context
+
             // Record that new lesions should be created
             int newLesionsVal = 0;
             try {
-                newLesionsVal = cloudo.getDisease()->getNEW_LES()->evaluate();
+                newLesionsVal = cloudo->getDisease()->getNEW_LES()->evaluate();
+                // std::cout << "Local inoculum for Cloud: " << i << "|ID: " << cloudo->getID() << " Organ " << organNumber << ": " << TE_getLocalInoculum() << std::endl;
+                if (newLesionsVal > 0) {
+                    // std::cerr << "New Lesions: " << newLesionsVal << std::endl;
+                }
             } catch (const std::runtime_error& e) {
-                std::cerr << "Error evaluating NEW_LES expression for DiseaseID: " << cloudo.getDisease()->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
+                std::cerr << "Error evaluating NEW_LES expression for DiseaseID: " << cloudo->getDisease()->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
             }
+            i++;
 
             if (newLesionsVal > 0) {
                 // Add the new lesions to the organ's tracking structure
-                newLesions.addLesions(&cloudo, newLesionsVal);
+                newLesions.addLesions(cloudo, newLesionsVal);
 
                 // Push information about new daily lesions to FIO
-                fio->setIntegerMemory(cloudo.getDisease()->getDiseaseID(), "DAILY_NEW_LESIONS", fio->getInteger(cloudo.getDisease()->getDiseaseID(), "DAILY_NEW_LESIONS") + newLesions.getTotalLesions());
+                fio->setIntegerMemory(cloudo->getDisease()->getDiseaseID(), "DAILY_NEW_LESIONS", fio->getInteger(cloudo->getDisease()->getDiseaseID(), "DAILY_NEW_LESIONS") + newLesions.getTotalLesions());
             }
             
             gEqContext->cloud = nullptr; // Clear the current cloud from context
@@ -181,7 +275,8 @@ void Organ::integration() {
     if (!isAlive()) {
         return;
     }
-    
+    gEqContext->organ = this;
+
     CloudO *cloudo;
     LesionCohort *lc;
 
@@ -203,6 +298,8 @@ void Organ::integration() {
             // Update the total lesions count for this organ
             totalLesions += pair.second;
         }
+
+        newLesions.lesions.clear(); // Clear the new lesions after creating cohorts
     }
 
     // NOTE: we still have to implement removal from infection.
@@ -211,17 +308,23 @@ void Organ::integration() {
     for (auto& lc : lesionCohorts) {
         lc.integration();
         visibleLesions += lc.getVisibleLesions();
+        
+        // Update the lesion cohort's "knowledge" of organ status
+        lc.setOrganDiseaseValue(this->getDiseaseValue());
+        lc.setOrganHealthyValue(this->getHealthyValue());
     }
 
     // Read in the lesion cohort values after running their integrations
     // NOTE: reconsider these values here vs global or fio context.
     readDiseaseValues();
+
+    gEqContext->organ = nullptr;
 }
 
 float Organ::cloudAmount() {
     float cloudOValue=0;
     for (auto& cloudO : cloudsO) {
-        cloudOValue += cloudO.getValue();
+        cloudOValue += cloudO->getValue();
     }
     return cloudOValue;
 }
@@ -239,7 +342,7 @@ void Organ::output() {
     #endif // OUTPUT
 
     for (auto& cloudo : cloudsO) {
-        cloudo.output();
+        cloudo->output();
     }
 
     for (auto& lc : lesionCohorts) {

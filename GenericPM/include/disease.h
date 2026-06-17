@@ -18,6 +18,7 @@
 #include "expression.h"
 
 #include <cstring>
+#include <cctype>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -515,7 +516,7 @@ public:
         this->INOC_LES = INOC_LES;
     }
 
-    bool const getINOC_AGE() {
+    bool getINOC_AGE() {
         return INOC_AGE;
     }
 
@@ -620,6 +621,77 @@ public:
      */
     Expression getINOC_DEST() {
         return INOC_DEST;
+    }
+
+    /**
+     * Resolve inoculum destination from expression to enum.
+     * Handles both static constants (INFECTIVE, DORMANT) and dynamic expressions.
+     * 
+     * @return InoculumDestination enum value (0=DORMANT, 1=INFECTIVE)
+     */
+    int resolveInoculumDestination() {
+        std::string original = INOC_DEST.getOriginal();
+        
+        // Handle static constants first - exact string match
+        if (original == "INFECTIVE") {
+            return static_cast<int>(InoculumDestination::INFECTIVE);
+        }
+        if (original == "DORMANT") {
+            return static_cast<int>(InoculumDestination::DORMANT);
+        }
+        
+        // Handle dynamic expressions - pre-process to replace string constants
+        // with numeric values, then evaluate
+        std::string preprocessed = original;
+        
+        // Replace all occurrences of "INFECTIVE" with 1
+        // Use word boundary replacement to avoid partial matches
+        size_t pos = 0;
+        while ((pos = preprocessed.find("INFECTIVE", pos)) != std::string::npos) {
+            // Check if this is a whole word (not part of another identifier)
+            bool isWholeWord = true;
+            if (pos > 0 && std::isalnum(preprocessed[pos-1])) {
+                isWholeWord = false;
+            }
+            if (pos + 9 < preprocessed.length() && std::isalnum(preprocessed[pos+9])) {
+                isWholeWord = false;
+            }
+            
+            if (isWholeWord) {
+                preprocessed.replace(pos, 9, "1");
+                pos += 1;
+            } else {
+                pos += 9;
+            }
+        }
+        
+        // Replace all occurrences of "DORMANT" with 0
+        pos = 0;
+        while ((pos = preprocessed.find("DORMANT", pos)) != std::string::npos) {
+            // Check if this is a whole word (not part of another identifier)
+            bool isWholeWord = true;
+            if (pos > 0 && std::isalnum(preprocessed[pos-1])) {
+                isWholeWord = false;
+            }
+            if (pos + 7 < preprocessed.length() && std::isalnum(preprocessed[pos+7])) {
+                isWholeWord = false;
+            }
+            
+            if (isWholeWord) {
+                preprocessed.replace(pos, 7, "0");
+                pos += 1;
+            } else {
+                pos += 7;
+            }
+        }
+        
+        // Evaluate the preprocessed expression
+        Expression temp(preprocessed);
+        float result = temp.evaluate();
+        
+        // Convert result to enum (0=DORMANT, 1=INFECTIVE)
+        // Any non-zero value is treated as INFECTIVE
+        return (result != 0.0f) ? static_cast<int>(InoculumDestination::INFECTIVE) : static_cast<int>(InoculumDestination::DORMANT);
     }
 
     /**
