@@ -140,7 +140,7 @@ public:
 
     std::shared_ptr<CloudO> getCloudO(Disease* disease) {
         for (auto& cloudO : cloudsO) {
-            if (cloudO->getDisease() == disease) {
+            if (cloudO->getDisease()->getDiseaseID() == disease->getDiseaseID()) {
                 return cloudO;
             }
         }
