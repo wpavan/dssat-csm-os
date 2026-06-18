@@ -100,7 +100,7 @@ public:
         return invisibleValue;
     }
 
-    Disease* getDisease() const {
+    std::shared_ptr<Disease> getDisease() const {
         return this->cloudo->getDisease();
     }
 

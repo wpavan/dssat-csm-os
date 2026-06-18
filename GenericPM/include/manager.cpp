@@ -148,7 +148,7 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
 
   // This function should create a simulator for a disease and add it to the list of simulators.
   // it should also create the associated disease object and associate that with the simulator =.
-  Disease *disease = new Disease();
+  std::shared_ptr<Disease> disease = std::make_shared<Disease>();
   float arraysize3[3], arraysize4[4];
 
   disease->setDiseaseID(diseaseData["PESTID"].getOriginal());

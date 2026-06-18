@@ -10,4 +10,4 @@
 
 #include "disease.h"
 
-std::vector<Disease*> Disease::listDiseases;
+// std::vector<std::shared_ptr<Disease>> Disease::listDiseases;

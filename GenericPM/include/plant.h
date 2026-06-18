@@ -61,11 +61,13 @@ struct OrganSet {
                     float remainder = organ.doSenescence(senescenceValue);
                     totalRemainder += remainder;
                     
+#if (GENERICPM_DEBUG_ENABLED)
                     std::cout << "Organ senescence: " << senescenceValue 
                             << " (applied: " << (senescenceValue - remainder)
                             << ", remainder: " << remainder 
                             << ", organ healthy: " << organ.getHealthyValue() 
                             << ", total healthy: " << currentHealthy << ")" << std::endl;
+#endif
                 }
             }
             
@@ -134,16 +136,16 @@ public:
 
     // NOTE: Disease pointers should also be handled safely, 
     //       as this call seems to break in between seasons
-    std::shared_ptr<CloudP> getCloudP(Disease* disease) {
+    std::shared_ptr<CloudP> getCloudP(std::shared_ptr<Disease> disease) {
         for (auto& cloudP : cloudsP) {
-            if (cloudP->getDisease()->getDiseaseID() == disease->getDiseaseID()) {
+            if (cloudP->getDisease() == disease) {
                 return cloudP;
             }
         }
         throw std::runtime_error("CloudP for specified disease not found.");
     }
 
-    float getTotalValue(Disease* disease) {
+    float getTotalValue(std::shared_ptr<Disease> disease) {
         float val = 0.0;
         for (auto& organ : this->getOrganSet(disease->getOrganCP()).organs) {
             val += organ.getTotalValue();
@@ -238,7 +240,7 @@ public:
         return visibleValue;
     }
 
-    float getVisibleValue(Disease* disease) {
+    float getVisibleValue(std::shared_ptr<Disease> disease) {
         // Implementation for getting visible value for a specific disease
         float val = 0;
         for (auto& organ : this->getOrganSet(disease->getOrganCP()).organs) {
@@ -256,7 +258,7 @@ public:
     }
 
 #if GENERICPM_DEBUG_ENABLED
-    float getInvisibleValue(Disease* disease) {
+    float getInvisibleValue(std::shared_ptr<Disease> disease) {
         std::cout << "\n=== DEBUG: getInvisibleValue for Disease: " << disease->getDiseaseID() 
                 << " (Family: " << disease->getFamily() << ") ===" << std::endl;
         std::cout << "Disease OrganCP: " << cpIDToStr(disease->getOrganCP()) << std::endl;
@@ -311,7 +313,7 @@ public:
         return val;
     }
 #else
-    float getInvisibleValue(Disease* disease) {
+    float getInvisibleValue(std::shared_ptr<Disease> disease) {
         // Implementation for getting invisible value for a specific disease
         float val = 0;
         for (auto& organ : this->getOrganSet(disease->getOrganCP()).organs) {
@@ -325,7 +327,7 @@ public:
     }
 #endif // GENERICPM_DEBUG_ENABLED
 
-    float getHealthyValue(Disease* disease) {
+    float getHealthyValue(std::shared_ptr<Disease> disease) {
         float val = 0;
         for (auto& organ : this->getOrganSet(disease->getOrganCP()).organs) {
             val += organ.getHealthyValue();

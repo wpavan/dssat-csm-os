@@ -25,7 +25,7 @@ protected:
     static int firstOutputCall;
 
 public:
-    CloudP(Disease *disease, std::shared_ptr<CloudF> cloudF) : cloudF(cloudF) {
+    CloudP(std::shared_ptr<Disease> disease, std::shared_ptr<CloudF> cloudF) : cloudF(cloudF) {
         this->disease = disease;
         // Should we use this opportunity to use parent class constructors?
         this->values = {0};

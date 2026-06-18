@@ -139,9 +139,12 @@ Plant::Plant() {
     for (auto& sim : Manager::getInstance()->getSimulators()) {
         if (sim->getCloudF() == nullptr) {
             throw std::runtime_error("Simulator has nullptr CloudF. Ensure that CloudF is created in Simulator constructor.");
-        } else {
-            std::cout << "=====================================\nSimulator has valid CloudF for family: " << sim->getDisease()->getFamily() << "\n====================================="<< std::endl;
+        } 
+#if (GENERICPM_DEBUG_ENABLED)
+        else {
+            std::cout << "Simulator for disease " << sim->getDisease()->getDiseaseID() << " has CloudF at address: " << sim->getCloudF().get() << std::endl;
         }
+#endif
         cloudsP.emplace_back(std::make_shared<CloudP>(sim->getDisease(), sim->getCloudF()));
     }
 }
@@ -166,7 +169,7 @@ void Plant::rate() {
         std::vector<std::shared_ptr<CloudP>> relevantCloudsP;
 
         for (auto& sim : sims) {
-            Disease* disease = sim->getDisease();
+            std::shared_ptr<Disease> disease = sim->getDisease();
             if (disease->getOrganCP() == set.CP) {
                 for (auto& cloudP : cloudsP) {
                     if (cloudP->getDisease() == disease && (std::find(relevantCloudsP.begin(), relevantCloudsP.end(), cloudP) == relevantCloudsP.end())) {

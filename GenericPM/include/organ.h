@@ -138,9 +138,9 @@ public:
         return result;
     }
 
-    std::shared_ptr<CloudO> getCloudO(Disease* disease) {
+    std::shared_ptr<CloudO> getCloudO(std::shared_ptr<Disease> disease) {
         for (auto& cloudO : cloudsO) {
-            if (cloudO->getDisease()->getDiseaseID() == disease->getDiseaseID()) {
+            if (cloudO->getDisease() == disease) {
                 return cloudO;
             }
         }

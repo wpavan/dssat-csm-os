@@ -21,7 +21,7 @@
 #include <filesystem>
 
 namespace GDM::RegexPatterns {
-    inline const std::regex FIO_PATTERN(R"(#\{([A-Za-z\s]+):([A-Za-z0-9_\s]+):?([A-Za-z0-9\s]+)?\})", std::regex::icase);
+    inline const std::regex FIO_PATTERN(R"(#\{\s*([^:{}\r\n]+?)\s*:\s*([^:{}\r\n]+?)\s*(?::\s*([^{}\r\n]+?)\s*)?\})", std::regex::icase);
     inline const std::regex SIM_DATE_PATTERN(R"((?:(?:CURRENT|SIMULATION|SIM)(?: |_))?(?:YRDOY|DATE|TODAY|YYYYJJJ|YYYYDDD|YYYYDOY))", std::regex::icase);
     inline const std::regex VAR_PATTERN(R"(\$\w+(?::(?:TRNO\d+|DEFAULT))?)", std::regex::icase);
     inline const std::regex INVALID_SELECTOR_PATTERN(R"(\$\w+:(?!(?:TRNO\d+|DEFAULT)))", std::regex::icase); 

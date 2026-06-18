@@ -32,7 +32,7 @@ protected:
     int lastOutput = -99;
 
 public:
-    CloudF(Disease* disease) {
+    CloudF(std::shared_ptr<Disease> disease) {
         this->setDisease(disease);
         Basic::output.push_back("Day of Simulation, Total Spores in CloudF");
     }
@@ -45,13 +45,6 @@ public:
 
     std::string getFamily() {
         return this->disease ? this->disease->getFamily() : "";
-    }
-
-    void setDisease(Disease *disease) {
-        if (disease == nullptr) {
-            std::cout << "Warning: Setting CloudF disease to nullptr for family: " << getFamily() << std::endl;
-        }
-        this->disease = disease;
     }
 
     int getID() {

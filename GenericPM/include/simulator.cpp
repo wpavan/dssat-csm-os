@@ -32,7 +32,7 @@ std::vector<std::string> Simulator::columnOrder;
 std::map<std::string, int> Simulator::columnWidths;
 bool Simulator::headerWritten = false;
 
-bool diseaseHasOutput(Disease *disease) {
+bool diseaseHasOutput(std::shared_ptr<Disease> disease) {
     if (disease->getOutputInjections().size() > 0) {
         return true;
     } else {

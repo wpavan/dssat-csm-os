@@ -35,7 +35,7 @@ enum class InoculumDestination {
  * 
  * @brief Disease is a subclass of Basic and is used to store disease parameters.
  */
-class Disease : public Basic {
+class Disease : public Basic, public std::enable_shared_from_this<Disease> {
 protected:
     int id;
     std::string cropModel = "CRGRO";
@@ -58,7 +58,7 @@ protected:
     
     
     float acumulateFavorability = 35;
-    static std::vector<Disease*> listDiseases;
+    // static std::vector<std::shared_ptr<Disease>> listDiseases;
     float biologicalFactor = 0.0;
 
     OrganMode organMode = OrganMode::COHORT;
@@ -101,16 +101,16 @@ protected:
 
 public:
     Disease() {
-        listDiseases.push_back(this);
+        // listDiseases.push_back(shared_from_this());
     }
 
     ~Disease() {
         std::cout << "Disease destructor called for " << this << " family: " << family << std::endl;
     }
 
-    static std::vector<Disease*>& getDisease() {
-        return listDiseases;
-    }
+    // static std::vector<std::shared_ptr<Disease>>& getDisease() {
+    //     return listDiseases;
+    // }
 
     void printDisease() {
         std::cout << "Disease ID: " << diseaseID << std::endl;

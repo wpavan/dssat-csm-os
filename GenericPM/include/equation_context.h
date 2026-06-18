@@ -9,7 +9,7 @@
 #ifndef EQUATION_CONTEXT_H
 #define EQUATION_CONTEXT_H
 
-#include "..\TinyExpr++\tinyexpr.h"
+#include "../TinyExpr++/tinyexpr.h"
 #include <memory>
 
 // Forward declarations to avoid circular dependencies
@@ -31,7 +31,7 @@ struct EquationContext {
     Organ* organ;
     LesionCohort* lesionCohort;
     std::shared_ptr<Cloud> cloud; 
-    Disease* disease;
+    std::shared_ptr<Disease> disease;
     
     EquationContext() : plant(nullptr), organ(nullptr), lesionCohort(nullptr), cloud(nullptr), disease(nullptr) {}
 };

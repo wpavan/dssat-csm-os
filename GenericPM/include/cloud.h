@@ -18,6 +18,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include <memory>
 
 enum class CloudLevel {
     FIELD,
@@ -103,7 +104,7 @@ protected:
     float dormantInoculum = 0.0f; // Inoculum that is present but not yet infective
 
     // Reference to the associated disease
-    Disease* disease;
+    std::shared_ptr<Disease> disease;
 
     // Use float to avoid truncation and preserve fractional spores
     float activeInoculumCreated = 0.0f;
@@ -114,11 +115,11 @@ public:
     void integration();
     void output() {}
 
-    Disease* getDisease() {
+    std::shared_ptr<Disease> getDisease() {
         return disease;
     }
-    
-    void setDisease(Disease *disease) {
+
+    void setDisease(std::shared_ptr<Disease> disease) {
         if (disease == nullptr) {
             std::cout << "Warning: Setting Cloud disease to nullptr." << std::endl;
         }

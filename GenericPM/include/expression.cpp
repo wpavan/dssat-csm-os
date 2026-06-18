@@ -1,4 +1,7 @@
 #include <regex>
+#include <algorithm>
+#include <cctype>
+#include <sstream>
 
 #include "../TinyExpr++/tinyexpr.h"
 
@@ -14,6 +17,91 @@ ParserCache* ParserCache::instance = nullptr;
 
 // Initialize the static translation cache
 std::unordered_map<std::string, std::string> Expression::translationCache;
+
+namespace {
+    struct FioReference {
+        size_t position;
+        size_t length;
+        std::string raw;
+        std::vector<std::string> parts;
+    };
+
+    std::string trimWhitespace(const std::string& value) {
+        auto first = std::find_if_not(value.begin(), value.end(), [](unsigned char ch) {
+            return std::isspace(ch);
+        });
+
+        auto last = std::find_if_not(value.rbegin(), value.rend(), [](unsigned char ch) {
+            return std::isspace(ch);
+        }).base();
+
+        if (first >= last) {
+            return "";
+        }
+
+        return std::string(first, last);
+    }
+
+    std::string escapeForLog(const std::string& value) {
+        std::string escaped;
+        for (char ch : value) {
+            switch (ch) {
+                case '\n':
+                    escaped += "\\n";
+                    break;
+                case '\r':
+                    escaped += "\\r";
+                    break;
+                case '\t':
+                    escaped += "\\t";
+                    break;
+                default:
+                    escaped += ch;
+                    break;
+            }
+        }
+        return escaped;
+    }
+
+    std::vector<std::string> splitFioParts(const std::string& content) {
+        std::vector<std::string> parts;
+        std::stringstream stream(content);
+        std::string part;
+
+        while (std::getline(stream, part, ':')) {
+            parts.push_back(trimWhitespace(part));
+        }
+
+        return parts;
+    }
+
+    std::vector<FioReference> collectFioReferences(const std::string& expression) {
+        std::vector<FioReference> references;
+        size_t searchFrom = 0;
+
+        while (true) {
+            size_t start = expression.find("#{", searchFrom);
+            if (start == std::string::npos) {
+                break;
+            }
+
+            size_t end = expression.find('}', start + 2);
+            if (end == std::string::npos) {
+                throw std::runtime_error(
+                    "Error: Unterminated FIO reference starting at '" +
+                    escapeForLog(expression.substr(start)) + "'."
+                );
+            }
+
+            std::string raw = expression.substr(start, end - start + 1);
+            std::string content = expression.substr(start + 2, end - start - 2);
+            references.push_back({start, raw.length(), raw, splitFioParts(content)});
+            searchFrom = end + 1;
+        }
+
+        return references;
+    }
+}
 
 const bool Expression::empty() {
     return originalExpr.empty();
@@ -117,28 +205,29 @@ const std::string& Expression::getTranslated() {
         
         // ===== STEP 2: FIO Reference Translation =====
         FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
-        // Process all matches from right to left to avoid position shifts
-        std::vector<std::smatch> allMatches;
-        std::sregex_iterator iter(translatedExpr.begin(), translatedExpr.end(), GDM::RegexPatterns::FIO_PATTERN);
-        std::sregex_iterator end;
-
-        // Collect all matches
-        for (; iter != end; ++iter) {
-            allMatches.push_back(*iter);
-        }
+        // Process all references from right to left to avoid position shifts
+        std::vector<FioReference> allMatches = collectFioReferences(translatedExpr);
 
         // Process matches in reverse order to maintain string positions
         int matchNum = 0;
         for (auto it = allMatches.rbegin(); it != allMatches.rend(); ++it) {
-            const std::smatch& match = *it;
+            const FioReference& match = *it;
             matchNum++;
 
             // The constructed string that replaces the flexibleIO reference.
             std::string fnCall;
-         
-            std::string group = match[1].str();
-            std::string second = match[2].str();
-            std::string third = match[3].str();
+
+            if (match.parts.size() < 2 || match.parts.size() > 3) {
+                throw std::runtime_error(
+                    "Error: Invalid FIO reference '" + escapeForLog(match.raw) +
+                    "' in expression '" + escapeForLog(originalExpr) +
+                    "'. Expected #{GROUP:VARNAME}, #{GROUP:YRDOY:VARNAME}, or #{GROUP:VARNAME:INDEX}."
+                );
+            }
+
+            std::string group = match.parts[0];
+            std::string second = match.parts[1];
+            std::string third = match.parts.size() == 3 ? match.parts[2] : "";
             
             // Instead of directly returning the values from flexibleIO, we will construct a string which holds function calls that are parseable by tinyexpr.
             if (third.empty()) {
@@ -153,7 +242,7 @@ const std::string& Expression::getTranslated() {
                 // Check if second part is a year-day (length 7 and all digits)
                 // Then check for specific keywords to indicate current simulation date.
                 // Then check if it's an index (all digits).
-                if (second.length() == 7 && std::all_of(second.begin(), second.end(), ::isdigit)) {
+                if (second.length() == 7 && std::all_of(second.begin(), second.end(), [](unsigned char ch) { return std::isdigit(ch); })) {
                     // Encode group and varname (third) to unique double IDs for tinyexpr parsing
                     group = std::to_string(converter->encode(group));
                     third = std::to_string(converter->encode(third));
@@ -169,7 +258,7 @@ const std::string& Expression::getTranslated() {
                     // Do not encode second since it will be replaced by a string of digits representing a YRDOY, which is what the function expects.
                     // Create a string that represents the fio function call.
                     fnCall = "FIO_REAL_YRDOY(" + group + ",-1," + third + ")";
-                } else if (std::all_of(third.begin(), third.end(), ::isdigit)) {
+                } else if (std::all_of(third.begin(), third.end(), [](unsigned char ch) { return std::isdigit(ch); })) {
                     // Encode group and varname (second) to unique double IDs for tinyexpr parsing
                     group = std::to_string(converter->encode(group));
                     second = std::to_string(converter->encode(second));
@@ -178,11 +267,18 @@ const std::string& Expression::getTranslated() {
                     // Create a string that represents the fio function call.
                     fnCall = "FIO_REAL_INDEX(" + group + "," + second + "," + third + ")";
                 } else {
-                    throw std::runtime_error("Error: Second part of FIO reference '" + second + "' is neither YRDOY nor is the third part of FIO reference: '" + third + "' an INDEX.");
+                    throw std::runtime_error(
+                        "Error: Invalid FIO reference '" + escapeForLog(match.raw) +
+                        "' in expression '" + escapeForLog(originalExpr) +
+                        "' after variable substitution '" + escapeForLog(translatedExpr) +
+                        "'. The second part '" + second +
+                        "' is not a YRDOY/SIM_DATE, and the third part '" +
+                        third + "' is not an INDEX."
+                    );
                 }
             }
             // Replace this specific match with its value
-            translatedExpr.replace(match.position(), match.length(), fnCall);
+            translatedExpr.replace(match.position, match.length, fnCall);
         }
 
         // Store in cache with context aware signature

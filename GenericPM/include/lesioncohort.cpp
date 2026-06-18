@@ -21,7 +21,7 @@
 int LesionCohort::qtd = 0;
 
 bool LesionCohort::isPhase1() const {
-    Disease *disease = cloudo->getDisease();
+    std::shared_ptr<Disease> disease = cloudo->getDisease();
     if (getPhysiologicalDaysAcumm() <= disease->getP1_DUR()) {
         return true;
     }
@@ -29,7 +29,7 @@ bool LesionCohort::isPhase1() const {
 }
 
 bool LesionCohort::isPhase2() const {
-    Disease *disease = cloudo->getDisease();
+    std::shared_ptr<Disease> disease = cloudo->getDisease();
     if (getPhysiologicalDaysAcumm() > disease->getP1_DUR() && getPhysiologicalDaysAcumm() <= (disease->getP1_DUR() + disease->getP2_DUR())) {
         return true;
     }
@@ -37,7 +37,7 @@ bool LesionCohort::isPhase2() const {
 }
 
 bool LesionCohort::isPhase3() const {
-    Disease *disease = cloudo->getDisease();
+    std::shared_ptr<Disease> disease = cloudo->getDisease();
     if (getPhysiologicalDaysAcumm() > (disease->getP1_DUR() + disease->getP2_DUR())) {
         return true;
     }
@@ -199,7 +199,7 @@ void LesionCohort::rate() {
     // Point global context to the current lesion cohort
     gEqContext->lesionCohort = this;
 
-    Disease *disease = cloudo->getDisease();
+    std::shared_ptr<Disease> disease = cloudo->getDisease();
 
     // Determination of daily changes
     // Use the LES_AGE function expression to determine daily age increase for lesions
@@ -242,7 +242,7 @@ void LesionCohort::rate() {
 }
 
 void LesionCohort::integration() {
-    Disease *disease = cloudo->getDisease();
+    std::shared_ptr<Disease> disease = cloudo->getDisease();
 
     if (getOrganHealthyValue() > 0) {      
         if(dailyInvisibleValue > 0) {

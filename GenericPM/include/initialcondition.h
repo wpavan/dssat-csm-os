@@ -34,7 +34,7 @@ public:
         // doc = FlexibleIO::getInstance()->getInteger("CONTROL", "YEARDOY");
         doc = Manager::getInstance()->getCurrentSimDate();
         family = cloudF ? cloudF->getDisease()->getFamily() : "";
-        std::cout << "Creating InitialCondition for family: " << family << " with ID: " << ID << " on YEARDOY: " << doc << std::endl;
+        // std::cout << "Creating InitialCondition for family: " << family << " with ID: " << ID << " on YEARDOY: " << doc << std::endl;
         Basic::output.push_back("Day of Simulation, Acumulated Favorability");
     }
 
@@ -79,7 +79,7 @@ public:
      * pre-determinated value, stop the process.
      */
     void integration();
-    void integration(Disease *disease);
+    void integration(std::shared_ptr<Disease> disease);
 
     void output();
 };

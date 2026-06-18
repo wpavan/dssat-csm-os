@@ -24,7 +24,7 @@ protected:
     static int firstOutputCall;
 
 public:
-    CloudO(Disease *disease, std::shared_ptr<CloudP> cloudP) {
+    CloudO(std::shared_ptr<Disease> disease, std::shared_ptr<CloudP> cloudP) {
         this->disease = disease;
         this->cloudP = cloudP;
     }

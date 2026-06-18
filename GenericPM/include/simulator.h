@@ -22,7 +22,7 @@
 #include <filesystem>
 #include <map>
 
-bool diseaseHasOutput(Disease *disease);
+bool diseaseHasOutput(std::shared_ptr<Disease> disease);
 
 struct Inoculum {
     Inoculum(float disease_amt, float family_amt) : diseaseAmount(disease_amt), familyAmount(family_amt) {}
@@ -46,7 +46,7 @@ private:
 
 protected:
     InitialCondition* initialCondition;
-    Disease* disease;
+    std::shared_ptr<Disease> disease;
     CropInterface* cropinterface;
     std::shared_ptr<CloudF> cloudF;
 
@@ -80,7 +80,7 @@ protected:
     
 public:
     Simulator();
-    Simulator(Disease *dis, CropInterface *ci) : disease(dis), cropinterface(ci), hasOutput(diseaseHasOutput(dis)) {
+    Simulator(std::shared_ptr<Disease> dis, CropInterface *ci) : disease(dis), cropinterface(ci), hasOutput(diseaseHasOutput(dis)) {
         outputFileName = Manager::getOutfileName() + "_" + disease->getDiseaseID() + ".OUT";
         std::filesystem::path outputPath(outputFileName);
 
@@ -140,7 +140,7 @@ public:
         return initialCondition;
     }
 
-    Disease* getDisease() {
+    std::shared_ptr<Disease> getDisease() {
         return disease;
     }
 
@@ -148,7 +148,7 @@ public:
         return cropinterface;
     }
 
-    void setDisease(Disease *disease) {
+    void setDisease(std::shared_ptr<Disease> disease) {
         this->disease = disease;
 
         this->_del_CloudF();
