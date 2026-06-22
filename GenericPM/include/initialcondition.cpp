@@ -9,6 +9,7 @@
  */
 
 #include "initialcondition.h"
+#include "debug_control.h"
 
 #include <sstream>
 #include <iostream>
@@ -50,7 +51,7 @@ void InitialCondition::integration(std::shared_ptr<Disease> disease) {
         //       be getting the disease from a disease object or simulator object instead 
         //       of the current implementation?
         if (acumulateFavorability >= disease->getAcumulateFavorability() && yearDoy >= 0) {
-#if (GENERICPM_DEBUG_ENABLED)
+#if GENERICPM_DEBUG_ENABLED
             printf("Accumulated Favorability reached: %.2f on YEARDOY: %d\n", acumulateFavorability, yearDoy);
 #endif
             DormantInoculum* dormantInoc = DormantInoculum::getInstance();

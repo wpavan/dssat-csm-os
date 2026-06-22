@@ -18,12 +18,15 @@
 #include "initialcondition.h"
 #include "utilities.h"
 #include "coupling.h"
+#include "equation_context.h"
 
 #include <sstream>
 #include <vector>
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <cctype>
+#include <cmath>
 #include <iomanip>
 #include <algorithm>
 
@@ -32,8 +35,245 @@ std::vector<std::string> Simulator::columnOrder;
 std::map<std::string, int> Simulator::columnWidths;
 bool Simulator::headerWritten = false;
 
+namespace {
+    std::shared_ptr<Disease> getContextDisease() {
+        if (gEqContext && gEqContext->disease) {
+            return gEqContext->disease;
+        }
+        return nullptr;
+    }
+
+    Plant* getContextPlant() {
+        if (gEqContext && gEqContext->plant) {
+            return gEqContext->plant;
+        }
+        return Plant::getInstance();
+    }
+
+    int getContextYearDoy() {
+        return Manager::getInstance()->getCurrentSimDate();
+    }
+
+    Inoculum getContextInoculum() {
+        std::shared_ptr<Disease> disease = getContextDisease();
+        Plant* plant = getContextPlant();
+
+        if (!disease || plant == nullptr) {
+            return Inoculum(0.0f, 0.0f);
+        }
+
+        float thisDisease = 0.0f;
+        float thisFamily = 0.0f;
+
+        for (const auto& sim : Manager::getInstance()->getSimulators()) {
+            if (sim->getDisease()->getFamily() != disease->getFamily()) {
+                continue;
+            }
+
+            float value = sim->getCloudF() ? sim->getCloudF()->getValue() : 0.0f;
+            thisFamily += value;
+            if (sim->getDisease() == disease) {
+                thisDisease += value;
+            }
+        }
+
+        for (auto& cloudP : plant->getCloudsP()) {
+            if (cloudP->getDisease()->getFamily() != disease->getFamily()) {
+                continue;
+            }
+
+            float value = cloudP->getValue();
+            thisFamily += value;
+            if (cloudP->getDisease() == disease) {
+                thisDisease += value;
+            }
+        }
+
+        for (auto& organ : plant->getOrganSet(disease->getOrganCP()).organs) {
+            for (auto& cloudO : organ.getCloudsO()) {
+                if (cloudO->getDisease()->getFamily() != disease->getFamily()) {
+                    continue;
+                }
+
+                float value = cloudO->getValue();
+                thisFamily += value;
+                if (cloudO->getDisease() == disease) {
+                    thisDisease += value;
+                }
+            }
+        }
+
+        return Inoculum(thisDisease, thisFamily);
+    }
+
+    double TE_totalInoculum() {
+        return static_cast<double>(getContextInoculum().diseaseAmount);
+    }
+
+    double TE_familyInoculum() {
+        return static_cast<double>(getContextInoculum().familyAmount);
+    }
+
+    double TE_fieldInoculum() {
+        std::shared_ptr<Disease> disease = getContextDisease();
+        if (!disease) return 0.0;
+
+        for (const auto& sim : Manager::getInstance()->getSimulators()) {
+            if (sim->getDisease() == disease && sim->getCloudF()) {
+                return static_cast<double>(sim->getCloudF()->getValue());
+            }
+        }
+        return 0.0;
+    }
+
+    double TE_plantInoculum() {
+        std::shared_ptr<Disease> disease = getContextDisease();
+        Plant* plant = getContextPlant();
+        if (!disease || plant == nullptr) return 0.0;
+
+        std::shared_ptr<CloudP> cloudP = plant->getCloudP(disease);
+        return cloudP ? static_cast<double>(cloudP->getValue()) : 0.0;
+    }
+
+    double TE_organInoculum() {
+        std::shared_ptr<Disease> disease = getContextDisease();
+        Plant* plant = getContextPlant();
+        if (!disease || plant == nullptr) return 0.0;
+
+        double total = 0.0;
+        for (auto& organ : plant->getOrganSet(disease->getOrganCP()).organs) {
+            for (auto& cloudO : organ.getCloudsO()) {
+                if (cloudO->getDisease() == disease) {
+                    total += cloudO->getValue();
+                }
+            }
+        }
+        return total;
+    }
+
+    double TE_totalLesions() {
+        Plant* plant = getContextPlant();
+        return plant ? static_cast<double>(plant->getTotalLesions()) : 0.0;
+    }
+
+    double TE_damage() {
+        std::shared_ptr<Disease> disease = getContextDisease();
+        if (!disease) return -99.0;
+        return static_cast<double>(disease->getDAMAGE()->evaluate());
+    }
+
+    double TE_year() {
+        return static_cast<double>(getContextYearDoy() / 1000);
+    }
+
+    double TE_doy() {
+        return static_cast<double>(getContextYearDoy() % 1000);
+    }
+
+    double TE_yearDoy() {
+        return static_cast<double>(getContextYearDoy());
+    }
+
+    struct SimulatorFunctionRegistrar {
+        SimulatorFunctionRegistrar() {
+            getCustomFunctions().register_context_function({"TOTAL_INOCULUM", TE_totalInoculum});
+            getCustomFunctions().register_context_function({"FAMILY_INOCULUM", TE_familyInoculum});
+            getCustomFunctions().register_context_function({"FIELD_INOCULUM", TE_fieldInoculum});
+            getCustomFunctions().register_context_function({"PLANT_INOCULUM", TE_plantInoculum});
+            getCustomFunctions().register_context_function({"ORGAN_INOCULUM", TE_organInoculum});
+            getCustomFunctions().register_context_function({"TOTAL_LESIONS", TE_totalLesions});
+            getCustomFunctions().register_context_function({"DAMAGE", TE_damage});
+            getCustomFunctions().register_context_function({"YEAR", TE_year});
+            getCustomFunctions().register_context_function({"DOY", TE_doy});
+            getCustomFunctions().register_context_function({"YEARDOY", TE_yearDoy});
+        }
+    };
+
+    static SimulatorFunctionRegistrar simulatorFunctionRegistrar;
+
+    std::string upperCopy(std::string value) {
+        std::transform(value.begin(), value.end(), value.begin(),
+                       [](unsigned char c) { return std::toupper(c); });
+        return value;
+    }
+
+    std::string normalizeCustomOutputFormat(const std::string& format) {
+        std::string normalized = upperCopy(format);
+        if (normalized == "CSV") {
+            return "CSV";
+        }
+        if (normalized == "TSV" || normalized == "TAB") {
+            return "TSV";
+        }
+        return "TABULAR";
+    }
+
+    std::string customOutputExtension(const std::string& format) {
+        if (format == "CSV") {
+            return ".CSV";
+        }
+        if (format == "TSV") {
+            return ".TSV";
+        }
+        return ".OUT";
+    }
+
+    std::string resolveCustomOutputFileName(const std::shared_ptr<Disease>& disease) {
+        std::string format = normalizeCustomOutputFormat(disease->getCustomOutputFormat());
+        std::string fileName = disease->getCustomOutputFileName();
+        if (fileName.empty()) {
+            fileName = Manager::getOutfileName() + "_" + disease->getDiseaseID() + "_CUSTOM";
+        }
+
+        std::filesystem::path outputPath(fileName);
+        if (!outputPath.has_extension()) {
+            fileName += customOutputExtension(format);
+        }
+        return fileName;
+    }
+
+    std::string csvEscape(const std::string& value) {
+        if (value.find_first_of(",\"\n\r") == std::string::npos) {
+            return value;
+        }
+
+        std::string escaped = "\"";
+        for (char c : value) {
+            if (c == '"') {
+                escaped += "\"\"";
+            } else {
+                escaped += c;
+            }
+        }
+        escaped += "\"";
+        return escaped;
+    }
+
+    std::string formatDelimitedValue(float value) {
+        if (value == -99.0f || value == -99) {
+            return "-99";
+        }
+
+        float rounded = std::round(value);
+        if (std::fabs(value - rounded) < 0.0001f) {
+            return std::to_string(static_cast<long long>(rounded));
+        }
+
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(6) << value;
+        std::string formatted = oss.str();
+        while (!formatted.empty() && formatted.back() == '0') {
+            formatted.pop_back();
+        }
+        if (!formatted.empty() && formatted.back() == '.') {
+            formatted.pop_back();
+        }
+        return formatted;
+    }
+}
+
 bool diseaseHasOutput(std::shared_ptr<Disease> disease) {
-    if (disease->getOutputInjections().size() > 0) {
+    if (disease->getOutputInjections().size() > 0 || disease->getCustomOutputs().size() > 0) {
         return true;
     } else {
         for (const auto& inj : disease->getRateInjections()) {
@@ -64,6 +304,82 @@ void Simulator::logOutput(std::string varName, float value) {
         int width = std::max(6, static_cast<int>(varName.length()));
         columnWidths[varName] = width;
     }
+}
+
+void Simulator::writeCustomOutput(const std::map<std::string, float>& customOutputs, int yearDoy) {
+    if (customOutputs.empty()) {
+        return;
+    }
+
+    std::string format = normalizeCustomOutputFormat(disease->getCustomOutputFormat());
+    std::string fileName = resolveCustomOutputFileName(disease);
+    bool firstWrite = initializedCustomOutputFiles.insert(fileName).second;
+
+    std::ofstream customFile;
+    customFile.open(fileName, firstWrite ? std::ios::out | std::ios::trunc : std::ios::out | std::ios::app);
+    if (!customFile.is_open()) {
+#if GENERICPM_DEBUG_ENABLED
+        std::cerr << "Warning: unable to open custom output file '" << fileName << "'" << std::endl;
+#endif
+        return;
+    }
+
+    if (format == "CSV") {
+        if (firstWrite) {
+            customFile << "YEAR,DOY,YEARDOY,DISEASE";
+            for (const auto& output : disease->getCustomOutputs()) {
+                customFile << "," << csvEscape(output.name);
+            }
+            customFile << "\n";
+        }
+        customFile << (yearDoy / 1000) << ","
+                   << (yearDoy % 1000) << ","
+                   << yearDoy << ","
+                   << csvEscape(disease->getDiseaseID());
+        for (const auto& output : disease->getCustomOutputs()) {
+            auto valueIt = customOutputs.find(output.name);
+            customFile << "," << formatDelimitedValue(valueIt != customOutputs.end() ? valueIt->second : -99.0f);
+        }
+        customFile << "\n";
+    } else if (format == "TSV") {
+        if (firstWrite) {
+            customFile << "YEAR\tDOY\tYEARDOY\tDISEASE";
+            for (const auto& output : disease->getCustomOutputs()) {
+                customFile << "\t" << output.name;
+            }
+            customFile << "\n";
+        }
+        customFile << (yearDoy / 1000) << "\t"
+                   << (yearDoy % 1000) << "\t"
+                   << yearDoy << "\t"
+                   << disease->getDiseaseID();
+        for (const auto& output : disease->getCustomOutputs()) {
+            auto valueIt = customOutputs.find(output.name);
+            customFile << "\t" << formatDelimitedValue(valueIt != customOutputs.end() ? valueIt->second : -99.0f);
+        }
+        customFile << "\n";
+    } else {
+        if (firstWrite) {
+            customFile << "$GDM CUSTOM OUTPUT FILE\n\n";
+            customFile << "@YEAR DOY YEARDOY DISEASE";
+            for (const auto& output : disease->getCustomOutputs()) {
+                customFile << " " << output.name;
+            }
+            customFile << "\n";
+        }
+        customFile << std::setw(5) << std::right << (yearDoy / 1000) << " "
+                   << std::setw(3) << std::right << (yearDoy % 1000) << " "
+                   << std::setw(7) << std::right << yearDoy << " "
+                   << std::setw(7) << std::right << disease->getDiseaseID();
+        for (const auto& output : disease->getCustomOutputs()) {
+            auto valueIt = customOutputs.find(output.name);
+            customFile << " " << formatValue(valueIt != customOutputs.end() ? valueIt->second : -99.0f,
+                                             std::max(10, static_cast<int>(output.name.length())));
+        }
+        customFile << "\n";
+    }
+
+    customFile.close();
 }
 
 /**
@@ -175,15 +491,19 @@ void Simulator::formatAndWriteOutputRow(int yearDoy, const std::map<std::string,
     
     // If this is the first write, write header
     if (!headerWritten) {
+#if GENERICPM_DEBUG_ENABLED
         std::cout << "[FIRST WRITE] Writing initial header" << std::endl;
         std::cout.flush();
+#endif
         writeOutputHeader();
         headerWritten = true;
     }
     // If new columns were discovered, rebuild the file with all buffered rows
     else if (newColumnsDiscovered) {
+#if GENERICPM_DEBUG_ENABLED
         std::cout << "[NEW COLUMNS DETECTED] Rebuilding file with new columns" << std::endl;
         std::cout.flush();
+#endif
         rebuildOutputFile();
     }
     
@@ -405,6 +725,15 @@ void Simulator::rate() {
     }
     this->cloudF->rate();
 
+    int currentYearDoy = fio->getInteger("CONTROL", "YEARDOY");
+    if (lastExternalInoculumRate == currentYearDoy) {
+#if GENERICPM_DEBUG_ENABLED
+        std::cerr << "[SIM] INOC_EXT already evaluated for YEARDOY " << currentYearDoy << "; skipping duplicate rate call" << std::endl << std::flush;
+#endif
+        gEqContext->disease = nullptr;
+        return;
+    }
+
     float destination = -99.0f;
     try {
         destination = static_cast<float>(disease->resolveInoculumDestination());
@@ -415,6 +744,7 @@ void Simulator::rate() {
 #if GENERICPM_DEBUG_ENABLED
         std::cerr << "Error resolving INOC_DEST expression for DiseaseID: " << disease->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
 #endif
+        lastExternalInoculumRate = currentYearDoy;
         throw e;
     }
 
@@ -425,7 +755,7 @@ void Simulator::rate() {
         float inocExt = disease->getINOC_EXT()->evaluate();
 #if GENERICPM_DEBUG_ENABLED
         std::cerr << "[SIM] INOC_EXT evaluated to: " << inocExt << std::endl << std::flush;
-        std::cerr << "[SIM] Cloud object: " << initialCondition.getCloud() << " (family: " << initialCondition.getCloud()->getFamily() << ")" << std::endl << std::flush;
+        std::cerr << "[SIM] Cloud object: " << initialCondition->getCloud() << " (family: " << initialCondition->getCloud()->getFamily() << ")" << std::endl << std::flush;
 #endif
         this->cloudF->addInoculumCreated(inocExt, destination);
 #if GENERICPM_DEBUG_ENABLED
@@ -436,6 +766,7 @@ void Simulator::rate() {
         // Default to 0 inoculum if evaluation fails
         this->cloudF->addInoculumCreated(0.0f);
     }
+    lastExternalInoculumRate = currentYearDoy;
 
     gEqContext->disease = nullptr;
 }
@@ -622,6 +953,24 @@ void Simulator::output() {
     logOutput("FAM_INOC_" + diseaseID, familyInoculum);
     logOutput("TOT_INOC_" + diseaseID, diseaseInoculum);
 
+    int currentYearDoy = Manager::getInstance()->getCurrentSimDate();
+    std::map<std::string, float> customOutputValues;
+
+    for (auto& customOutput : disease->getCustomOutputs()) {
+        float customValue = -99.0f;
+        try {
+            customValue = customOutput.expression.evaluate();
+        } catch (const std::exception& e) {
+#if GENERICPM_DEBUG_ENABLED
+            std::cerr << "Warning: custom output '" << customOutput.name
+                      << "' failed for DiseaseID " << diseaseID
+                      << ". Writing -99. Exception: " << e.what() << std::endl;
+#endif
+        }
+        customOutputValues[customOutput.name] = customValue;
+    }
+    writeCustomOutput(customOutputValues, currentYearDoy);
+
     // Add all logged outputs to the output map - directly assign, don't skip if exists
     for (const auto& output : loggedOutputs) {
         currentDayOutputs[output.varName] = output.value;
@@ -631,9 +980,6 @@ void Simulator::output() {
         }
     }
 
-    // Get current date and format output row
-    int currentYearDoy = Manager::getInstance()->getCurrentSimDate();
-    
     // Check if new columns were discovered during this output
     int columnCountAfter = columnOrder.size();
     bool newColumnsDiscovered = (columnCountAfter > columnCountBefore);

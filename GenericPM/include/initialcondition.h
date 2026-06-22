@@ -16,6 +16,7 @@
 #include "cloudf.h"
 #include "plant.h"
 #include "manager.h"
+#include "debug_control.h"
 
 class InitialCondition : public Basic, virtual public BasicInterface {
 private:
@@ -34,7 +35,9 @@ public:
         // doc = FlexibleIO::getInstance()->getInteger("CONTROL", "YEARDOY");
         doc = Manager::getInstance()->getCurrentSimDate();
         family = cloudF ? cloudF->getDisease()->getFamily() : "";
-        // std::cout << "Creating InitialCondition for family: " << family << " with ID: " << ID << " on YEARDOY: " << doc << std::endl;
+#if GENERICPM_DEBUG_ENABLED
+        std::cout << "Creating InitialCondition for family: " << family << " with ID: " << ID << " on YEARDOY: " << doc << std::endl;
+#endif
         Basic::output.push_back("Day of Simulation, Acumulated Favorability");
     }
 

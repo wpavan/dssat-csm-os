@@ -30,6 +30,16 @@ enum class InoculumDestination {
     INFECTIVE   // Inoculum can infect immediately.
 };
 
+struct CustomOutput {
+    std::string name;
+    std::string desc;
+    Expression expression;
+
+    CustomOutput() = default;
+    CustomOutput(std::string outputName, Expression outputExpression, std::string outputDesc = "")
+        : name(outputName), desc(outputDesc), expression(outputExpression) {}
+};
+
 /**
  * @class Disease
  * 
@@ -74,6 +84,9 @@ protected:
     float cardinalTempPhysiologicalLife[4] = {0, 28, 30, 40};
 
     std::vector<Injection> rateInjections, integInjections, outputInjections;
+    std::vector<CustomOutput> customOutputs;
+    std::string customOutputFileName;
+    std::string customOutputFormat = "TABULAR";
 
     Expression INOC_EXT; // Expression for external inoculum amount
     Expression INOC_LES; // Expression for lesion-based inoculum production
@@ -199,6 +212,30 @@ public:
 
     void addOutputInjection(Injection inj) {
         outputInjections.push_back(inj);
+    }
+
+    std::vector<CustomOutput>& getCustomOutputs() {
+        return customOutputs;
+    }
+
+    void addCustomOutput(const std::string& name, Expression expression, const std::string& desc = "") {
+        customOutputs.emplace_back(name, expression, desc);
+    }
+
+    void setCustomOutputFileName(const std::string& fileName) {
+        customOutputFileName = fileName;
+    }
+
+    const std::string& getCustomOutputFileName() const {
+        return customOutputFileName;
+    }
+
+    void setCustomOutputFormat(const std::string& format) {
+        customOutputFormat = format;
+    }
+
+    const std::string& getCustomOutputFormat() const {
+        return customOutputFormat;
     }
 
     void setDamageCP(CouplingPointID damageCouplingPoint) {
