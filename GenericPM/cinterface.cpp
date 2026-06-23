@@ -68,7 +68,7 @@ int couplingInit(int *YRDOY, int *YRPLT) {
         s->getCropInterface()->start();
         s->resetCloudF();
         // std::cout << "Reset IC called." << std::endl;
-        // s->resetInitialCondition();
+        s->resetInitialCondition();
     }
 
     Plant::newInstance();

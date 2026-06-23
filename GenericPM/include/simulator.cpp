@@ -388,6 +388,7 @@ void Simulator::rate() {
     }
     this->cloudF->rate();
 
+    gEqContext->cloud = this->cloudF;
     float destination = -99.0f;
     try {
         destination = static_cast<float>(disease->resolveInoculumDestination());
@@ -408,7 +409,7 @@ void Simulator::rate() {
         float inocExt = disease->getINOC_EXT()->evaluate();
 #if GENERICPM_DEBUG_ENABLED
         std::cerr << "[SIM] INOC_EXT evaluated to: " << inocExt << std::endl << std::flush;
-        std::cerr << "[SIM] Cloud object: " << initialCondition.getCloud() << " (family: " << initialCondition.getCloud()->getFamily() << ")" << std::endl << std::flush;
+        std::cerr << "[SIM] Cloud object: " << initialCondition->getCloud() << " (family: " << initialCondition->getCloud()->getFamily() << ")" << std::endl << std::flush;
 #endif
         this->cloudF->addInoculumCreated(inocExt, destination);
 #if GENERICPM_DEBUG_ENABLED
@@ -419,6 +420,7 @@ void Simulator::rate() {
         // Default to 0 inoculum if evaluation fails
         this->cloudF->addInoculumCreated(0.0f);
     }
+    gEqContext->cloud = nullptr;
 
     gEqContext->disease = nullptr;
 }
@@ -521,7 +523,7 @@ void Simulator::integration() {
 
     if (disease->getDEBUG() != Expression("-99.0")) {
         FlexibleIO *fio = FlexibleIO::getInstance();
-        std::cout << "DEBUG for " << fio->getInteger("CONTROL", "YRDOY") << 
+        std::cout << "DEBUG for " << fio->getInteger("CONTROL", "YEARDOY") << 
         ":\n\tOriginal Expression: " << disease->getDEBUG().getOriginal() << 
         "\n\tTranslated Expr:     " << disease->getDEBUG().getTranslated() << 
         "\n\tEvaluated Expr:      " << disease->getDEBUG().evaluate() << std::endl;
@@ -687,7 +689,7 @@ float Simulator::getPlantVisibleDiseaseArea() {
 float Simulator::getPlantTotalLesionNumber() {
     Plant *plant = getPlant();
     if (plant != nullptr) {
-        return plant->getTotalLesions();
+        return plant->getTotalLesions(this->disease);
     }
     return 0.0f;
 }

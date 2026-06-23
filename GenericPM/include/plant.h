@@ -284,7 +284,19 @@ public:
 
     float getTotalLesions() {
         return totalLesions;
-    }    
+    }
+
+    float getTotalLesions(std::shared_ptr<Disease> disease) {
+        float val = 0;
+        for (auto& organ : this->getOrganSet(disease->getOrganCP()).organs) {
+            for (auto& cohort : organ.getLesionCohorts()) {
+                if (cohort.getDisease() == disease) {
+                    val += cohort.getLesionsInThisCohort();
+                }
+            }
+        }
+        return val;
+    } 
 };
 
 #endif // PLANT_H
