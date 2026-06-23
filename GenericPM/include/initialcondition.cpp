@@ -64,7 +64,9 @@ void InitialCondition::integration(std::shared_ptr<Disease> disease) {
 #endif // GENERICPM_DEBUG_ENABLED
             } else {
                 cloudF->setFirstSporeCloud(disease->getInitialInoculum());
+#if GENERICPM_DEBUG_ENABLED
                 printf("No dormant inoculum for disease %s. Using initial inoculum: %.2f\n", disease->getDiseaseID().c_str(), disease->getInitialInoculum());
+#endif // GENERICPM_DEBUG_ENABLED
             }
             favorabilityAccumulated = true;
         }
