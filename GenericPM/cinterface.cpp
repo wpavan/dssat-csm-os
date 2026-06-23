@@ -130,7 +130,6 @@ int couplingRate(int *YRDOY,
     }
 
     manager->updateCurrentYearDoy(*YRDOY);
-    fio->setIntegerMemory("PEST", "YRDOY", *YRDOY);
 
     if (*YRPLT == *YRDOY) {
         Plant::newInstance();

@@ -251,7 +251,6 @@ void Simulator::rate() {
 #endif
     CouplingData *couplingData = CouplingData::getInstance(); 
 
-    InitialCondition *ic;
     FlexibleIO *fio = FlexibleIO::getInstance();
 
     gEqContext->disease = this->disease;
@@ -262,22 +261,6 @@ void Simulator::rate() {
     // NOTE: This code (using the soil information) is for FHB, not WB
     //       We should get the WB code from GenericPM-Spores and parameterize
     //       a new disease in the YAML file which corresponds to external inoculum.
-    //
-    // This is also confirmed the only place that the spores were being
-    // generated for real once the spores module was removed.
-    /*if(plants.size()>0) {
-        // Run rate function from yaml...
-        SL1 = fio->getReal("PEST", "SL1");
-        SLL1 = fio->getReal("PEST", "SLL1");
-        SDUL1 = fio->getReal("PEST", "SDUL1");
-        SSAT1 = fio->getReal("PEST", "SSAT1");
-
-        SW = std::min(100.0f, std::max(0.0f, (SL1-SLL1)/(SSAT1-SLL1)*100));
-        CloudField = Utilities::runExpressionFunction(SW, plants[0].getCloudsP()[0].getDisease()->getSWF()); 
-        // 0.0000005*exp(0.20*x) 
-
-        plants[0].getCloudsP()[0].getCloudF()->addInoculumCreated(CloudField);
-    }*/
     
     /* GDM2 Implementation of spore generation
      * 
@@ -470,7 +453,6 @@ void Simulator::integration() {
     initialCondition->integration(disease);
 
     Plant* plant = getPlant();
-    plant->integration();
 
     // Orchestrate rate calls for all CloudOs, then CloudPs, then CloudF.
     //  CloudOs
@@ -558,7 +540,6 @@ void Simulator::output() {
     int columnCountBefore = columnOrder.size();
     
     initialCondition->output();
-    getPlant()->output();
 
     // Always write output row for every day of simulation
     float outputVal;
