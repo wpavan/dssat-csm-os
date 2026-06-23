@@ -137,7 +137,7 @@ void CloudF::addInoculumCreated(float activeInoculumCreated) {
 
 void CloudF::addInoculumCreated(float inoculumCreated, int destination) {
 #if GENERICPM_DEBUG_ENABLED
-    std::cerr << "[CLOUDF] addInoculumCreated called for family=" << family << ", inoculumCreated=" << inoculumCreated << ", destination=" << destination << ", this=" << (void*)this << std::endl << std::flush;
+    std::cerr << "[CLOUDF] addInoculumCreated called for family=" << this->disease->getDiseaseID() << ", inoculumCreated=" << inoculumCreated << ", destination=" << destination << ", this=" << (void*)this << std::endl << std::flush;
 #endif
     switch ((InoculumDestination)destination) {
         case InoculumDestination::DORMANT:

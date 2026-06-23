@@ -223,10 +223,6 @@ void Organ::rate() {
             int newLesionsVal = 0;
             try {
                 newLesionsVal = cloudo->getDisease()->getNEW_LES()->evaluate();
-                // std::cout << "Local inoculum for Cloud: " << i << "|ID: " << cloudo->getID() << " Organ " << organNumber << ": " << TE_getLocalInoculum() << std::endl;
-                if (newLesionsVal > 0) {
-                    // std::cerr << "New Lesions: " << newLesionsVal << std::endl;
-                }
             } catch (const std::runtime_error& e) {
                 std::cerr << "Error evaluating NEW_LES expression for DiseaseID: " << cloudo->getDisease()->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
             }

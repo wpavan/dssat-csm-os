@@ -148,8 +148,8 @@ static double TE_fio_real_yrdoy(double group, double yrdoy, double varname) {
     std::string varnameStr = converter->decode(varname);
 
     float fioValue;
-
-    yrdoy = yrdoy == -1 ? fio->getInteger("CONTROL", "YRDOY") : yrdoy;
+    
+    yrdoy = yrdoy == -1 ? fio->getInteger("CONTROL", "YEARDOY") : yrdoy;
     fioValue = fio->getRealYrdoy(groupStr, std::to_string((int)yrdoy), varnameStr);
 
     if (fioValue == -99.0f) {
@@ -178,7 +178,7 @@ static double TE_hours_VAR_above(double var, double yrdoy, double threshold) {
 
     // Convert a date from the "TODAY" placeholder to the actual current date.
     if (yrdoy == -1) {
-        yrdoy = fio->getInteger("CONTROL", "YRDOY");
+        yrdoy = fio->getInteger("CONTROL", "YEARDOY");
     }
 
     std::string yrdoyStr = std::to_string((int)yrdoy);
@@ -218,7 +218,7 @@ static double TE_hours_VAR_below(double var, double yrdoy, double threshold) {
 
     // Convert a date from the "TODAY" placeholder to the actual current date.
     if (yrdoy == -1) {
-        yrdoy = fio->getInteger("CONTROL", "YRDOY");
+        yrdoy = fio->getInteger("CONTROL", "YEARDOY");
     }
 
     std::string yrdoyStr = std::to_string((int)yrdoy);
@@ -258,7 +258,7 @@ static double TE_hours_VAR_between(double var, double yrdoy, double upperThresho
 
     // Convert a date from the "TODAY" placeholder to the actual current date.
     if (yrdoy == -1) {
-        yrdoy = fio->getInteger("CONTROL", "YRDOY");
+        yrdoy = fio->getInteger("CONTROL", "YEARDOY");
     }
 
     std::string yrdoyStr = std::to_string((int)yrdoy);
@@ -294,14 +294,14 @@ static double TE_hours_VAR_between(double var, double yrdoy, double upperThresho
 // NOTE: Implement some sort of high temperature kill option
 static double TE_growing_degree_days(double baseTemp) {
     FlexibleIO* fio = FlexibleIO::getInstance();
-    int currentYrdoy = fio->getInteger("CONTROL", "YRDOY");
+    int currentYrdoy = fio->getInteger("CONTROL", "YEARDOY");
     double dailyAvgTemp = fio->getRealYrdoy("WTH", std::to_string(currentYrdoy), "TAVG");
     return std::max(0.0, dailyAvgTemp - baseTemp);
 }
 
 static double TE_growing_degree_days_max(double baseTemp, double maxTemp) {
     FlexibleIO* fio = FlexibleIO::getInstance();
-    int currentYrdoy = fio->getInteger("CONTROL", "YRDOY");
+    int currentYrdoy = fio->getInteger("CONTROL", "YEARDOY");
     double dailyAvgTemp = fio->getRealYrdoy("WTH", std::to_string(currentYrdoy), "TAVG");
     std::cerr << "Debug: In TE_growing_degree_days_max, dailyAvgTemp = " << dailyAvgTemp << ", baseTemp = " << baseTemp << ", maxTemp = " << maxTemp << std::endl;
     return std::max(0.0, std::min(dailyAvgTemp, maxTemp) - baseTemp);

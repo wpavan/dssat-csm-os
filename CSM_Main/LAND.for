@@ -315,24 +315,6 @@ C     DAILY RATE CALCULATIONS
 C***********************************************************************
       ELSE IF (DYNAMIC .EQ. RATE) THEN
 
-      IF(ISWDIS.EQ.'Y') THEN
-!         SOILPROP can be used to access soils data
-          SLL1 = SOILPROP % LL(1)   !Lower limit soil water,1st layer
-          SDUL1 = SOILPROP % DUL(1) !Drained upper limit, 1st layer
-          SSAT1 = SOILPROP % SAT(1) !Upper limit, saturated,1st layer
-                  
-          CALL fio%get("PEST", "ZSTAGE", ZSTAGE)
-
-          CALL fio%set("PEST","SL1",SL1)
-          CALL fio%set("PEST","SLL1",SLL1)
-          CALL fio%set("PEST","SDUL1",SDUL1)
-          CALL fio%set("PEST","SSAT1",SSAT1)
-          CALL fio%set("PEST","TAVG",WEATHER % TAVG)
-          
-          CALL LOGGINGGDM(YRDOY, YRSIM, SL1, SLL1, SSAT1, 
-     &        WEATHER % TMAX, WEATHER % TMIN, WEATHER % RAIN, 
-     &        WEATHER % SRAD, ZSTAGE)
-      ENDIF
 C-----------------------------------------------------------------------
 C     Call WEATHER Subroutine to input weather data and to
 C     calculate hourly radiation and air temperature values

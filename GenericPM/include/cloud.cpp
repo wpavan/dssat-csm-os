@@ -155,6 +155,7 @@ float Cloud::getValue() {
 }
 
 void Cloud::removeSporesVal(float toBeRemoved) {
+    // std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesVal called on cloud with " << this->disease->getDiseaseID() << "toBeRemoved=" << toBeRemoved << std::endl;
     if (toBeRemoved <= 0.0f) return;
     float total = getValue();
 
@@ -183,15 +184,16 @@ void Cloud::removeSporesVal(float toBeRemoved) {
     // Compute factor once and subtract proportionally
     float factor = toBeRemoved / total;
     if (!std::isfinite(factor) || factor <= 0.0f) return;
+
+    int i = 0;
     for (auto& value : values) {
         float before = value;
         value -= (value * factor);
         // Guard again against any rounding errors producing non-finite
         if (!std::isfinite(value)) value = 0.0f;
         if (value < 0.0f) value = 0.0f;
-#if GENERICPM_DEBUG_ENABLED
-        std::cout << "[DIAG] YEARDOY:" << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesVal bucket before=" << before << " after=" << value << std::endl;
-#endif
+        // std::cout << "[DIAG] YEARDOY:" << (int)FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << " removeSporesVal bucket " << i << " before=" << before << " after=" << value << std::endl;
+        i++;
     }
 }
 

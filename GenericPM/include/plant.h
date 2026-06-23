@@ -258,62 +258,6 @@ public:
         return invisibleValue;
     }
 
-#if GENERICPM_DEBUG_ENABLED
-    float getInvisibleValue(std::shared_ptr<Disease> disease) {
-        std::cout << "\n=== DEBUG: getInvisibleValue for Disease: " << disease->getDiseaseID() 
-                << " (Family: " << disease->getFamily() << ") ===" << std::endl;
-        std::cout << "Disease OrganCP: " << cpIDToStr(disease->getOrganCP()) << std::endl;
-        
-        auto organSet = this->getOrganSet(disease->getOrganCP());
-        std::cout << "OrganSet size: " << organSet.organs.size() << " organs" << std::endl;
-        
-        float val = 0;
-        int organCount = 0;
-        int totalCohorts = 0;
-        int matchingCohorts = 0;
-        
-        for (auto& organ : organSet.organs) {
-            organCount++;
-            auto cohorts = organ.getLesionCohorts();
-            std::cout << "Organ " << organCount << " has " << cohorts.size() << " lesion cohorts" << std::endl;
-            
-            int cohortNum = 0;
-            for (auto& cohort : cohorts) {
-                cohortNum++;
-                totalCohorts++;
-                
-                Disease* cohortDisease = cohort.getDisease();
-                std::cout << "  Cohort " << cohortNum << ": Disease=" << cohortDisease->getDiseaseID() 
-                        << " (Family: " << cohortDisease->getFamily() << ")" << std::endl;
-                std::cout << "    Cohort Disease Pointer: " << cohortDisease << std::endl;
-                std::cout << "    Target Disease Pointer: " << disease << std::endl;
-                
-                if (cohortDisease == disease) {
-                    matchingCohorts++;
-                    float cohortInvisibleValue = cohort.getInvisibleValue();
-                    std::cout << "    *** MATCH! Invisible value: " << cohortInvisibleValue << std::endl;
-                    val += cohortInvisibleValue;
-                    std::cout << "    Running total: " << val << std::endl;
-                } else {
-                    std::cout << "    No match (pointer comparison failed)" << std::endl;
-                    // Additional check by ID if pointers don't match
-                    if (cohortDisease->getDiseaseID() == disease->getDiseaseID()) {
-                        std::cout << "    BUT Disease IDs match! Pointer mismatch issue!" << std::endl;
-                    }
-                }
-            }
-        }
-        
-        std::cout << "SUMMARY for " << disease->getDiseaseID() << ":" << std::endl;
-        std::cout << "  Total organs processed: " << organCount << std::endl;
-        std::cout << "  Total cohorts found: " << totalCohorts << std::endl;
-        std::cout << "  Matching cohorts: " << matchingCohorts << std::endl;
-        std::cout << "  Final invisible value: " << val << std::endl;
-        std::cout << "=== END DEBUG ===" << std::endl;
-        
-        return val;
-    }
-#else
     float getInvisibleValue(std::shared_ptr<Disease> disease) {
         // Implementation for getting invisible value for a specific disease
         float val = 0;
@@ -326,7 +270,6 @@ public:
         }
         return val;
     }
-#endif // GENERICPM_DEBUG_ENABLED
 
     float getHealthyValue(std::shared_ptr<Disease> disease) {
         float val = 0;
@@ -342,7 +285,19 @@ public:
 
     float getTotalLesions() {
         return totalLesions;
-    }    
+    }
+
+    float getTotalLesions(std::shared_ptr<Disease> disease) {
+        float val = 0;
+        for (auto& organ : this->getOrganSet(disease->getOrganCP()).organs) {
+            for (auto& cohort : organ.getLesionCohorts()) {
+                if (cohort.getDisease() == disease) {
+                    val += cohort.getLesionsInThisCohort();
+                }
+            }
+        }
+        return val;
+    } 
 };
 
 #endif // PLANT_H

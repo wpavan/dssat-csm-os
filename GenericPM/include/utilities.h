@@ -134,14 +134,11 @@ class Utilities {
     private:
         static const std::string BASE52_CODING;
     public:
-        static float trapezoidalFunction(float value, float v[]);
         static float growthFunction(float value, std::string expression_string);
         static float runExpressionFunction(float value, std::string expressionString);
         static float getHealthAreaProportion(float diseaseArea, float totalArea, float senescedArea);
         static std::string formatfloat(float value);
         static std::string formatfloat(float value, int decimals);
-        static int addOneDay(int yearDoy);
-        static bool isLeapYear(int year);
         static std::string base52Encode(size_t hashValue);
 
         // A method to safely rename files to a version that includes the suffix "_(X)" to avoid 

@@ -72,7 +72,7 @@ int couplingInit(int *YRDOY, int *YRPLT) {
         s->getCropInterface()->start();
         s->resetCloudF();
         // std::cout << "Reset IC called." << std::endl;
-        // s->resetInitialCondition();
+        s->resetInitialCondition();
     }
 
     Plant::newInstance();
@@ -134,7 +134,6 @@ int couplingRate(int *YRDOY,
     }
 
     manager->updateCurrentYearDoy(*YRDOY);
-    fio->setIntegerMemory("PEST", "YRDOY", *YRDOY);
 
     if (*YRPLT == *YRDOY) {
         Plant::newInstance();
@@ -161,9 +160,6 @@ int couplingIntegration(int *YRDOY,
     couplingData->updatePrevValues();
     Plant::getInstance()->updatePrev();
 
-    // Increment the current simulation date by one day at the end of integration.
-    manager->setCurrentSimDate(manager->getCurrentSimDate() + 1);
-
     return (1);
 }
 
@@ -176,6 +172,9 @@ int couplingOutput(int *doy) {
     Manager *manager = Manager::getInstance();
     manager->output();
     
+    // Increment the current simulation date by one day at the end of output.
+    manager->setCurrentSimDate(manager->getCurrentSimDate() + 1);
+
     return (1);
 }
 

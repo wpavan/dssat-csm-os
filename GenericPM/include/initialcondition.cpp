@@ -53,20 +53,18 @@ void InitialCondition::integration(std::shared_ptr<Disease> disease) {
         if (acumulateFavorability >= disease->getAcumulateFavorability() && yearDoy >= 0) {
 #if GENERICPM_DEBUG_ENABLED
             printf("Accumulated Favorability reached: %.2f on YEARDOY: %d\n", acumulateFavorability, yearDoy);
-#endif
+#endif // GENERICPM_DEBUG_ENABLED
             DormantInoculum* dormantInoc = DormantInoculum::getInstance();
             float dormantInoculum = dormantInoc->getDiseaseInoculum(disease->getDiseaseID());
             if (dormantInoculum > 0) {
                 cloudF->setFirstSporeCloud(dormantInoculum);
                 dormantInoc->clear(disease->getDiseaseID());
-#if (GENERICPM_DEBUG_ENABLED)
+#if GENERICPM_DEBUG_ENABLED
                 printf("Using dormant inoculum for disease %s: %.2f\n", disease->getDiseaseID().c_str(), dormantInoculum);
-#endif
+#endif // GENERICPM_DEBUG_ENABLED
             } else {
                 cloudF->setFirstSporeCloud(disease->getInitialInoculum());
-#if (GENERICPM_DEBUG_ENABLED)
                 printf("No dormant inoculum for disease %s. Using initial inoculum: %.2f\n", disease->getDiseaseID().c_str(), disease->getInitialInoculum());
-#endif
             }
             favorabilityAccumulated = true;
         }

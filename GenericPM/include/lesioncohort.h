@@ -50,6 +50,10 @@ public:
         this->doc = FlexibleIO::getInstance()->getInteger("CONTROL", "YEARDOY");
     }
 
+    int getLesionsInThisCohort() const {
+        return lesionsInThisCohort;
+    }
+
     int getID() {
         return ID;
     }

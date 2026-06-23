@@ -19,18 +19,6 @@
 
 const std::string Utilities::BASE52_CODING = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-float Utilities::trapezoidalFunction(float value, float v[]) {
-    if (value >= v[1] && value <= v[2]) {
-        return 1;
-    } else if (value >= v[0] && value < v[1]) {
-        return ((value - v[0]) / (v[1] - v[0]));
-    } else if (value > v[2] && value <= v[3]) {
-        return 1 - ((value - v[2]) / (v[3] - v[2]));
-    } else {
-        return 0;
-    }
-}
-
 float Utilities::growthFunction(float value, std::string expressionString) {
     return Utilities::runExpression(expressionString, value);
 }
@@ -52,21 +40,6 @@ std::string Utilities::formatfloat(float value, int decimals) {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(decimals) << value;
     return ss.str();
-}
-
-int Utilities::addOneDay(int yearDoy) {
-    yearDoy++;
-    int year = yearDoy / 1000;
-    int doy = yearDoy - (year * 1000);
-    if (doy <= 365 || (doy == 366 && isLeapYear(year))) {
-        return yearDoy;
-    } else {
-        return (1 + ((year + 1)*1000));
-    }
-}
-
-bool Utilities::isLeapYear(int year) {
-    return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
 }
 
 std::string Utilities::base52Encode(size_t hashValue) {
