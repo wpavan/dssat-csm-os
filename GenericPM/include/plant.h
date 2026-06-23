@@ -14,6 +14,7 @@
 #include "basicinterface.h"
 #include "cloudp.h"
 #include "organ.h"
+#include "debug_control.h"
 
 #include <vector>
 

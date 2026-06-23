@@ -19,6 +19,12 @@ class Expression;
 template<typename T1, typename T2, typename T3>
 using triple = std::tuple<T1, T2, T3>;
 
+struct CustomOutputSpec {
+    std::string name;
+    std::string expression;
+    std::string desc;
+};
+
 struct InjectionHolder {
     // One injection is an endpoint, expression, and modification
     std::vector<triple<std::string, std::string, std::string>> injections;
@@ -33,6 +39,24 @@ struct InjectionHolder {
                       injection["EXPRESSION"].as<std::string>(),
                       injection["MODIFICATION"].as<std::string>());
         }
+    }
+};
+
+struct CustomOutputHolder {
+    std::vector<CustomOutputSpec> outputs;
+    std::string fileName;
+    std::string format = "TABULAR";
+
+    void add(std::string name, std::string expression, std::string desc = "") {
+        outputs.push_back({name, expression, desc});
+    }
+
+    void setFileName(std::string name) {
+        fileName = name;
+    }
+
+    void setFormat(std::string outputFormat) {
+        format = outputFormat;
     }
 };
 
@@ -68,7 +92,8 @@ class Manager : virtual public BasicInterface {
             return simulators;
         }
         static void addSimulator(std::unordered_map<std::string, Expression> diseaseData, CropInterface *ci, 
-                                 InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections);
+                                 InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections,
+                                 CustomOutputHolder customOutputs);
 
         void updateCurrentYearDoy(YearDoy yearDoy);
 

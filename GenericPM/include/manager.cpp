@@ -132,7 +132,8 @@ int safe_assign_int(std::string valueStr) {
 }
 
 void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseData, CropInterface *ci,
-                           InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections) {
+                           InjectionHolder rateInjections, InjectionHolder integrationInjections, InjectionHolder outputInjections,
+                           CustomOutputHolder customOutputs) {
 #if GENERICPM_DEBUG_ENABLED
   std::cerr << "[MGR] addSimulator() called for disease: " << diseaseData["PESTID"].getOriginal() << std::endl << std::flush;
 #endif
@@ -152,6 +153,10 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
   float arraysize3[3], arraysize4[4];
 
   disease->setDiseaseID(diseaseData["PESTID"].getOriginal());
+  if (!customOutputs.fileName.empty()) {
+    disease->setCustomOutputFileName(customOutputs.fileName);
+  }
+  disease->setCustomOutputFormat(customOutputs.format);
 
   // Removed by V.L. Covert 04/02/2026:
   // - DSPL
@@ -214,6 +219,12 @@ void Manager::addSimulator(std::unordered_map<std::string, Expression> diseaseDa
   for (auto& injection : outputInjections.injections) {
     Expression* expr = new Expression(std::get<1>(injection));
     disease->addOutputInjection(Injection(std::get<0>(injection), expr, std::get<2>(injection)));
+  }
+
+  for (auto& output : customOutputs.outputs) {
+    Expression expr(output.expression);
+    expr.setContext(diseaseContext);
+    disease->addCustomOutput(output.name, expr, output.desc);
   }
 
   // Added parameter to determine organ mode (cohort vs singular)
@@ -664,6 +675,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
       std::unordered_map<std::string, Expression> diseaseData;
       // NOTE: Check out these InjectionHolders for validity after Expression changes.
       InjectionHolder rateInjections, integrationInjections, outputInjections;
+      CustomOutputHolder customOutputs;
       CloudFParamHolder cloudParams;
       std::string injectionExpression;
 
@@ -740,6 +752,83 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
                     
                   } catch (const YAML::Exception& e) {
                     std::cout << "Error parsing rate injection " << endpointName 
+                              << ": " << e.what() << std::endl;
+                  }
+                }
+              } else if (key == "CUSTOM_OUTPUT") {
+                for (auto outIt = value.begin(); outIt != value.end(); ++outIt) {
+                  std::string outputName = outIt->first.as<std::string>();
+                  YAML::Node outputData = outIt->second;
+
+                  if (outputName == "FILE_NAME" || outputName == "OUTPUT_FILE") {
+                    try {
+                      std::string outputFileName;
+                      if (outputData.IsMap()) {
+                        if (outputData[trtKey]) {
+                          outputFileName = outputData[trtKey].as<std::string>();
+                        } else if (outputData["DEFAULT"]) {
+                          outputFileName = outputData["DEFAULT"].as<std::string>();
+                        } else if (outputData["VALUE"]) {
+                          outputFileName = outputData["VALUE"].as<std::string>();
+                        } else {
+                          throw std::invalid_argument("ERROR: No matching treatment key '" + trtKey + "', 'DEFAULT', or 'VALUE' found for CUSTOM_OUTPUT FILE_NAME.");
+                        }
+                      } else {
+                        outputFileName = outputData.as<std::string>();
+                      }
+                      customOutputs.setFileName(outputFileName);
+                    } catch (const std::exception& e) {
+                      std::cout << "Error parsing custom output file name: "
+                                << e.what() << std::endl;
+                    }
+                    continue;
+                  }
+
+                  if (outputName == "FORMAT") {
+                    try {
+                      customOutputs.setFormat(outputData.as<std::string>());
+                    } catch (const std::exception& e) {
+                      std::cout << "Error parsing custom output format: "
+                                << e.what() << std::endl;
+                    }
+                    continue;
+                  }
+
+                  if (!outputData["VALUE"]) {
+                    std::cout << "Warning: Custom output " << outputName
+                              << " missing VALUE field" << std::endl;
+                    continue;
+                  }
+
+                  try {
+                    std::string outputExpression;
+                    if (outputData["VALUE"].Type() == 4) {
+                      if (outputData["VALUE"][trtKey]) {
+                        outputExpression = outputData["VALUE"][trtKey].as<std::string>();
+                      } else if (outputData["VALUE"]["DEFAULT"]) {
+                        outputExpression = outputData["VALUE"]["DEFAULT"].as<std::string>();
+                      } else {
+                        throw std::invalid_argument("ERROR: No matching treatment key '" + trtKey + "' or 'DEFAULT' found for custom output '" + outputName + "'.");
+                      }
+                    } else {
+                      outputExpression = outputData["VALUE"].as<std::string>();
+                    }
+
+                    std::string outputType = "string";
+                    if (outputData["TYPE"] && outputData["TYPE"].IsScalar()) {
+                      outputType = outputData["TYPE"].as<std::string>();
+                    }
+
+                    outputExpression = replacePlaceholders(outputExpression, outputType, disease, trtKey);
+
+                    std::string outputDesc = "";
+                    if (outputData["DESC"] && outputData["DESC"].IsScalar()) {
+                      outputDesc = outputData["DESC"].as<std::string>();
+                    }
+
+                    customOutputs.add(outputName, outputExpression, outputDesc);
+                  } catch (const std::exception& e) {
+                    std::cout << "Error parsing custom output " << outputName
                               << ": " << e.what() << std::endl;
                   }
                 }
@@ -840,7 +929,7 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
         }
 
         
-        manager->addSimulator(diseaseData, ciPtr, rateInjections, integrationInjections, outputInjections);
+        manager->addSimulator(diseaseData, ciPtr, rateInjections, integrationInjections, outputInjections, customOutputs);
       }
     }
   }
@@ -861,8 +950,7 @@ void Manager::updateCurrentYearDoy(YearDoy yearDoy) {
     integration();
     output();
 
-    // Update the date by one day
-    currentGDMDate += 1;  
+    currentGDMDate += 1;
   }
 }
 

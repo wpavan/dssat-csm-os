@@ -11,6 +11,7 @@
 #include "plant.h"
 #include "manager.h"
 #include "simulator.h"
+#include "debug_control.h"
 
 #include <sstream>
 #include <vector>

@@ -21,6 +21,7 @@
 #include <vector>
 #include <filesystem>
 #include <map>
+#include <set>
 
 bool diseaseHasOutput(std::shared_ptr<Disease> disease);
 
@@ -53,6 +54,8 @@ protected:
     std::vector<Output> loggedOutputs;
     std::map<std::string, float> currentDayOutputs;  // Map to accumulate outputs for a day
     std::vector<std::pair<int, std::map<std::string, float>>> bufferedRows;  // Buffer for all rows written so far
+    std::set<std::string> initializedCustomOutputFiles;
+    int lastExternalInoculumRate = -99;
 
     const bool hasOutput;
     std::string outputFileName;
@@ -104,6 +107,7 @@ public:
 
     void clearOutputLog();
     void logOutput(std::string varName, float value);
+    void writeCustomOutput(const std::map<std::string, float>& customOutputs, int yearDoy);
     void formatAndWriteOutputRow(int yearDoy, const std::map<std::string, float>& outputs, bool newColumnsDiscovered = false);
     void rebuildOutputFile();
     void writeOutputHeader();
