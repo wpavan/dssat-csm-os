@@ -705,12 +705,8 @@ cbak  ears that is not included in lai calculation.
 ! ---------------------------------------------------------------------
       ELSE    ! pass here only DYNAMIC = INTEGR
 
-! Storing daily ZSTAGE for GDM calculations
-!
-!            WRITE(*,'(A,I0,A,F8.2)') 
-!     &        'Setting ZSTAGE for YRDOY=', YRDOY, 
-!     &        ' value=', nwheats_dc_code
-          call fio%set("PEST","ZSTAGE",nwheats_dc_code)  
+! V.L.C removed ZSTAGE put to fio in lieu of PUT_FIO_CROP call (during rate)
+
 !-----------------------------------------------------------------------
 !*!   Begin NWheats subroutine nwheats_crown_temp (tempcn, tempcx). 
 

@@ -156,3 +156,18 @@ SUBROUTINE PUT_FIO_CONTROL (CONTROL_arg)
     CALL fio%set("CONTROL", "DAS", CONTROL_arg % DAS)
 END SUBROUTINE
 
+SUBROUTINE PUT_FIO_CROP (YEARDOY, ZSTAGE)
+    USE flexibleio
+
+    IMPLICIT NONE
+
+    ! Declare input-only arguments
+    TYPE(INTEGER)    , INTENT(IN) :: YEARDOY
+    TYPE(REAL)       , INTENT(IN) :: ZSTAGE
+
+    ! Declare local variables
+
+    ! Make flexibleIO calls
+    CALL fio%set("CROP", YEARDOY, "ZSTAGE", ZSTAGE)
+    write(*,*) "PUT ZSTAGE ", ZSTAGE, " ON YRDOY ", YEARDOY
+END SUBROUTINE

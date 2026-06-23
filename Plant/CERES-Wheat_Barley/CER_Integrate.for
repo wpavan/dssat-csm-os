@@ -1128,9 +1128,6 @@
 !     &      ' for overlap into linear filling period)'
           ENDIF
 
-          ! Store current day values in flexibleio
-          call fio%set("PEST", "ZSTAGE", ZSTAGE)
-
           ! Stored variables (For use next day or step)
           ISTAGEP = ISTAGE
           ZSTAGEP = ZSTAGE
