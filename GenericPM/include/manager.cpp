@@ -285,19 +285,25 @@ void Manager::rate() {
   }
 
   /** Call the rate function for the Plant */
-    Plant::getInstance()->rate();
+  Plant::getInstance()->rate();
 }
 
 void Manager::integration() {
-    for (auto& simulator : simulators) {
-        simulator->integration();
-    }
+  for (auto& simulator : simulators) {
+    simulator->integration();
+  }
+
+  /** Call the integration function for the Plant */
+  Plant::getInstance()->integration();
 }
 
 void Manager::output() {
-    for (auto& simulator : simulators) {
-        simulator->output();
-    }
+  for (auto& simulator : simulators) {
+    simulator->output();
+  }
+
+  /** Call the integration function for the Plant */
+  Plant::getInstance()->output();
 }
 
 std::string hashDisease(std::string diseaseName) {
@@ -847,9 +853,13 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
 void Manager::updateCurrentYearDoy(YearDoy yearDoy) {
   // Check if the currentGDMDate is less than the new yearDoy
   while(currentGDMDate.addOneDay() <= yearDoy) {
+    FlexibleIO* fio = FlexibleIO::getInstance();
+    fio->setIntegerMemory("CONTROL", "YEARDOY", currentGDMDate); 
+
     // Simulate the currentGDMDate
     rate();
     integration();
+    output();
 
     // Update the date by one day
     currentGDMDate += 1;  

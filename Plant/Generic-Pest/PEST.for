@@ -328,6 +328,8 @@ C-----------------------------------------------------------------------
      &    CLAI, CLFM, CSTEM, DISLA, DISLAP,               
      &    LAIDOT, WSIDOT, SDWT, WSDD, PSDD, DAS)
 
+        call OUTPUTGDM(YRDOY)
+
         call fio%set("PEST","PCLMT",PCLMT)
         CALL PUT('PDLABETA','BETA',1.0)
         CALL PUT('PDLABETA','PDLA',PDLA)
@@ -423,11 +425,7 @@ C-----------------------------------------------------------------------
 !     OUTPUT/SEASEND
 !***********************************************************************
       ELSEIF (DYNAMIC .EQ. OUTPUT .OR. DYNAMIC .EQ. SEASEND) THEN
-!------ Generic Disease Purpose -----!      
-      IF (DYNAMIC .EQ. OUTPUT .AND. ISDYNAMICDIS .EQ. 'Y') THEN
-          call OUTPUTGDM(YRDOY)
-      ENDIF
-!----------------END-----------------! 
+
 C-----------------------------------------------------------------------
       IF(DYNAMIC .EQ. OUTPUT) THEN
       CALL OPPEST(CONTROL, ISWITCH, 

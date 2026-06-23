@@ -157,9 +157,6 @@ int couplingIntegration(int *YRDOY,
     couplingData->updatePrevValues();
     Plant::getInstance()->updatePrev();
 
-    // Increment the current simulation date by one day at the end of integration.
-    manager->setCurrentSimDate(manager->getCurrentSimDate() + 1);
-
     return (1);
 }
 
@@ -172,6 +169,9 @@ int couplingOutput(int *doy) {
     Manager *manager = Manager::getInstance();
     manager->output();
     
+    // Increment the current simulation date by one day at the end of output.
+    manager->setCurrentSimDate(manager->getCurrentSimDate() + 1);
+
     return (1);
 }
 
