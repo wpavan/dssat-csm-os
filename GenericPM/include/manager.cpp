@@ -852,8 +852,8 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
 
 void Manager::updateCurrentYearDoy(YearDoy yearDoy) {
   // Check if the currentGDMDate is less than the new yearDoy
+  FlexibleIO* fio = FlexibleIO::getInstance();
   while(currentGDMDate.addOneDay() <= yearDoy) {
-    FlexibleIO* fio = FlexibleIO::getInstance();
     fio->setIntegerMemory("CONTROL", "YEARDOY", currentGDMDate); 
 
     // Simulate the currentGDMDate
