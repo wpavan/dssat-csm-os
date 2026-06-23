@@ -737,6 +737,7 @@ void Simulator::rate() {
         std::cerr << "[SIM] About to evaluate INOC_EXT for DiseaseID: " << disease->getDiseaseID() << std::endl << std::flush;
 #endif
         float inocExt = disease->getINOC_EXT()->evaluate();
+        disease->reporter.track_inoculum_added(inocExt);
 #if GENERICPM_DEBUG_ENABLED
         std::cerr << "[SIM] INOC_EXT evaluated to: " << inocExt << std::endl << std::flush;
         std::cerr << "[SIM] Cloud object: " << initialCondition->getCloud() << " (family: " << initialCondition->getCloud()->getFamily() << ")" << std::endl << std::flush;
@@ -854,7 +855,7 @@ void Simulator::integration() {
 
     if (disease->getDEBUG() != Expression("-99.0")) {
         FlexibleIO *fio = FlexibleIO::getInstance();
-        std::cout << "DEBUG for " << fio->getInteger("CONTROL", "YEARDOY") << 
+        std::cout << "DEBUG for " << Manager::getInstance()->getCurrentSimDate() << 
         ":\n\tOriginal Expression: " << disease->getDEBUG().getOriginal() << 
         "\n\tTranslated Expr:     " << disease->getDEBUG().getTranslated() << 
         "\n\tEvaluated Expr:      " << disease->getDEBUG().evaluate() << std::endl;
@@ -972,6 +973,8 @@ void Simulator::output() {
     // Clear accumulated outputs for the next day
     currentDayOutputs.clear();
     clearOutputLog();
+
+    this->disease->reporter.reset();
 
     gEqContext->disease = nullptr;
     gEqContext->plant = nullptr;

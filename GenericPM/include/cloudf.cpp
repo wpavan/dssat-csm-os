@@ -30,6 +30,7 @@ void CloudF::rate() {
         std::cout << "[DIAG] CloudF INOC_REM on YEARDOY " << fio->getInteger("CONTROL", "YEARDOY") << ": " << inocRemovalValue << std::endl;
 #endif
         this->addInoculumRemoved(inocRemovalValue);
+        this->disease->reporter.track_inoculum_removed(inocRemovalValue);
 
         // Run the generic cloud rate function
         Cloud::rate();

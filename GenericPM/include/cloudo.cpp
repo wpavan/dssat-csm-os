@@ -33,6 +33,7 @@ void CloudO::rate() {
     std::cout << "[DIAG] CloudO INOC_REM on YEARDOY " << FlexibleIO::getInstance()->getReal("CONTROL", "YEARDOY") << ": " << inocRemovalValue << std::endl;
 #endif
     this->addInoculumRemoved(inocRemovalValue);
+    this->disease->reporter.track_inoculum_removed(inocRemovalValue);
 
     // Run the generic cloud rate function
     Cloud::rate();

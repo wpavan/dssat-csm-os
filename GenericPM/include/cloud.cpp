@@ -68,6 +68,30 @@ static double TE_getThisCloudValue(void) {
     return 0.0;
 }
 
+static double TE_getTodayInoculumAdded(void) {
+    if (gEqContext) {
+        if (gEqContext->disease) {
+            return static_cast<double>(gEqContext->disease->reporter.inoculum_added_today);
+        } else {
+            std::cerr << "Warning: TE_getTodayInoculumAdded called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
+}
+
+static double TE_getTodayInoculumRemoved(void) {
+    if (gEqContext) {
+        if (gEqContext->disease) {
+            return static_cast<double>(gEqContext->disease->reporter.inoculum_removed_today);
+        } else {
+            std::cerr << "Warning: TE_getTodayInoculumRemoved called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
+}
+
 namespace {
     struct FunctionRegistrar {
         FunctionRegistrar() {
@@ -75,6 +99,14 @@ namespace {
             getCustomFunctions().register_context_function({"IS_PLANT_CLOUD", TE_isPlantCloud});
             getCustomFunctions().register_context_function({"IS_ORGAN_CLOUD", TE_isOrganCloud});
             getCustomFunctions().register_context_function({"CLOUD_INOCULUM", TE_getThisCloudValue});
+            getCustomFunctions().register_context_function({"TODAY_INOCULUM_ADDED", TE_getTodayInoculumAdded});
+            getCustomFunctions().register_context_function({"INOCULUM_ADDED", TE_getTodayInoculumAdded});
+            getCustomFunctions().register_context_function({"INOCULUM_ADDED_TODAY", TE_getTodayInoculumAdded});
+            getCustomFunctions().register_context_function({"INOC_ADD", TE_getTodayInoculumAdded});
+            getCustomFunctions().register_context_function({"TODAY_INOCULUM_REMOVED", TE_getTodayInoculumRemoved});
+            getCustomFunctions().register_context_function({"INOCULUM_REMOVED", TE_getTodayInoculumRemoved});
+            getCustomFunctions().register_context_function({"INOCULUM_REMOVED_TODAY", TE_getTodayInoculumRemoved});
+            getCustomFunctions().register_context_function({"INOC_REM", TE_getTodayInoculumRemoved});
         }
     };
 

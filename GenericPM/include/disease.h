@@ -120,10 +120,25 @@ public:
     ~Disease() {
         std::cout << "Disease destructor called for " << this << " family: " << family << std::endl;
     }
+    struct Reporter {
+        float inoculum_added_today = 0.0f;
+        float inoculum_removed_today = 0.0f;
 
-    // static std::vector<std::shared_ptr<Disease>>& getDisease() {
-    //     return listDiseases;
-    // }
+        void reset() {
+            inoculum_added_today = 0.0f;
+            inoculum_removed_today = 0.0f;
+        }
+
+        void track_inoculum_added(float amount) {
+            inoculum_added_today += amount;
+        }
+
+        void track_inoculum_removed(float amount) {
+            inoculum_removed_today += amount;
+        }
+    };
+
+    Reporter reporter;
 
     void printDisease() {
         std::cout << "Disease ID: " << diseaseID << std::endl;

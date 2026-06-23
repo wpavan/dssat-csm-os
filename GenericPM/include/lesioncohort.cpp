@@ -231,6 +231,7 @@ void LesionCohort::rate() {
     // Use INOC_LES to determine new spores created by this lesion cohort
     try {
         newSpores = disease->getINOC_LES()->evaluate() * lesionsInThisCohort;
+        disease->reporter.track_inoculum_added(newSpores);
         // std::cout << "Evaluated INOC_LES: " << newSpores << std::endl;
     } catch (const std::runtime_error& e) {
         std::cerr << "Error evaluating INOC_LES expression for DiseaseID: " << disease->getDiseaseID() << std::endl << "Exception: " << e.what() << std::endl;
