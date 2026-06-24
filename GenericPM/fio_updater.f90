@@ -20,7 +20,6 @@ SUBROUTINE PUT_FIO_WEATHER (WEATHER_arg, YEARDOY)
     ! Declare local variables
     CHARACTER(len=2) :: HR_NUM
     INTEGER :: hour
-    REAL :: retrieved_rhumhr
 
     ! Daily weather data.
     ! REAL: 
@@ -58,7 +57,7 @@ SUBROUTINE PUT_FIO_WEATHER (WEATHER_arg, YEARDOY)
     CALL fio%set("WTH", YEARDOY, "WINDSP", WEATHER_arg % WINDSP)
     CALL fio%set("WTH", YEARDOY, "VPDF", WEATHER_arg % VPDF)
     CALL fio%set("WTH", YEARDOY, "VPD_TRANSP", WEATHER_arg % VPD_TRANSP)
-    CALL fio%set("WTH", YEARDOY, "OZON7", WEATHER_arg % OZON7)
+    CALL fio%set("WTH", YEARDOY, "OZONE", WEATHER_arg % OZON7)
 
     ! Use the MERGE function, which can return a value based on a logical condition.
     CALL fio%set("WTH", YEARDOY, "NOTDEW", MERGE(1, 0, WEATHER_arg % NOTDEW))
@@ -83,14 +82,27 @@ SUBROUTINE PUT_FIO_WEATHER (WEATHER_arg, YEARDOY)
         CALL fio%set("WTH", YEARDOY, "TAIRHR" // TRIM(HR_NUM), WEATHER_arg % TAIRHR(hour))
         CALL fio%set("WTH", YEARDOY, "TGRO" // TRIM(HR_NUM), WEATHER_arg % TGRO(hour))
         CALL fio%set("WTH", YEARDOY, "WINDHR" // TRIM(HR_NUM), WEATHER_arg % WINDHR(hour))
-
-        ! Debug to determine if values in fio get stored properly
-        ! CALL fio%get("WTH", YEARDOY, "RHUMHR" // TRIM(HR_NUM), retrieved_rhumhr)
-        ! WRITE(*,'(A, I0, A, I2.2, A, F0.4, A, F0.4)') &
-        !     'DEBUG FIO RHUMHR: WTH/', YEARDOY, '/RHUMHR', hour, &
-        !     ' | Input=', WEATHER_arg % RHUMHR(hour), &
-        !     ' | Retrieved=', retrieved_rhumhr
     END DO
+END SUBROUTINE
+
+SUBROUTINE PUT_FIO_WSTA (WEATHER_arg)
+    ! Use only necessary external definitions
+    USE ModuleDefs, ONLY: WeatherType
+    USE flexibleio
+
+    IMPLICIT NONE
+
+    ! Declare input-only arguments
+    TYPE(WeatherType), INTENT(IN) :: WEATHER_arg
+
+    ! Weather station data
+    CALL fio%set("WTH", "REFHT", WEATHER_arg % REFHT)
+    CALL fio%set("WTH", "WINDHT", WEATHER_arg % WINDHT)
+    CALL fio%set("WTH", "XLAT", WEATHER_arg % XLAT)
+    CALL fio%set("WTH", "XLONG", WEATHER_arg % XLONG)
+    CALL fio%set("WTH", "XELEV", WEATHER_arg % XELEV)
+    CALL fio%set("WTH", "TAMP", WEATHER_arg % TAMP)
+    CALL fio%set("WTH", "TAV", WEATHER_arg % TAV)
 END SUBROUTINE
 
 SUBROUTINE PUT_FIO_SOILPROP (SOILPROP_arg)
@@ -103,11 +115,12 @@ SUBROUTINE PUT_FIO_SOILPROP (SOILPROP_arg)
     
     INTEGER :: index
 
-    ! Daily soil data.
+    ! Soil data.
     ! INTEGER: NLAYR
     ! LAYERED: SAT, DUL, LL, CLAY, SAND, SILT, STONES, BD
 
     CALL fio%set("SOIL", "NLAYR", SOILPROP_arg % NLAYR)
+    CALL fio%set("SOIL", "ALBEDO", SOILPROP_ARG % MSALB)
 
     ! Add all values by layer
     DO index = 1, SOILPROP_arg % NLAYR, 1
@@ -121,6 +134,17 @@ SUBROUTINE PUT_FIO_SOILPROP (SOILPROP_arg)
         CALL fio%set("SOIL", "STONES", SOILPROP_arg % STONES(index), index)
     END DO
 END SUBROUTINE
+
+SUBROUTINE PUT_FIO_SOIL (ALB)
+    USE flexibleio
+
+    IMPLICIT NONE
+
+    TYPE (REAL), INTENT(IN) :: ALB
+    
+    CALL fio%set("SOIL", "ALBEDO", ALB)
+END SUBROUTINE 
+
 
 SUBROUTINE PUT_FIO_SW (SW_arg)
     USE ModuleDefs, ONLY: NL
@@ -151,8 +175,13 @@ SUBROUTINE PUT_FIO_CONTROL (CONTROL_arg)
 
     TYPE (ControlType) CONTROL_arg
 
+    INTEGER DOY
+
+    DOY = MOD(CONTROL_arg%YRDOY, 1000)
+
     CALL fio%set("CONTROL", "YRDOY", CONTROL_arg % YRDOY)
     CALL fio%set("CONTROL", "YEARDOY", CONTROL_arg % YRDOY)
+    CALL fio%set("CONTROL", "DOY", DOY)
     CALL fio%set("CONTROL", "DAS", CONTROL_arg % DAS)
 END SUBROUTINE
 

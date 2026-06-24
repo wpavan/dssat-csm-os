@@ -138,6 +138,7 @@ int couplingRate(int *YRDOY,
     if (*YRPLT == *YRDOY) {
         Plant::newInstance();
     }
+    std::string yrdoy = std::to_string(*YRDOY);
 
     manager->rate();
     return (1);

@@ -300,12 +300,12 @@ void Manager::rate() {
 }
 
 void Manager::integration() {
+  /** Call the integration function for the Plant */
+  Plant::getInstance()->integration();
+  
   for (auto& simulator : simulators) {
     simulator->integration();
   }
-
-  /** Call the integration function for the Plant */
-  Plant::getInstance()->integration();
 }
 
 void Manager::output() {

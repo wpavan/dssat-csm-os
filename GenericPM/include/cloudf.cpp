@@ -11,6 +11,7 @@
 #include "cloudf.h"
 #include "project_config.h"
 #include "debug_control.h"
+#include "numericstringcache.h"
 
 #include <iostream>
 #include <sstream>
@@ -159,9 +160,16 @@ void CloudF::addInoculumCreated(float inoculumCreated, int destination) {
             break;
         }
         default:
-#if GENERICPM_DEBUG_ENABLED
-            std::cerr << "[CLOUDF] ERROR: Unknown destination enum value: " << destination << " (expected 0=DORMANT or 1=INFECTIVE)" << std::endl << std::flush;
-#endif
+            FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+            std::string destinationStr = converter->decode(destination);
+            if (destinationStr == "DORMANT") {
+                DormantInoculum::getInstance()->addDormantInoculum(inoculumCreated, this->disease->getFamily());
+            } else if (destinationStr == "INFECTIVE") {
+                this->activeInoculumCreated += inoculumCreated;
+                std::cout << "[DIAG] CloudF::addInoculumCreated total=" << activeInoculumCreated << std::endl;
+            } else {
+                throw std::runtime_error("Unknown InoculumDestination: " + destinationStr);
+            }
             break;
     }
 }

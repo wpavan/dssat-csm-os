@@ -542,7 +542,9 @@ C-----------------------------------------------------------------------
       CALL PUT(WEATHER)
 
 ! 04/14/2026 VLC Added call to push GDM-relevant variables to fio
-      IF (DYNAMIC .EQ. RATE) THEN
+      IF (DYNAMIC .EQ. SEASINIT) THEN
+            CALL PUT_FIO_WSTA(WEATHER)
+      ELSEIF (DYNAMIC .EQ. RATE) THEN
             CALL PUT_FIO_WEATHER(WEATHER, YRDOY)
       ENDIF
 

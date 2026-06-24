@@ -11,6 +11,7 @@
 #include "cloudp.h"
 #include "project_config.h"
 #include "debug_control.h"
+#include "numericstringcache.h"
 //#include "../../FlexibleIO/Data/FlexibleIO.hpp"
 
 #include <iostream>
@@ -128,6 +129,20 @@ void CloudP::addInoculumCreated(float inoculumCreated, int destination) {
             std::cout << "[DIAG] CloudP::addInoculumCreated called total=" << inoculumCreated << " toSelf=" << inoculumCreated - toParent << " toParent=" << toParent << std::endl;
 #endif
             cloudF->addInoculumCreated(toParent);
+            break;
+        default:
+            FastStringDoubleConverter* converter = FastStringDoubleConverter::getInstance();
+            std::string destinationStr = converter->decode(destination);
+            if (destinationStr == "DORMANT") {
+                DormantInoculum::getInstance()->addDormantInoculum(inoculumCreated, this->disease->getFamily());
+            } else if (destinationStr == "INFECTIVE") {
+                toParent = inoculumCreated * disease->getProportionFromOrganToPlantCloud();
+                this->activeInoculumCreated += inoculumCreated - toParent;
+                std::cout << "[DIAG] CloudP::addInoculumCreated total=" << activeInoculumCreated << " toSelf=" << inoculumCreated - toParent << " toParent=" << toParent << std::endl;
+                cloudF->addInoculumCreated(toParent, destination);
+            } else {
+                throw std::runtime_error("Unknown InoculumDestination: " + destinationStr);
+            }
             break;
     }
 }

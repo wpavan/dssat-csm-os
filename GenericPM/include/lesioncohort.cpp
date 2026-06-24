@@ -62,6 +62,7 @@ static double TE_isPhase2(void) {
     if (gEqContext) {
         if (gEqContext->lesionCohort) {
             return gEqContext->lesionCohort->isPhase2() ? 1.0 : 0.0;
+            std::cout << "LC is in Phase 2? " << (gEqContext->lesionCohort->isPhase2() ? "Yes" : "No") << " AGE: " << (gEqContext->lesionCohort->getAge() ? "Yes" : "No") << std::endl;
         } else {
             std::cerr << "Warning: TE_isPhase2 called outside of the appropriate context." << std::endl;
             return 0.0;
@@ -231,6 +232,7 @@ void LesionCohort::rate() {
     // Use INOC_LES to determine new spores created by this lesion cohort
     try {
         newSpores = disease->getINOC_LES()->evaluate() * lesionsInThisCohort;
+        std::cout << "newspores: " << newSpores << std::endl;
         disease->reporter.track_inoculum_added(newSpores);
         // std::cout << "Evaluated INOC_LES: " << newSpores << std::endl;
     } catch (const std::runtime_error& e) {
@@ -255,6 +257,8 @@ void LesionCohort::integration() {
         }
 
         if(newSpores > 0) {
+            std::cout << "Adding new spores to CloudO: " << newSpores << std::endl;
+            // NOTE: Trying to add new spores in rate:
             cloudo->addInoculumCreated(newSpores, disease->getINOC_DEST().evaluate());
         }        
 
