@@ -103,6 +103,17 @@ static double TE_getThisDiseaseTotalValue() {
     return 0.0;
 }
 
+static double TE_getThisDiseaseLesionsQTD() {
+    if (gEqContext) {
+        if (gEqContext->plant && gEqContext->disease) {
+            return static_cast<double>(gEqContext->plant->getTotalLesions(gEqContext->disease));
+        } else {
+            std::cerr << "Warning: TE_getThisDiseaseLesionsQTD called outside of the appropriate context." << std::endl;
+            return 0.0;
+        }
+    }
+    return 0.0;
+}
 namespace {
     struct FunctionRegistrar {
         FunctionRegistrar() {
@@ -116,6 +127,7 @@ namespace {
             getCustomFunctions().register_context_function({"PLANT_THIS_DIS_VALUE", TE_getThisDiseaseTotalValue});
             getCustomFunctions().register_context_function({"PLANT_THIS_DIS_INV_VALUE", TE_getThisDiseaseInvisibleValue});
 
+            getCustomFunctions().register_context_function({"PLANT_THIS_DIS_LESIONS_QTD", TE_getThisDiseaseLesionsQTD});
             // NOTE: Add in this dis vis value
         }
     };
