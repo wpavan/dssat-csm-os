@@ -13,6 +13,7 @@
 #include "cropinterface.h"
 #include "equation_context.h"
 #include "project_config.h"
+#include "debug_control.h"
 
 #include <string>
 #include <sstream>
@@ -232,7 +233,9 @@ void LesionCohort::rate() {
     // Use INOC_LES to determine new spores created by this lesion cohort
     try {
         newSpores = disease->getINOC_LES()->evaluate() * lesionsInThisCohort;
+#if GENERICPM_DEBUG_ENABLED
         std::cout << "newspores: " << newSpores << std::endl;
+#endif
         disease->reporter.track_inoculum_added(newSpores);
         // std::cout << "Evaluated INOC_LES: " << newSpores << std::endl;
     } catch (const std::runtime_error& e) {
@@ -257,7 +260,9 @@ void LesionCohort::integration() {
         }
 
         if(newSpores > 0) {
+#if GENERICPM_DEBUG_ENABLED
             std::cout << "Adding new spores to CloudO: " << newSpores << std::endl;
+#endif
             // NOTE: Trying to add new spores in rate:
             cloudo->addInoculumCreated(newSpores, disease->getINOC_DEST().evaluate());
         }        

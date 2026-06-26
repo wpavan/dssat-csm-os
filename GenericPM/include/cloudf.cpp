@@ -166,7 +166,9 @@ void CloudF::addInoculumCreated(float inoculumCreated, int destination) {
                 DormantInoculum::getInstance()->addDormantInoculum(inoculumCreated, this->disease->getFamily());
             } else if (destinationStr == "INFECTIVE") {
                 this->activeInoculumCreated += inoculumCreated;
+#if GENERICPM_DEBUG_ENABLED
                 std::cout << "[DIAG] CloudF::addInoculumCreated total=" << activeInoculumCreated << std::endl;
+#endif
             } else {
                 throw std::runtime_error("Unknown InoculumDestination: " + destinationStr);
             }

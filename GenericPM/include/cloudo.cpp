@@ -117,13 +117,17 @@ void CloudO::addInoculumCreated(float inoculumCreated, int destination) {
     float toParent, toSelf;
     switch ((InoculumDestination)destination) {
         case InoculumDestination::DORMANT:
+#if GENERICPM_DEBUG_ENABLED
             std::cout << "DORMANT" << std::endl;
+#endif
             DormantInoculum::getInstance()->addDormantInoculum(inoculumCreated, this->disease->getFamily());
             break;
         case InoculumDestination::INFECTIVE:
             toParent = inoculumCreated * disease->getProportionFromOrganToPlantCloud();
             this->activeInoculumCreated += inoculumCreated - toParent;
+#if GENERICPM_DEBUG_ENABLED
             std::cout << "[DIAG] CloudO::addInoculumCreated total=" << activeInoculumCreated << " toSelf=" << inoculumCreated - toParent << " toParent=" << toParent << std::endl;
+#endif
             cloudP->addInoculumCreated(toParent, destination);
             break;
         default:
@@ -134,7 +138,9 @@ void CloudO::addInoculumCreated(float inoculumCreated, int destination) {
             } else if (destinationStr == "INFECTIVE") {
                 toParent = inoculumCreated * disease->getProportionFromOrganToPlantCloud();
                 this->activeInoculumCreated += inoculumCreated - toParent;
+#if GENERICPM_DEBUG_ENABLED
                 std::cout << "[DIAG] CloudO::addInoculumCreated total=" << activeInoculumCreated << " toSelf=" << inoculumCreated - toParent << " toParent=" << toParent << std::endl;
+#endif
                 cloudP->addInoculumCreated(toParent, destination);
             } else {
                 throw std::runtime_error("Unknown InoculumDestination: " + destinationStr);
