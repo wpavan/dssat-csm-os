@@ -1,3 +1,15 @@
+/**
+ * @file expression.cpp
+ * 
+ * @author Virginia L. Covet (virginiacovert454@gmail.com)
+ * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * @author Willingthon Pavan (wpavan.us@gmail.com)
+ * 
+ * @copyright Copyright (c) 2026, University of Florida
+ * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 #include <regex>
 #include <algorithm>
 #include <cctype>
@@ -5,6 +17,7 @@
 
 #include "../TinyExpr++/tinyexpr.h"
 
+#include "errors.h"
 #include "expression.h"
 #include "debug_control.h"
 #include "numericstringcache.h"
@@ -295,6 +308,12 @@ float Expression::evaluate() {
     // Evaluate and return value
     te_type result = ParserCache::getInstance()->getParser(this->getTranslated())->evaluate();
     if (std::isnan(result)) {
+        const char *ERRKEY = "GDM";
+        const int ERRNUM = 21;
+        const char *FILE = "";
+        const int LINE = 0;
+
+        errorGDM(ERRKEY, &ERRNUM, FILE, &LINE);
         std::string errorMsg = "Evaluation resulted in NaN for expression:\n\tOriginal:   " + originalExpr + "\n\tTranslated: " + this->getTranslated() + "\n\tError Message: '" + ParserCache::getInstance()->getParser(this->getTranslated())->get_last_error_message() + "'";
         throw std::runtime_error(errorMsg);
     }

@@ -1,7 +1,15 @@
 !=======================================================================
-! fio_updater.for, Virginia Covert
+! fio_updater.for
+! Virginia L. Covert, Willingthon Pavan, Jose Mauricio Cunha Fernandes
+! 08/13/2026
+!
 ! Subroutines which update the flexibleIO memory with 
 !   GDM-relevant variables
+!-----------------------------------------------------------------------
+! Licensing
+! Copyright (c) 2026, University of Florida
+! BSD-3-Clause. See the LICENSE file in the root folder for details.
+! SPDX-License-Identifier: BSD-3-Clause
 !-----------------------------------------------------------------------
 ! REVISION HISTORY
 ! 04/14/2026 VC Written with PUT_FIO_WEATHER subroutine
@@ -135,17 +143,6 @@ SUBROUTINE PUT_FIO_SOILPROP (SOILPROP_arg)
     END DO
 END SUBROUTINE
 
-SUBROUTINE PUT_FIO_SOIL (ALB)
-    USE flexibleio
-
-    IMPLICIT NONE
-
-    TYPE (REAL), INTENT(IN) :: ALB
-    
-    CALL fio%set("SOIL", "ALBEDO", ALB)
-END SUBROUTINE 
-
-
 SUBROUTINE PUT_FIO_SW (SW_arg)
     USE ModuleDefs, ONLY: NL
     USE flexibleio
@@ -168,6 +165,20 @@ SUBROUTINE PUT_FIO_SW (SW_arg)
 END SUBROUTINE
 
 SUBROUTINE PUT_FIO_CONTROL (CONTROL_arg)
+    ! CHARACTER (len=1)  MESIC, RNMODE
+    ! CHARACTER (len=2)  CROP
+    ! CHARACTER (len=8)  MODEL, ENAME
+    ! CHARACTER (len=12) FILEX
+    ! CHARACTER (len=30) FILEIO
+    ! CHARACTER (len=102)DSSATP
+    ! CHARACTER (len=120) :: SimControl = 
+    ! &  "                                                            "//
+    ! &  "                                                            "
+    ! INTEGER   DAS, DYNAMIC, FROP, ErrCode, LUNIO, MULTI, N_ELEMS
+    ! INTEGER   NYRS, REPNO, ROTNUM, RUN, TRTNUM
+    ! INTEGER   YRDIF, YRDOY, YRSIM
+    ! INTEGER   FODAT, ENDYRS  !Forecast start date and ensemble #
+    ! INTEGER   CropStatus
     USE ModuleDefs, ONLY: ControlType
     USE flexibleio
 
@@ -183,6 +194,32 @@ SUBROUTINE PUT_FIO_CONTROL (CONTROL_arg)
     CALL fio%set("CONTROL", "YEARDOY", CONTROL_arg % YRDOY)
     CALL fio%set("CONTROL", "DOY", DOY)
     CALL fio%set("CONTROL", "DAS", CONTROL_arg % DAS)
+    CALL fio%set("CONTROL", "TRTNUM", CONTROL_arg % TRTNUM)
+END SUBROUTINE
+
+SUBROUTINE PUT_FIO_CHEM (NCHEM, CDATE, CHAMT, CHDEP, CHMET, CHCOD, CHT)
+    USE flexibleio
+
+    IMPLICIT NONE
+
+    TYPE (INTEGER),     DIMENSION(10), INTENT(IN) :: CDATE
+    TYPE (REAL),        DIMENSION(10), INTENT(IN) :: CHAMT
+    TYPE (REAL),        DIMENSION(10), INTENT(IN) :: CHDEP
+    TYPE (CHARACTER*5), DIMENSION(10), INTENT(IN) :: CHMET
+    TYPE (CHARACTER*5), DIMENSION(10), INTENT(IN) :: CHCOD
+    TYPE (CHARACTER*5), DIMENSION(10), INTENT(IN) :: CHT
+
+    TYPE (INTEGER), INTENT(IN) :: NCHEM
+    INTEGER index
+
+    DO index = 1, NCHEM, 1
+        CALL fio%set("CHEM", "CDATE", CDATE(index), index)
+        CALL fio%set("CHEM", "CHAMT", CHAMT(index), index)
+        CALL fio%set("CHEM", "CHDEP", CHDEP(index), index)
+        CALL fio%set("CHEM", "CHMET", CHMET(index), index)
+        CALL fio%set("CHEM", "CHCOD", CHCOD(index), index)
+        CALL fio%set("CHEM", "CHT", CHT(index), index)
+    END DO
 END SUBROUTINE
 
 SUBROUTINE PUT_FIO_CROP (YEARDOY, ZSTAGE)

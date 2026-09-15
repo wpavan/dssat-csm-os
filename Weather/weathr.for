@@ -1,5 +1,6 @@
 C=======================================================================
-C  COPYRIGHT 1998-2026 DSSAT Foundation
+C  COPYRIGHT 1998-2026 
+C                      DSSAT Foundation
 C                      University of Florida, Gainesville, Florida
 C                      International Fertilizer Development Center
 C                     
@@ -144,6 +145,10 @@ C=======================================================================
 !     Seasonal initialization - run once per season
 !***********************************************************************
       ELSEIF (DYNAMIC .EQ. SEASINIT) THEN
+
+        ! Initialize variables
+        WEATHER % CPRED = 0.0
+!-----------------------------------------------------------------------        
         YYDDD = YRSIM
         CALL YR_DOY(YYDDD, WYEAR, DOY)
         FYRDOY = 0

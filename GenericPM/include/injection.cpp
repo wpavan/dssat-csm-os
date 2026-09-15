@@ -1,3 +1,16 @@
+/**
+ * @file injection.cpp
+ * 
+ * @author Virginia Covert (virginiacovert454@gmail.com)
+ * @author Willingthon Pavan (wpavan.us@gmail.com)
+ * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * 
+ * @copyright Copyright (c) 2025–2026, University of Florida
+ * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
+#include "errors.h"
 #include "injection.h"
 #include "manager.h"
 #include "utilities.h"
@@ -136,7 +149,12 @@ static double TE_fio_real(double group, double varname) {
     std::string varnameStr = converter->decode(varname);
     float fioValue = fio->getReal(groupStr, varnameStr);
     if (fioValue == -99.0f) {
-        std::cerr << "Warning: FIO_REAL returned -99.0f for group '" << groupStr << "', variable '" << varnameStr << "'. This may indicate a missing value or invalid index." << std::endl;
+        std::vector<std::string> messages;
+        messages.push_back("FIO_REAL returned -99.0f.");
+        messages.push_back("Group '" + groupStr + "', variable '" + varnameStr + "'");
+        messages.push_back("This may indicate a missing value.");
+
+        throwWarning(messages.size(), messages);
     }
     return fioValue;
 }
@@ -153,7 +171,12 @@ static double TE_fio_real_yrdoy(double group, double yrdoy, double varname) {
     fioValue = fio->getRealYrdoy(groupStr, std::to_string((int)yrdoy), varnameStr);
 
     if (fioValue == -99.0f) {
-        std::cerr << "Warning: FIO_REAL_YRDOY returned -99.0f for group '" << groupStr << "', variable '" << varnameStr << "', YEARDOY " << (int)yrdoy << ". This may indicate a missing value or invalid index." << std::endl;
+        std::vector<std::string> messages;
+        messages.push_back("FIO_REAL_YRDOY returned -99.0f.");
+        messages.push_back("Group '" + groupStr + "', variable '" + varnameStr + "', YEARDOY " + std::to_string((int)yrdoy));
+        messages.push_back("This may indicate a missing value or invalid index.");
+
+        throwWarning(messages.size(), messages);
     }
     return fioValue;
 }
@@ -165,7 +188,12 @@ static double TE_fio_real_index(double group, double varname, double index) {
     std::string varnameStr = converter->decode(varname);
     float fioValue = fio->getRealIndex(groupStr, varnameStr, (int)index);
     if (fioValue == -99.0f) {
-        std::cerr << "Warning: FIO_REAL_INDEX returned -99.0f for group '" << groupStr << "', variable '" << varnameStr << "', index " << (int)index << ". This may indicate a missing value or invalid index." << std::endl;
+        std::vector<std::string> messages;
+        messages.push_back("FIO_REAL_INDEX returned -99.0f.");
+        messages.push_back("Group '" + groupStr + "', variable '" + varnameStr + "', YEARDOY " + std::to_string((int)index));
+        messages.push_back("This may indicate a missing value or invalid index.");
+
+        throwWarning(messages.size(), messages);
     }
     return fioValue;
 }
@@ -303,7 +331,6 @@ static double TE_growing_degree_days_max(double baseTemp, double maxTemp) {
     FlexibleIO* fio = FlexibleIO::getInstance();
     int currentYrdoy = fio->getInteger("CONTROL", "YEARDOY");
     double dailyAvgTemp = fio->getRealYrdoy("WTH", std::to_string(currentYrdoy), "TAVG");
-    std::cerr << "Debug: In TE_growing_degree_days_max, dailyAvgTemp = " << dailyAvgTemp << ", baseTemp = " << baseTemp << ", maxTemp = " << maxTemp << std::endl;
     return std::max(0.0, std::min(dailyAvgTemp, maxTemp) - baseTemp);
 }
 
@@ -341,7 +368,11 @@ double Injection::eval() {
     try {
         return expression->evaluate();
     } catch (const std::runtime_error& e) {
-        std::cerr << "Error evaluating expression for Injection with raw endpoint '" << rawEndpoint << "': " << e.what() << std::endl;
+        std::vector<std::string> messages;
+        messages.push_back("Error evaluating expression for Injection with raw endpoint '" + rawEndpoint + "': ");
+        messages.push_back(e.what());
+
+        throwWarning(messages.size(), messages);
         throw e;
     }
 }

@@ -3,9 +3,11 @@
  * 
  * @author Willingthon Pavan (wpavan.us@gmail.com)
  * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * @author Virginia Covert (virginiacovert454@gmail.com)
  * 
- * @copyright Copyright (c) 2017–2025, DSSAT Foundation
+ * @copyright Copyright (c) 2017–2026, University of Florida
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 #include "organ.h"
 #include "simulator.h"
@@ -30,7 +32,10 @@ static double TE_getHealthyValue(void) {
         if (gEqContext->organ) {
             return static_cast<double>(gEqContext->organ->getHealthyValue());
         } else {
-            std::cerr << "Warning: TE_getHealthyValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getHealthyValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -42,7 +47,10 @@ static double TE_getDiseaseValue(void) {
         if (gEqContext->organ) {
             return static_cast<double>(gEqContext->organ->getDiseaseValue());
         } else {
-            std::cerr << "Warning: TE_getDiseaseValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getDiseaseValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -54,7 +62,10 @@ static double TE_getInvisibleDiseaseValue(void) {
         if (gEqContext->organ) {
             return static_cast<double>(gEqContext->organ->getInvisibleValue());
         } else {
-            std::cerr << "Warning: TE_getInvisibleDiseaseValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getInvisibleDiseaseValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -66,7 +77,10 @@ static double TE_getVisibleDiseaseValue(void) {
         if (gEqContext->organ) {
             return static_cast<double>(gEqContext->organ->getVisibleValue());
         } else {
-            std::cerr << "Warning: TE_getVisibleDiseaseValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getVisibleDiseaseValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -78,7 +92,10 @@ static double TE_getTotalValue(void) {
         if (gEqContext->organ) {
             return static_cast<double>(gEqContext->organ->getTotalValue());
         } else {
-            std::cerr << "Warning: TE_getTotalValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getTotalValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -90,7 +107,10 @@ static double TE_getAge(void) {
         if (gEqContext->organ) {
             return static_cast<double>(gEqContext->organ->getPhysiologicalLife());
         } else {
-            std::cerr << "Warning: TE_getAge called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getAge called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -129,7 +149,10 @@ static double TE_getLocalInoculum(void) {
         }
         return static_cast<double>(totalInoc);
     } else {
-        std::cerr << "Warning: TE_getLocalInoculum called outside of the appropriate context." << std::endl;
+        std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getLocalInoculum called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
     }
     return 0.0;
 }
@@ -159,7 +182,10 @@ static double TE_getLocalInoculumByFamily(double family) {
                 }
             }
         } else if (gEqContext && !gEqContext->organ) {
-            std::cerr << "Warning: TE_getLocalInoculumByFamily called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getLocalInoculumByFamily called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
         }
         return 0.0;
     }

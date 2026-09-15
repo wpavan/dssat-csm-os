@@ -2,8 +2,13 @@
  * @file equation_context.h
  * @brief Global equation evaluation context for TinyExpr++ expressions
  * 
- * @copyright Copyright (c) 2026, DSSAT Foundation
+ * @author Virginia L. Covet (virginiacovert454@gmail.com)
+ * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * @author Willingthon Pavan (wpavan.us@gmail.com)
+ * 
+ * @copyright Copyright (c) 2026, University of Florida
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #ifndef EQUATION_CONTEXT_H

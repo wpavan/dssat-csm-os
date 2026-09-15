@@ -1,3 +1,15 @@
+/**
+ * @file coupling.h
+ * 
+ * @author Virginia L. Covert (virginiacovert454@gmail.com)
+ * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * @author Willingthon Pavan (wpavan.us@gmail.com)
+ * 
+ * @copyright Copyright (c) 2025-2026, University of Florida
+ * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 #ifndef COUPLING_H
 #define COUPLING_H
 
@@ -6,9 +18,53 @@
 #include <stdexcept>
 #include <iostream>
 
+enum class DamageCouplingPoints {
+    PPSR,		// Output - Percentage of assimilate destroyed daily (%/d)
+    TPSR,		// Output - Total assimilate destroyed daily (g[CH2O]/m2/d)
+    PSDD,		// Output - Percentage of seed mass destroyed daily (%/d)
+    PSDDS,		// Output - Percentage of small seed number or mass destroyed daily (%/d); CROPGRO
+    PSDDL,		// Output - Percentage of large seed number or mass destroyed daily (%/d); CROPGRO
+    PSDDM,		// Output - Percentage of mature seed number or mass destroyed daily (%/d); CROPGRO
+    WSDD,		// Output - Seed weight destroyed daily (g/m2/d)
+    WSDDS,		// Output - Weight of small seed destroyed daily (g/m2/d); CROPGRO
+    WSDDL,		// Output - Weight of large seed destroyed daily (g/m2/d); CROPGRO
+    WSDDM,		// Output - Weight of mature seed destroyed daily (g/m2/d); CROPGRO
+    NSDDS,		// Output - Number of small seed destroyed daily (g/m2/d); CROPGRO
+    NSDDL,		// Output - Number of large seed destroyed daily (g/m2/d); CROPGRO
+    NSDDM,		// Output - Number of mature seed destroyed daily (g/m2/d); CROPGRO
+    PSHDS,		// Output - Percentage of small shell number or mass destroyed daily (%/d); CROPGRO
+    PSHDL,		// Output - Percentage of large shell number or mass destroyed daily (%/d); CROPGRO
+    PSHDM,		// Output - Percentage of mature shell number or mass destroyed daily (%/d); CROPGRO
+    WSHDS,		// Output - Weight of small shell destroyed daily (g/m2/d); CROPGRO
+    WSHDL,		// Output - Weight of large shell destroyed daily (g/m2/d); CROPGRO
+    WSHDM,		// Output - Weight of mature shell destroyed daily (g/m2/d); CROPGRO
+    NSHDS,		// Output - Number of small shell destroyed daily (g/m2/d); CROPGRO
+    NSHDL,		// Output - Number of large shell destroyed daily (g/m2/d); CROPGRO
+    NSHDM,		// Output - Number of mature shell destroyed daily (g/m2/d); CROPGRO
+    PCSTMD,		// Output - Percentage of cumulative stem weight developed during season destroyed (%) 
+    PSTMD,		// Output - Percentage of stem weight destroyed daily (%/d)
+    WSTMD,		// Output - Stem weight destroyed daily (g/m2/d)
+    TLFAD,		// Output - Leaf area destroyed daily (cm2/cm2/d)
+    TLFMD,		// Output - Leaf mass destroyed daily (g/m2/d)
+    PLFAD,		// Output - Percentage of leaf area destroyed daily (%/d)
+    PLFMD,		// Output - Percentage of leaf mass destroyed daily (%/d)
+    PCLMT,		// Output - Percentage of cumulative leaf mass developed during season destroyed (%)
+    PDLA,		// Output - Percentage of diseased leaf area (%)
+    TDLA,		// Output - Total diseased leaf area (cm2/m2)
+    PVSTGD,		// Output - 
+    VSTGD,		// Output - 
+    PRTMD,		// Output - 
+    WRTMD,		// Output - 
+    PRTLV,		// Output - 
+    TRTLV,		// Output - 
+    PRTLF,		// Output - 
+    TRTLF,		// Output - 
+    PRLV        //
+};
+
 enum class Direction {
     INPUT,      // Coupling point information coming from DSSAT to the GDM
-    OUTPUT      // Coupling point information coming from GDM to DSSAT
+    OUTPUT      // Coupling point information going from GDM to DSSAT
 };
 
 enum class Basis {
@@ -30,9 +86,9 @@ enum class CouplingPointID{
     AREALF,     // Input - Area of leaves (one side) per unit ground area (cm2[leaf] / m2[ground])
     CLW,        // Input - Cumulative leaf growth (g[leaf]/m2)
     CSW,        // Input - Cumulative stem growth (g[stem]/m2)
-    PCLMT,      // Input - Percent of total leaf mass (WTLF + senescence) destroyed (%)
-    PCSTMD,     // Input - Observed cumulative percentage stem mass damage (%)
-    PDLA,       // Input - Percent diseased leaf area (%)
+    PCLMT,      // Output - Percent of total leaf mass (WTLF + senescence) destroyed (%)
+    PCSTMD,     // Output - Observed cumulative percentage stem mass damage (%)
+    PDLA,       // Output - Percent diseased leaf area (%)
     PLFAD,      // Input - Daily percent leaf area damage (%/d)
     PLFMD,      // Input - Daily percent leaf mass damage (%)
     PSTMD,      // Input - Daily percent stem mass damage (%)

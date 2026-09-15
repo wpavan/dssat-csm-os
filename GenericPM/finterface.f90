@@ -1,6 +1,14 @@
 !=======================================================================
-! finterface.f90, Virginia Covert
+! finterface.f90
+! Virginia L. Covert, Willingthon Pavan, Jose Mauricio Cunha Fernandes
+! 08/13/2026
+!
 ! Fortran interface to C functions for GDM
+!-----------------------------------------------------------------------
+! Licensing
+! Copyright (c) 2026, University of Florida
+! BSD-3-Clause. See the LICENSE file in the root folder for details.
+! SPDX-License-Identifier: BSD-3-Clause
 !-----------------------------------------------------------------------
 ! REVISION HISTORY
 ! 08/18/2025 VC Written with READPESTGDM subroutine to isolate YAML reads
@@ -233,7 +241,7 @@ SUBROUTINE INTEGRATIONGDM(YRDOY,AREALF,CLW,CSW,PCLMT,PCSTMD,PDLA,PLFAD,&
     LAIDOT,WSIDOT,SDWT,WSDD,PSDD,DAS)
 END SUBROUTINE INTEGRATIONGDM
 
-SUBROUTINE OUTPUTGDM(YRDOY)
+SUBROUTINE OPGDM(YRDOY)
     USE, INTRINSIC :: iso_c_binding
     INTEGER YRDOY   ! Input - Current day of simulation (YYDDD)
 
@@ -245,7 +253,7 @@ SUBROUTINE OUTPUTGDM(YRDOY)
     END INTERFACE
 
     call couplingOutput(YRDOY)
-END SUBROUTINE OUTPUTGDM
+END SUBROUTINE OPGDM
 
 SUBROUTINE LOGGINGGDM(YRDOY, YRSIM, SL1, SLL1, SSAT1, TMAX, TMIN, RAIN, SRAD, ZSTAGE)
     USE, INTRINSIC :: iso_c_binding
@@ -274,3 +282,100 @@ SUBROUTINE LOGGINGGDM(YRDOY, YRSIM, SL1, SLL1, SSAT1, TMAX, TMIN, RAIN, SRAD, ZS
 
     CALL logger(YRDOY, YRSIM, SL1, SLL1, SSAT1, TMAX, TMIN, RAIN, SRAD, ZSTAGE)
 END SUBROUTINE LOGGINGGDM
+
+MODULE GDMERRORS
+    USE, INTRINSIC :: iso_c_binding
+    IMPLICIT NONE
+
+CONTAINS
+    SUBROUTINE ERRORGDM(ERRKEY, ERRNUM, ERRFILE, ERRLINE)bind(c, name="errorGDM")
+        USE, INTRINSIC :: iso_c_binding
+        IMPLICIT NONE
+        EXTERNAL ERROR
+
+        CHARACTER(kind = c_char), dimension(*), INTENT(IN) :: ERRKEY
+        CHARACTER(kind = c_char), dimension(*), INTENT(IN) :: ERRFILE
+        INTEGER,                                INTENT(IN) :: ERRNUM
+        INTEGER,                                INTENT(IN) :: ERRLINE
+        
+        CHARACTER(LEN=6)  :: F_ERRKEY
+        CHARACTER(LEN=12) :: F_ERRFILE
+        INTEGER :: I 
+
+        F_ERRKEY = ' '
+        DO I = 1, 6
+            IF (ERRKEY(I) == c_null_char) EXIT
+            F_ERRKEY(I:I) = ERRKEY(I)
+        END DO 
+
+        F_ERRFILE = ' '
+        DO I = 1, 12
+            IF (ERRFILE(I) == c_null_char) EXIT
+            F_ERRFILE(I:I) = ERRFILE(I)
+        END DO 
+
+        CALL ERROR (F_ERRKEY,ERRNUM,F_ERRFILE,ERRLINE)
+    END SUBROUTINE ERRORGDM
+
+    SUBROUTINE WARNINGGDM(ICOUNT, ERRKEY, MESSAGE)bind(c, name="warningGDM")
+        USE, INTRINSIC :: iso_c_binding
+        IMPLICIT NONE
+        EXTERNAL WARNING
+
+        CHARACTER(kind = c_char), dimension(*), INTENT(IN) :: ERRKEY
+        CHARACTER(kind = c_char), dimension(*), INTENT(IN) :: MESSAGE
+        INTEGER,                                INTENT(IN) :: ICOUNT
+        
+        CHARACTER(LEN=6)  :: F_ERRKEY
+        CHARACTER(LEN=78) :: F_MESSAGE(10)
+        INTEGER :: I 
+        INTEGER :: J 
+
+        F_ERRKEY = ' '
+        DO I = 1, 6
+            IF (ERRKEY(I) == c_null_char) EXIT
+            F_ERRKEY(I:I) = ERRKEY(I)
+        END DO 
+
+        DO I = 1, ICOUNT
+            F_MESSAGE(I) = ' '
+            DO J = 1, 78
+                IF (MESSAGE((I - 1)*78 + J) == c_null_char) EXIT
+                F_MESSAGE(I)(J:J) = MESSAGE((I - 1)*78 + J)
+            END DO 
+        END DO
+
+        CALL WARNING (ICOUNT, F_ERRKEY, F_MESSAGE)
+    END SUBROUTINE WARNINGGDM
+
+    SUBROUTINE INFOGDM(ICOUNT, ERRKEY, MESSAGE)bind(c, name="infoGDM")
+        USE, INTRINSIC :: iso_c_binding
+        IMPLICIT NONE
+        EXTERNAL INFO
+
+        CHARACTER(kind = c_char), dimension(*), INTENT(IN) :: ERRKEY
+        CHARACTER(kind = c_char), dimension(*), INTENT(IN) :: MESSAGE
+        INTEGER,                                INTENT(IN) :: ICOUNT
+        
+        CHARACTER(LEN=6)  :: F_ERRKEY
+        CHARACTER(LEN=78) :: F_MESSAGE(10)
+        INTEGER :: I 
+        INTEGER :: J 
+
+        F_ERRKEY = ' '
+        DO I = 1, 6
+            IF (ERRKEY(I) == c_null_char) EXIT
+            F_ERRKEY(I:I) = ERRKEY(I)
+        END DO 
+
+        DO I = 1, ICOUNT
+            F_MESSAGE(I) = ' '
+            DO J = 1, 78
+                IF (MESSAGE((I - 1)*78 + J) == c_null_char) EXIT
+                F_MESSAGE(I)(J:J) = MESSAGE((I - 1)*78 + J)
+            END DO 
+        END DO
+
+        CALL INFO (ICOUNT, ERRKEY, MESSAGE)
+    END SUBROUTINE INFOGDM
+END MODULE GDMERRORS

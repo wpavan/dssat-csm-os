@@ -182,11 +182,7 @@ C-----------------------------------------------------------------------
       IF(TEMPCHAR1 .EQ. 'D') THEN
             ISDYNAMICDIS = 'Y'
 
-!           V.L.C - GDM param filename is the fileT prefix, and .yaml
-!            WRITE(TRTSTR, '(I0.2)') TRTNUM           
-!            FILEGDM = FILET(:8) // TRTSTR // '.yaml'
-
-!           GDM new method, all in fileT prefix .yaml
+!           V.L.C - GDM parameter filename = fileT prefix + ".yaml"
             FILEGDM = FILET(:8) // '.yaml'
             CALL READPESTGDM(FILEGDM, TRTNUM, 0)
       ELSE
@@ -265,7 +261,7 @@ C-----------------------------------------------------------------------
      &    CRLF, CRLV, CRTM, RLFDOT, RLVDOT, WRIDOT,       !Output
      &    SEASINIT)                                       !Control
 
-      CALL OPPEST(CONTROL, ISWITCH, 
+      CALL OPPEST(CONTROL, ISWITCH, ISDYNAMICDIS, 
      &    ASMDOT, CASM, CLAI, CLFM, CPPLTD, CRLF, CRLV,      
      &    CRTM, CSDM, CSDN, CSHM, CSHN, CSTEM, DISLA, DISLAP,   
      &    LAIDOT, PPLTD, RLFDOT, RLVDOT, SDIDOT, SHIDOT, 
@@ -311,7 +307,7 @@ C-----------------------------------------------------------------------
 C     Generic Disease Purpose - DMI
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-      IF (ISDYNAMICDIS .EQ. 'Y') THEN  ! Dynamic Disease Model 
+      IF (ISDYNAMICDIS .EQ. 'Y') THEN  ! Generic Disease Model 
         call RATEGDM(YRDOY, 
      &    AREALF, CLW, CSW, PCLMT, PCSTMD, PDLA, PLFAD,   
      &    PLFMD, PSTMD, PVSTGD, SLA, SLDOT, SSDOT,        
@@ -328,7 +324,7 @@ C-----------------------------------------------------------------------
      &    CLAI, CLFM, CSTEM, DISLA, DISLAP,               
      &    LAIDOT, WSIDOT, SDWT, WSDD, PSDD, DAS)
 
-        call OUTPUTGDM(YRDOY)
+        call OPGDM(YRDOY)
 
         call fio%set("PEST","PCLMT",PCLMT)
         CALL PUT('PDLABETA','BETA',1.0)
@@ -428,7 +424,7 @@ C-----------------------------------------------------------------------
 
 C-----------------------------------------------------------------------
       IF(DYNAMIC .EQ. OUTPUT) THEN
-      CALL OPPEST(CONTROL, ISWITCH, 
+      CALL OPPEST(CONTROL, ISWITCH, ISDYNAMICDIS,
      &    ASMDOT, CASM, CLAI, CLFM, CPPLTD, CRLF, CRLV,      
      &    CRTM, CSDM, CSDN, CSHM, CSHN, CSTEM, DISLA, DISLAP,   
      &    LAIDOT, PPLTD, RLFDOT, RLVDOT, SDIDOT, SHIDOT, 
