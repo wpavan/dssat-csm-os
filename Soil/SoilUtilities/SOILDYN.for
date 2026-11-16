@@ -1426,7 +1426,6 @@ c** wdb orig          SUMKEL = SUMKE * EXP(-0.15*MCUMDEP)
 !     NOTE: This still needs some work, as some experiments call for updates every day.
       IF (FIOUpdateNeeded()) THEN
         CALL PUT_FIO_SOILPROP(SOILPROP)
-        WRITE(*,*) 'SOILDYN: Daily soil properties updated in FIO'
         CALL ClearFIOUpdateFlag()
       ENDIF
 

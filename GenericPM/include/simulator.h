@@ -17,6 +17,7 @@
 #include "injection.h"
 #include "plant.h"
 #include "manager.h"
+#include "debug_control.h"
 
 #include <vector>
 #include <filesystem>
@@ -56,6 +57,7 @@ protected:
     std::vector<std::pair<int, std::map<std::string, float>>> bufferedRows;  // Buffer for all rows written so far
     std::set<std::string> initializedCustomOutputFiles;
     int lastExternalInoculumRate = -99;
+    std::size_t outputCallCount = 0;
 
     const bool hasOutput;
     std::string outputFileName;
@@ -90,10 +92,12 @@ public:
         this->_create_CloudF();
         this->_create_InitialCondition();
 
+#if GENERICPM_OUT_ENABLED
         if (std::filesystem::exists(outputPath)) {
             outputPath = Utilities::safeRenameFile(outputPath);
             outputFileName = outputPath.filename().string();
         }
+#endif
         // Note: Header will be written on first output() call with writeOutputHeader()
     };
 

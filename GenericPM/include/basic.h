@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include "debug_control.h"
 
 class Basic {
 protected:
@@ -21,15 +22,20 @@ protected:
 
 public:
     void getOutput(std::string fileName) {
+#if GENERICPM_INTERNAL_OUTPUT_ENABLED
         std::ofstream out;
-            out.open(fileName, std::ofstream::out | std::ofstream::app);
+        out.open(fileName, std::ofstream::out | std::ofstream::app);
         for (unsigned int i = 0; i < output.size(); i++)
             out << output[i] << std::endl;
         out.close();
+#else
+        (void)fileName;
+#endif
         output.clear();
     }
 
     void getOutput(std::string fileName, int updateFile) {
+#if GENERICPM_INTERNAL_OUTPUT_ENABLED
         std::ofstream out;
         if(updateFile) {
             out.open(fileName, std::ofstream::out | std::ofstream::app);            
@@ -41,6 +47,10 @@ public:
             out << output[i] << std::endl;
         }
         out.close();
+#else
+        (void)fileName;
+        (void)updateFile;
+#endif
         output.clear();
     }
 };

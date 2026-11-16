@@ -870,8 +870,10 @@ void Simulator::output() {
 
     std::cout.flush();
     
+#if GENERICPM_OUT_ENABLED
     // Track column count before processing this output
     int columnCountBefore = columnOrder.size();
+#endif
     
     initialCondition->output();
 
@@ -964,11 +966,16 @@ void Simulator::output() {
         }
     }
 
+#if GENERICPM_OUT_ENABLED
     // Check if new columns were discovered during this output
     int columnCountAfter = columnOrder.size();
     bool newColumnsDiscovered = (columnCountAfter > columnCountBefore);
-    
-    formatAndWriteOutputRow(currentYearDoy, currentDayOutputs, newColumnsDiscovered);
+
+    if (outputCallCount % GENERICPM_OUT_INTERVAL_DAYS == 0) {
+        formatAndWriteOutputRow(currentYearDoy, currentDayOutputs, newColumnsDiscovered);
+    }
+    ++outputCallCount;
+#endif
 
     // Clear accumulated outputs for the next day
     currentDayOutputs.clear();

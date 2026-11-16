@@ -3,6 +3,7 @@
 #include "utilities.h"
 #include "equation_context.h"
 #include "numericstringcache.h"
+#include "debug_control.h"
 
 static std::mt19937 rng(std::random_device{}());
 
@@ -135,9 +136,11 @@ static double TE_fio_real(double group, double varname) {
     std::string groupStr = converter->decode(group);
     std::string varnameStr = converter->decode(varname);
     float fioValue = fio->getReal(groupStr, varnameStr);
+#if GENERICPM_WARNINGS_ENABLED
     if (fioValue == -99.0f) {
         std::cerr << "Warning: FIO_REAL returned -99.0f for group '" << groupStr << "', variable '" << varnameStr << "'. This may indicate a missing value or invalid index." << std::endl;
     }
+#endif
     return fioValue;
 }
 
@@ -152,9 +155,11 @@ static double TE_fio_real_yrdoy(double group, double yrdoy, double varname) {
     yrdoy = yrdoy == -1 ? fio->getInteger("CONTROL", "YEARDOY") : yrdoy;
     fioValue = fio->getRealYrdoy(groupStr, std::to_string((int)yrdoy), varnameStr);
 
+#if GENERICPM_WARNINGS_ENABLED
     if (fioValue == -99.0f) {
         std::cerr << "Warning: FIO_REAL_YRDOY returned -99.0f for group '" << groupStr << "', variable '" << varnameStr << "', YEARDOY " << (int)yrdoy << ". This may indicate a missing value or invalid index." << std::endl;
     }
+#endif
     return fioValue;
 }
 
@@ -164,9 +169,11 @@ static double TE_fio_real_index(double group, double varname, double index) {
     std::string groupStr = converter->decode(group);
     std::string varnameStr = converter->decode(varname);
     float fioValue = fio->getRealIndex(groupStr, varnameStr, (int)index);
+#if GENERICPM_WARNINGS_ENABLED
     if (fioValue == -99.0f) {
         std::cerr << "Warning: FIO_REAL_INDEX returned -99.0f for group '" << groupStr << "', variable '" << varnameStr << "', index " << (int)index << ". This may indicate a missing value or invalid index." << std::endl;
     }
+#endif
     return fioValue;
 }
 
