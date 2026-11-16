@@ -4,9 +4,11 @@
  * 
  * @author Willingthon Pavan (wpavan.us@gmail.com)
  * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * @author Virginia L. Covet (virginiacovert454@gmail.com)
  * 
- * @copyright Copyright (c) 2017–2025, DSSAT Foundation
+ * @copyright Copyright (c) 2017–2026, University of Florida
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include "lesioncohort.h"
@@ -50,11 +52,17 @@ static double TE_isPhase1(void) {
         if (gEqContext->lesionCohort) {
             return gEqContext->lesionCohort->isPhase1() ? 1.0 : 0.0;
         } else {
-            std::cerr << "Warning: TE_isPhase1 called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_isPhase1 called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     } else {
-        std::cerr << "gEqContext lost" << std::endl;
+        std::vector<std::string> messages;
+        messages.push_back("gEqContext lost");
+
+        throwWarning(messages.size(), messages);
         return 0.0;
     }
 }
@@ -65,11 +73,17 @@ static double TE_isPhase2(void) {
             return gEqContext->lesionCohort->isPhase2() ? 1.0 : 0.0;
             std::cout << "LC is in Phase 2? " << (gEqContext->lesionCohort->isPhase2() ? "Yes" : "No") << " AGE: " << (gEqContext->lesionCohort->getAge() ? "Yes" : "No") << std::endl;
         } else {
-            std::cerr << "Warning: TE_isPhase2 called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_isPhase2 called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     } else {
-        std::cerr << "gEqContext lost" << std::endl;
+        std::vector<std::string> messages;
+        messages.push_back("gEqContext lost");
+
+        throwWarning(messages.size(), messages);
         return 0.0;
     }
 }
@@ -79,11 +93,17 @@ static double TE_isPhase3(void) {
         if (gEqContext->lesionCohort) {
             return gEqContext->lesionCohort->isPhase3() ? 1.0 : 0.0;
         } else {
-            std::cerr << "Warning: TE_isPhase3 called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_isPhase3 called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     } else {
-        std::cerr << "gEqContext lost" << std::endl;
+        std::vector<std::string> messages;
+        messages.push_back("gEqContext lost");
+
+        throwWarning(messages.size(), messages);
         return 0.0;
     }
 }
@@ -93,7 +113,10 @@ static double TE_getAge(void) {
         if (gEqContext->lesionCohort) {
             return static_cast<double>(gEqContext->lesionCohort->getAge());
         } else {
-            std::cerr << "Warning: TE_getAge called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getAge called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -104,7 +127,10 @@ static double TE_getValue(void) {
         if (gEqContext->lesionCohort) {
             return static_cast<double>(gEqContext->lesionCohort->getTotalValue());
         } else {
-            std::cerr << "Warning: TE_getValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -117,11 +143,17 @@ static double TE_getVisibleValue(void) {
             // std::cerr << "[DEBUG] TE_getVisibleValue: visibleValue=" << visibleValue << std::endl;
             return visibleValue;
         } else {
-            std::cerr << "Warning: TE_getVisibleValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getVisibleValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     } else {
-        std::cerr << "Warning: TE_getVisibleValue called with null gEqContext." << std::endl;
+        std::vector<std::string> messages;
+        messages.push_back("Warning: TE_getVisibleValue called with null gEqContext.");
+
+        throwWarning(messages.size(), messages);
         return 0.0;
     }
 }
@@ -133,11 +165,17 @@ static double TE_getInvisibleValue(void) {
             // std::cerr << "[DEBUG] TE_getInvisibleValue: invisibleValue=" << invisibleValue << std::endl;
             return invisibleValue;
         } else {
-            std::cerr << "Warning: TE_getInvisibleValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getInvisibleValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     } else {
-        std::cerr << "Warning: TE_getInvisibleValue called with null gEqContext." << std::endl;
+        std::vector<std::string> messages;
+        messages.push_back("Warning: TE_getInvisibleValue called with null gEqContext.");
+
+        throwWarning(messages.size(), messages);
         return 0.0;
     }
 }
@@ -167,11 +205,17 @@ static double TE_getLCMaximumValue(void) {
             
             return static_cast<double>(result);
         } else {
-            std::cerr << "Warning: TE_getLCMaximumValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getLCMaximumValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     } else {
-        std::cerr << "Warning: TE_getLCMaximumValue called with null gEqContext." << std::endl;
+        std::vector<std::string> messages;
+        messages.push_back("Warning: TE_getLCMaximumValue called with null gEqContext.");
+
+        throwWarning(messages.size(), messages);
         return 0.0;
     }
 }

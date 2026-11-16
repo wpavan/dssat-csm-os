@@ -3,14 +3,18 @@
  * 
  * @author Willingthon Pavan (wpavan.us@gmail.com)
  * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * @author Virginia Covert (virginiacovert454@gmail.com)
  * 
- * @copyright Copyright (c) 2017–2025, DSSAT Foundation
+ * @copyright Copyright (c) 2017–2026, University of Florida
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
+#include "errors.h"
+#include "../../FlexibleIO/Data/FlexibleIO.hpp"
 #include "../TinyExpr++/tinyexpr.h"
 
 #include <string>
@@ -153,7 +157,10 @@ class Utilities {
                         << " Variable: " << varname << std::endl;
                 logFile.close();
             } else {
-                std::cerr << "Unable to open log file." << std::endl;
+                std::vector<std::string> messages;
+                messages.push_back("Unable to open log file.");
+
+                throwWarning(messages.size(), messages);
             }
         }
 
@@ -165,7 +172,10 @@ class Utilities {
                         << " Variable: " << varname << std::endl;
                 logFile.close();
             } else {
-                std::cerr << "Unable to open log file." << std::endl;
+                std::vector<std::string> messages;
+                messages.push_back("Unable to open log file.");
+
+                throwWarning(messages.size(), messages);
             }
         }
 
@@ -177,10 +187,21 @@ class Utilities {
             bool compile_success = parser.compile(expression_string.c_str());
             
             if (!compile_success) {
-                std::cout << "-----" << std::endl << "Expression: " << expression_string << std::endl 
-                << "Error position: " << parser.get_last_error_position() << std::endl
-                << "Error msg: " << parser.get_last_error_message() << std::endl 
-                << "-----" << std::endl;
+                // Throw a could not compile error and fill warning.OUT with more information
+                std::vector<std::string> messages;
+                messages.push_back("Could not compile expression: ");
+                messages.push_back(expression_string);
+                messages.push_back("Error position: " + std::to_string(parser.get_last_error_position()));
+                messages.push_back("Error message: " + parser.get_last_error_message());
+
+                throwWarning(messages.size(), messages);
+
+                // Access FIO for GDM file name + CSM TRTNUM
+                FlexibleIO *fio = FlexibleIO::getInstance();
+                std::string filePST = fio->getChar("PEST", "FILEPST");
+                int TRTNUM = fio->getInteger("CONTROL", "TRTNUM");
+                // NOTE: need to add some way to point the user to the proper line number
+                throwError(25, filePST + " - " + std::to_string(TRTNUM), 0);
             }
 
             float result = parser.evaluate();

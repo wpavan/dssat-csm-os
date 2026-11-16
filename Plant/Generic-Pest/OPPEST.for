@@ -12,7 +12,7 @@ C-----------------------------------------------------------------------
 C  Called by: PEST
 C  Calls:     None
 C=======================================================================
-      SUBROUTINE OPPEST(CONTROL, ISWITCH, 
+      SUBROUTINE OPPEST(CONTROL, ISWITCH, ISDYNAMICDIS,
      &    ASMDOT, CASM, CLAI, CLFM, CPPLTD, CRLF, CRLV,      
      &    CRTM, CSDM, CSDN, CSHM, CSHN, CSTEM, DISLA, DISLAP,   
      &    LAIDOT, PPLTD, RLFDOT, RLVDOT, SDIDOT, SHIDOT, 
@@ -29,9 +29,17 @@ C-------------------------------------------------------------------
       EXTERNAL GETLUN, HEADER, INCDAT, TIMDIF, YR_DOY
       SAVE
 
-      CHARACTER*1 IDETD, ISWDIS, RNMODE
+      CHARACTER*1 IDETD, ISWDIS, RNMODE, ISDYNAMICDIS
       CHARACTER* 6, PARAMETER :: ERRKEY = 'OPPEST'
       CHARACTER*12, PARAMETER :: OUTD = 'Pest.OUT'
+      CHARACTER*216 :: OPSTATICHEAD = '@YEAR DOY   DAS   DAP' //       ! 21
+     &       '    DLA   DLA%    DLAI' //                               ! 22
+     &       '    DLFM    DSTM   DSDM   DSD#   DSHM   DSH#   DRTM' //  ! 51
+     &       '   DRLV   DRLF   DASM   DPO%   CLAI    CLFM    CSTM' //  ! 51
+     &       '   CSDM   CSD#   CSHM   CSH#   CRTM   CRLV   CRLF' //    ! 49
+     &       '    CASM   CPO%  PCLMT'                                  ! 16
+      CHARACTER*500 :: GDMHEAD = ''
+      CHARACTER*500 :: GDMDATA = ''
 
       INTEGER DAP, DAS, DOY,  DYNAMIC, ERRNUM, FROP, LUNIO
       INTEGER NOUTDD, RUN, TIMDIF, YEAR, YRDOY, YRPLT
@@ -55,6 +63,11 @@ C-------------------------------------------------------------------
       TYPE (SwitchType) ISWITCH
 
 !     Transfer values from constructed data types into local variables.
+!     VLC 20/08/2026 swapped order for optimization.
+      ISWDIS = ISWITCH % ISWDIS
+      IDETD  = ISWITCH % IDETD
+      IF (IDETD .NE. 'Y' .OR. ISWDIS .NE. 'Y') RETURN
+      
       DYNAMIC = CONTROL % DYNAMIC
       DAS     = CONTROL % DAS
       FROP    = CONTROL % FROP
@@ -63,10 +76,6 @@ C-------------------------------------------------------------------
       RNMODE  = CONTROL % RNMODE
       REPNO   = CONTROL % REPNO
       YRDOY   = CONTROL % YRDOY
-      
-      ISWDIS = ISWITCH % ISWDIS
-      IDETD  = ISWITCH % IDETD
-      IF (IDETD .NE. 'Y' .OR. ISWDIS .NE. 'Y') RETURN
 
 !***********************************************************************
 !***********************************************************************
@@ -103,13 +112,25 @@ C-----------------------------------------------------------------------
             CALL HEADER(SEASINIT, NOUTDD, RUN)
 !          ENDIF
 
-          WRITE (NOUTDD,2190)
- 2190     FORMAT('@YEAR DOY   DAS   DAP    DLA   DLA%    DLAI',
-     &       '    DLFM    DSTM   DSDM   DSD#   DSHM   DSH#   DRTM',
-     &       '    DRLV  DRLF   DASM   DPO%   CLAI    CLFM    CSTM',
-     $       '    CSDM   CSD#  CSHM   CSH#   CRTM   CRLV   CRLF',
-     &       '    CASM   CPO% ')
+        IF (ISDYNAMICDIS .EQ. 'Y') THEN
+          CALL fio%get('PEST', 'GDMPESTHEADER', GDMHEAD)
+          WRITE (NOUTDD,'(A)') OPSTATICHEAD // GDMHEAD
+        ELSE
+          WRITE (NOUTDD,'(A)') OPSTATICHEAD
+        ENDIF
+          
+! 2190     FORMAT(OPSTATICHEAD)
 !        ENDIF
+
+!     VLC 08/18/2026 Modify header creation to include custom outputs 
+!     from the GDM. Define the fixed set, then loop through each extra 
+!     output as defined in flexibleIO. Header string corresponding to 
+!     new inputs created by the GDM and put into flexibleIO. Either use 
+!     GDM disabled or -99 in fio to ignore extra outputs. The additional
+!     formatting & values should also be handled by the GDM. Instead of 
+!     looping, all formatting could be represented by one string that 
+!     gets determined at runtime. Must happen during seasinit before 
+!     OPPEST
 
 !***********************************************************************
 !***********************************************************************
@@ -121,6 +142,10 @@ C-----------------------------------------------------------------------
         DAP = MAX(0,TIMDIF(YRPLT,YRDOY))
         CALL YR_DOY(YRDOY, YEAR, DOY) 
 
+        IF (ISDYNAMICDIS .EQ. 'Y') THEN
+          CALL fio%get('PEST', 'GDMPESTDATA', GDMDATA)
+        ENDIF
+
        call fio%get("PEST","PCLMT",PCLMT)
         
 !       Convert units from g/m2 to kg/ha for output
@@ -130,11 +155,12 @@ C-----------------------------------------------------------------------
      &      RLVDOT,RLFDOT,ASMDOT,PPLTD,
      &      CLAI,NINT(CLFM*10.),NINT(CSTEM*10.),NINT(CSDM*10.),
      &      NINT(CSDN),CSHM*10.,NINT(CSHN),CRTM*10.,CRLV,
-     &      CRLF,CASM,CPPLTD,PCLMT
+     &      CRLF,CASM,CPPLTD,PCLMT,GDMDATA
   300   FORMAT(1X,I4,1X,I3.3,2(1X,I5),1X,I6,1X,F6.1,1X,F7.1,2(1X,I7),
-     &      1X, I6,4(1X,F6.1),
+     &      1X,I6,4(1X,F6.1),
      &      4(1X,F6.2),1X,F6.1,2(1X,I7),2(1X,I6),1X,F6.0,1X,I6,1X,F6.0,
-     &      2(1X,F6.1),1X,F7.1,1X,F6.1,1X,F6.1)
+     &      2(1X,F6.1),1X,F7.1,1X,F6.1,1X,F6.1,
+     &      1X,A)
       ENDIF
 
 !***********************************************************************

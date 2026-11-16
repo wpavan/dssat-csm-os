@@ -1,3 +1,15 @@
+/**
+ * @file manager.h
+ * 
+ * @author Virginia Covert (virginiacovert454@gmail.com)
+ * @author Willingthon Pavan (wpavan.us@gmail.com)
+ * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * 
+ * @copyright Copyright (c) 2025–2026, University of Florida
+ * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 #ifndef MANAGER_H
 #define MANAGER_H
 
@@ -72,6 +84,9 @@ class Manager : virtual public BasicInterface {
         static std::vector<CouplingPointID> couplingPointIDs;
         static std::vector<std::unique_ptr<CropInterface>> cropInterfaces;
         static std::string outfileName;
+
+        static std::string filePST;
+        static int TRTNUM;
 
         static bool outputStatus;
         
@@ -160,6 +175,22 @@ class Manager : virtual public BasicInterface {
 
         static std::vector<std::string> getFamilies() {
             return families;
+        }
+  
+        static void setFilePST(std::string filePST) {
+            filePST = filePST;
+        }
+
+        static std::string getFilePST() {
+            return filePST;
+        }
+
+        static void setTRTNUM(int TRTNUM) {
+            TRTNUM = TRTNUM;
+        }
+
+        static int getTRTNUM() {
+            return TRTNUM;
         }
 };
 

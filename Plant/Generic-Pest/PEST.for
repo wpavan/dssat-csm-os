@@ -178,19 +178,11 @@ C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
 C     Subroutine READPESTGDM reads the .yaml input for the GDM.
 C-----------------------------------------------------------------------
-      call fio%get("PEST","ISDYNAMICDIS",TEMPCHAR1)
-      IF(TEMPCHAR1 .EQ. 'D') THEN
-            ISDYNAMICDIS = 'Y'
-
-!           V.L.C - GDM param filename is the fileT prefix, and .yaml
-!            WRITE(TRTSTR, '(I0.2)') TRTNUM           
-!            FILEGDM = FILET(:8) // TRTSTR // '.yaml'
-
-!           GDM new method, all in fileT prefix .yaml
-            FILEGDM = FILET(:8) // '.yaml'
-            CALL READPESTGDM(FILEGDM, TRTNUM, 0)
-      ELSE
-            ISDYNAMICDIS = 'N'
+      call fio%get("PEST", "ISDYNAMICDIS", ISDYNAMICDIS)
+      IF(ISDYNAMICDIS .EQ. 'Y') THEN
+!       V.L.C - GDM parameter filename = fileT prefix + ".yaml"
+        FILEGDM = FILET(:8) // '.yaml'
+        CALL READPESTGDM(FILEGDM, TRTNUM, 0)
       ENDIF
 C***********************************************************************
 C***********************************************************************
@@ -206,7 +198,7 @@ C-----------------------------------------------------------------------
 C     Subroutine IPPROG reads FILET, the pest time series file.
 C-----------------------------------------------------------------------
       ! Generic Disease Purpose - Only one disease system at a time
-      IF (ISDYNAMICDIS .NE. 'Y' .AND. ISWDIS .EQ. 'Y') THEN
+      IF (ISDYNAMICDIS .EQ. 'N' .AND. ISWDIS .EQ. 'Y') THEN
         CALL IPPROG(CONTROL, 
      &    FILET, PATHEX, PID, YRPLT, TRTNUM,              !Input
      &    IDAP, PCN, PNO, POBS, PSTHD, YPL)               !Output
@@ -265,7 +257,7 @@ C-----------------------------------------------------------------------
      &    CRLF, CRLV, CRTM, RLFDOT, RLVDOT, WRIDOT,       !Output
      &    SEASINIT)                                       !Control
 
-      CALL OPPEST(CONTROL, ISWITCH, 
+      CALL OPPEST(CONTROL, ISWITCH, ISDYNAMICDIS, 
      &    ASMDOT, CASM, CLAI, CLFM, CPPLTD, CRLF, CRLV,      
      &    CRTM, CSDM, CSDN, CSHM, CSHN, CSTEM, DISLA, DISLAP,   
      &    LAIDOT, PPLTD, RLFDOT, RLVDOT, SDIDOT, SHIDOT, 
@@ -311,7 +303,7 @@ C-----------------------------------------------------------------------
 C     Generic Disease Purpose - DMI
 C-----------------------------------------------------------------------
 C-----------------------------------------------------------------------
-      IF (ISDYNAMICDIS .EQ. 'Y') THEN  ! Dynamic Disease Model 
+      IF (ISDYNAMICDIS .EQ. 'Y') THEN  ! Generic Disease Model 
         call RATEGDM(YRDOY, 
      &    AREALF, CLW, CSW, PCLMT, PCSTMD, PDLA, PLFAD,   
      &    PLFMD, PSTMD, PVSTGD, SLA, SLDOT, SSDOT,        
@@ -328,7 +320,7 @@ C-----------------------------------------------------------------------
      &    CLAI, CLFM, CSTEM, DISLA, DISLAP,               
      &    LAIDOT, WSIDOT, SDWT, WSDD, PSDD, DAS)
 
-        call OUTPUTGDM(YRDOY)
+        call OPGDM(YRDOY)
 
         call fio%set("PEST","PCLMT",PCLMT)
         CALL PUT('PDLABETA','BETA',1.0)
@@ -377,7 +369,7 @@ C-----------------------------------------------------------------------
 !***********************************************************************
       ELSEIF (DYNAMIC .EQ. INTEGR) THEN
 C-----------------------------------------------------------------------
-      IF (PCN .LE. 0 .AND. ISDYNAMICDIS .NE. 'Y') RETURN
+      IF (PCN .LE. 0 .AND. ISDYNAMICDIS .EQ. 'N') RETURN
 C-----------------------------------------------------------------------
 C     Call assimilative damage routine to update assimilative damage
 !          variables.
@@ -428,7 +420,7 @@ C-----------------------------------------------------------------------
 
 C-----------------------------------------------------------------------
       IF(DYNAMIC .EQ. OUTPUT) THEN
-      CALL OPPEST(CONTROL, ISWITCH, 
+      CALL OPPEST(CONTROL, ISWITCH, ISDYNAMICDIS,
      &    ASMDOT, CASM, CLAI, CLFM, CPPLTD, CRLF, CRLV,      
      &    CRTM, CSDM, CSDN, CSHM, CSHN, CSTEM, DISLA, DISLAP,   
      &    LAIDOT, PPLTD, RLFDOT, RLVDOT, SDIDOT, SHIDOT, 

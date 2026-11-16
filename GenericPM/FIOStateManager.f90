@@ -1,10 +1,16 @@
 !=======================================================================
-!  FIOStateManager.f90 - Soil properties FIO update state management
-!  Virginia Covert, 04/15/2026
+! FIOStateManager.f90
+! Virginia Covert, Willingthon Pavan, Jose Mauricio Cunha Fernandes
+! 04/15/2026
 !
-!  Provides persistent state tracking for FIO soil property updates
-!  without requiring additional subroutine parameters.
-!
+! Provides persistent state tracking for FIO soil property updates
+!   without requiring additional subroutine parameters.
+!-----------------------------------------------------------------------
+! Licensing
+! Copyright (c) 2026, University of Florida
+! BSD-3-Clause. See the LICENSE file in the root folder for details.
+! SPDX-License-Identifier: BSD-3-Clause
+!-----------------------------------------------------------------------
 !  Usage:
 !    CALL SetFIOUpdateFlag()    ! Signal FIO needs update
 !    CALL ClearFIOUpdateFlag()  ! Clear flag after update

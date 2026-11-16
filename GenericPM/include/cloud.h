@@ -3,15 +3,18 @@
  * 
  * @author Willingthon Pavan (wpavan.us@gmail.com)
  * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * @author Virginia L. Covert (virginiacovert454@gmail.com)
  * 
- * @copyright Copyright (c) 2017–2025, DSSAT Foundation
+ * @copyright Copyright (c) 2017–2026, University of Florida
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 #ifndef CLOUD_H
 #define CLOUD_H
 
 #include "basic.h"
 #include "basicinterface.h"
+#include "errors.h"
 #include "disease.h"
 #include "debug_control.h"
 
@@ -121,7 +124,9 @@ public:
 
     void setDisease(std::shared_ptr<Disease> disease) {
         if (disease == nullptr) {
-            std::cout << "Warning: Setting Cloud disease to nullptr." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Setting Cloud disease to nullptr.");
+            throwWarning(messages.size(), messages);
         }
         this->disease = disease;
     }

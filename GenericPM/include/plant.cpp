@@ -3,9 +3,11 @@
  * 
  * @author Willingthon Pavan (wpavan.us@gmail.com)
  * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * @author Virginia Covert (virginiacovert454@gmail.com)
  * 
- * @copyright Copyright (c) 2017–2025, DSSAT Foundation
+ * @copyright Copyright (c) 2017–2026, University of Florida
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include "plant.h"
@@ -24,7 +26,10 @@ static double TE_getHealthyValue() {
         if (gEqContext->plant) {
             return static_cast<double>(gEqContext->plant->getTotalValue() - gEqContext->plant->getDiseaseValue());
         } else {
-            std::cerr << "Warning: TE_getHealthyValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getHealthyValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -36,7 +41,10 @@ static double TE_getDiseaseValue() {
         if (gEqContext->plant) {
             return static_cast<double>(gEqContext->plant->getDiseaseValue());
         } else {
-            std::cerr << "Warning: TE_getDiseaseValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getDiseaseValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -48,7 +56,10 @@ static double TE_getTotalValue() {
         if (gEqContext->plant) {
             return static_cast<double>(gEqContext->plant->getTotalValue());
         } else {
-            std::cerr << "Warning: TE_getTotalValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getTotalValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -60,7 +71,10 @@ static double TE_getInvisibleDiseaseValue() {
         if (gEqContext->plant) {
             return static_cast<double>(gEqContext->plant->getInvisibleValue());
         } else {
-            std::cerr << "Warning: TE_getInvisibleDiseaseValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getInvisibleDiseaseValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -72,7 +86,10 @@ static double TE_getVisibleDiseaseValue() {
         if (gEqContext->plant) {
             return static_cast<double>(gEqContext->plant->getVisibleValue());
         } else {
-            std::cerr << "Warning: TE_getVisibleDiseaseValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getVisibleDiseaseValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -84,7 +101,10 @@ static double TE_getThisDiseaseInvisibleValue() {
         if (gEqContext->plant && gEqContext->disease) {
             return static_cast<double>(gEqContext->plant->getInvisibleValue(gEqContext->disease));
         } else {
-            std::cerr << "Warning: TE_getThisDiseaseInvisibleValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getThisDiseaseInvisibleValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -96,7 +116,10 @@ static double TE_getThisDiseaseTotalValue() {
         if (gEqContext->plant && gEqContext->disease) {
             return static_cast<double>(gEqContext->plant->getTotalValue(gEqContext->disease));
         } else {
-            std::cerr << "Warning: TE_getThisDiseaseTotalValue called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getThisDiseaseTotalValue called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }
@@ -108,7 +131,10 @@ static double TE_getThisDiseaseLesionsQTD() {
         if (gEqContext->plant && gEqContext->disease) {
             return static_cast<double>(gEqContext->plant->getTotalLesions(gEqContext->disease));
         } else {
-            std::cerr << "Warning: TE_getThisDiseaseLesionsQTD called outside of the appropriate context." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("Warning: TE_getThisDiseaseLesionsQTD called outside of the appropriate context.");
+
+            throwWarning(messages.size(), messages);
             return 0.0;
         }
     }

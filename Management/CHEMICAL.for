@@ -9,6 +9,7 @@ C  04/20/2002 GH   Adjust for crop rotations
 C  08/01/2002 CHP  Merged RUNINIT and SEASINIT into INIT section
 C  08/20/2002 GH   Modified for Y2K
 C  08/12/2003 CHP  Added I/O error checking
+C  06/28/2026 VLC  Added Flexible 
 C-----------------------------------------------------------------------
 C  Called : MGMTOPS
 C  Calls  : 
@@ -111,6 +112,11 @@ C-----------------------------------------------------------------------
           CDATE(I) = (YR + MULTI - 1) * 1000 + IDATE
         END DO
       ENDIF
+
+C-----------------------------------------------------------------------
+C     Push Chem. App. information to FlexibleIO
+C-----------------------------------------------------------------------
+      CALL  PUT_FIO_CHEM(NCHEM, CDATE, CHAMT, CHDEP, CHMET, CHCOD, CHT)
 
 C***********************************************************************
 C***********************************************************************

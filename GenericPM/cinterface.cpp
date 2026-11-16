@@ -1,11 +1,13 @@
 /**
  * @file cinterface.cpp
  * 
+ * @author Virginia Covert (virginiacovert454@gmail.com)
  * @author Willingthon Pavan (wpavan.us@gmail.com)
  * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
  * 
- * @copyright Copyright (c) 2017–2025, DSSAT Foundation
+ * @copyright Copyright (c) 2017–2026, University of Florida
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include "include/simulator.h"
@@ -58,9 +60,6 @@ extern "C" {
 // couplingInit refers to the seasonal initialization of the GDM
 int couplingInit(int *YRDOY, int *YRPLT) {
     // Get necessary instances for seasinit
-#if GENERICPM_DEBUG_ENABLED
-    std::cerr << "[CINF] couplingInit() called with YRDOY=" << *YRDOY << ", YRPLT=" << *YRPLT << std::endl << std::flush;
-#endif
     Manager *manager = Manager::getInstance();
 
     // Initialize the simulators with relevant data

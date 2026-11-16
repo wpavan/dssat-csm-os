@@ -2,9 +2,12 @@
  * @file manager.cpp
  * 
  * @author Virginia Covert (virginiacovert454@gmail.com)
+ * @author Willingthon Pavan (wpavan.us@gmail.com)
+ * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
  * 
- * @copyright Copyright (c) 2017–2025, DSSAT Foundation
+ * @copyright Copyright (c) 2025–2026, University of Florida
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 
 #include <sstream>
@@ -577,6 +580,8 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
   Manager* manager = Manager::newInstance();
   std::string outfileName = std::string(filePST, 8) + '_' + std::to_string(*TRTNUM);
 
+  manager->setFilePST(filePST);
+  manager->setTRTNUM(*TRTNUM);
   manager->setOutfileName(outfileName);
 
   CouplingPointID tempCP;
@@ -585,6 +590,8 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
   std::vector<YAML::Node> diseases;
 
   std::string trtKey = "TRNO" + std::to_string(*TRTNUM);
+
+  std::string outputHeader = "";
 
   // Try to read the input YAML file and throw an error if it doesn't work.
   // NOTE: How should we address errors in GDM/FlexibleIO?
@@ -936,6 +943,12 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
 
   manager->setCouplingPointIDs(uniqueCPs);
   // No more diseases found in the YAML file.
+
+  // NOTE: This is where we should generate an output header for PEST.OUT to be appended to the right of the standard DSSAT output.
+  //       The value should go into the following FlexibleIO memory location:
+  //         GROUP:   'PEST'
+  //         VARNAME: 'GDMPESTHEADER'
+  
   return 1;
 } 
 

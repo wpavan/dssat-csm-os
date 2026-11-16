@@ -70,6 +70,7 @@ C=======================================================================
       CHARACTER*12  FILEX
       CHARACTER*16  CROPD
       CHARACTER*25  TITSIM
+      CHARACTER*30  FILEGDM
       CHARACTER*78  MSG(7)
       CHARACTER*120 FILECTL
       CHARACTER*128 CHARTEST
@@ -96,6 +97,7 @@ C=======================================================================
       INTEGER GSIRRIG, I, STAT, CHARLEN
 
       LOGICAL UseSimCtr, MulchWarn, SimLevel
+      LOGICAL YAMLEXISTS
 
 
 !     2020-11-04 CHP Added for yield forecast mode, RNMODE = 'Y'
@@ -231,9 +233,19 @@ C
          ISWTIL = UPCASE(ISWTIL)
          ICO2   = UPCASE(ICO2)
 
-         IF(ISWDIS .EQ. 'D') THEN 
-            call fio%set("PEST","ISDYNAMICDIS",ISWDIS)
-            ISWDIS = 'Y'
+! VLC 15/09/2026 
+! Determine if the GDM should run or not
+! New method determines if GDM should run based on .yaml file existence
+! This assumes that the .yaml file is in the run directory
+         IF(ISWDIS .EQ. 'Y') THEN 
+           ! Check if properly named "yaml" file exists
+           FILEGDM = FILEX(:8) // '.yaml'
+           INQUIRE(file=FILEGDM, exist=YAMLEXISTS)
+           IF (.NOT. YAMLEXISTS) THEN
+             CALL fio%set("PEST", "ISDYNAMICDIS", 'N')
+           ELSE
+             CALL fio%set("PEST", "ISDYNAMICDIS", 'Y')
+           ENDIF
          ENDIF
 
 !        IF (INDEX ('BNSBPNPECHPPVBCPCBFB',CROP) .EQ. 0) THEN

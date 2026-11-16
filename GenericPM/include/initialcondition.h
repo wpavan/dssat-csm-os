@@ -3,9 +3,11 @@
  * 
  * @author Willingthon Pavan (wpavan.us@gmail.com)
  * @author Jose Mauricio Cunha Fernandes (jmauricio.fernandes@icloud.com)
+ * @author Virginia L. Covet (virginiacovert454@gmail.com)
  * 
- * @copyright Copyright (c) 2017–2025, DSSAT Foundation
+ * @copyright Copyright (c) 2017–2026, University of Florida
  * @license BSD-3-Clause. See the LICENSE file in the root folder for details.
+ * SPDX-License-Identifier: BSD-3-Clause
  */
 #ifndef INITIALCONDITION_H
 #define INITIALCONDITION_H
@@ -47,7 +49,10 @@ public:
 
     std::shared_ptr<CloudF> getCloud() {
         if (!cloudF) {
-            std::cerr << "Warning: InitialCondition for family " << family << " has no CloudF set." << std::endl;
+            std::vector<std::string> messages;
+            messages.push_back("InitialCondition for family " + family + " has no CloudF set.");
+
+            throwWarning(messages.size(), messages);
             throw std::runtime_error("InitialCondition has no CloudF set.");
         } else {
             return cloudF;
