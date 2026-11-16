@@ -65,6 +65,8 @@ std::vector<std::string> Manager::families;
 std::vector<CouplingPointID> Manager::couplingPointIDs;
 std::vector<std::unique_ptr<CropInterface>> Manager::cropInterfaces;
 std::string Manager::outfileName;
+std::string Manager::filePST;
+int Manager::TRTNUM = -99;
 
 bool Manager::outputStatus = false;
 
@@ -583,6 +585,8 @@ int readPestYaml(char *filePST, int *TRTNUM, int *FOUND) {
   manager->setFilePST(filePST);
   manager->setTRTNUM(*TRTNUM);
   manager->setOutfileName(outfileName);
+  // Expose the GDM input file name (used in error messages, e.g. GDM 25)
+  FlexibleIO::getInstance()->setCharMemory("PEST", "FILEPST", std::string(filePST));
 
   CouplingPointID tempCP;
   std::vector<CouplingPointID> uniqueCPs;

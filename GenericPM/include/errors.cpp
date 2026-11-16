@@ -10,6 +10,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include <algorithm>
 #include <cstring>
 
 #include "errors.h"
@@ -25,12 +26,14 @@ void throwError(int errnum, std::string file, int line) {
 
 void throwWarning(int messageCount, std::vector<std::string> messages) {
     const char *ERRKEY = "GDM";
-    const int ICOUNT = 1;
+    // Pass the real number of lines (max 10, the size of the Fortran buffer);
+    // previously fixed at 1, which dropped every line after the first.
+    const int ICOUNT = std::max(1, std::min(messageCount, 10));
 
     char MESSAGE[10][78];
     memset(MESSAGE, ' ', sizeof(MESSAGE));
 
-    for (int i = 0; i < messageCount && i < 10; ++i) {
+    for (int i = 0; i < ICOUNT && i < (int)messages.size(); ++i) {
         const char* text = messages[i].c_str();
         size_t len = std::min(strlen(text), (size_t)78);
         memcpy(MESSAGE[i], text, len);

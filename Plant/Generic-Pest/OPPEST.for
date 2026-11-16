@@ -40,6 +40,8 @@ C-------------------------------------------------------------------
      &       '    CASM   CPO%  PCLMT'                                  ! 16
       CHARACTER*500 :: GDMHEAD = ''
       CHARACTER*500 :: GDMDATA = ''
+      CHARACTER*300 :: PESTLINE
+      INTEGER I
 
       INTEGER DAP, DAS, DOY,  DYNAMIC, ERRNUM, FROP, LUNIO
       INTEGER NOUTDD, RUN, TIMDIF, YEAR, YRDOY, YRPLT
@@ -112,11 +114,18 @@ C-----------------------------------------------------------------------
             CALL HEADER(SEASINIT, NOUTDD, RUN)
 !          ENDIF
 
+        GDMHEAD = ' '
         IF (ISDYNAMICDIS .EQ. 'Y') THEN
           CALL fio%get('PEST', 'GDMPESTHEADER', GDMHEAD)
-          WRITE (NOUTDD,'(A)') OPSTATICHEAD // GDMHEAD
+!         FIO may return NUL characters for unset strings
+          DO I = 1, LEN(GDMHEAD)
+            IF (GDMHEAD(I:I) .EQ. CHAR(0)) GDMHEAD(I:I) = ' '
+          ENDDO
+        ENDIF
+        IF (LEN_TRIM(GDMHEAD) .GT. 0) THEN
+          WRITE (NOUTDD,'(A,1X,A)') TRIM(OPSTATICHEAD), TRIM(GDMHEAD)
         ELSE
-          WRITE (NOUTDD,'(A)') OPSTATICHEAD
+          WRITE (NOUTDD,'(A)') TRIM(OPSTATICHEAD)
         ENDIF
           
 ! 2190     FORMAT(OPSTATICHEAD)
@@ -142,25 +151,35 @@ C-----------------------------------------------------------------------
         DAP = MAX(0,TIMDIF(YRPLT,YRDOY))
         CALL YR_DOY(YRDOY, YEAR, DOY) 
 
+        GDMDATA = ' '
         IF (ISDYNAMICDIS .EQ. 'Y') THEN
           CALL fio%get('PEST', 'GDMPESTDATA', GDMDATA)
+!         FIO may return NUL characters for unset strings
+          DO I = 1, LEN(GDMDATA)
+            IF (GDMDATA(I:I) .EQ. CHAR(0)) GDMDATA(I:I) = ' '
+          ENDDO
         ENDIF
 
        call fio%get("PEST","PCLMT",PCLMT)
         
 !       Convert units from g/m2 to kg/ha for output
-        WRITE (NOUTDD,300)YEAR, DOY, DAS, DAP,NINT(DISLA),DISLAP,
+        WRITE (PESTLINE,300)YEAR, DOY, DAS, DAP,NINT(DISLA),DISLAP,
      &      LAIDOT,NINT(WLIDOT*10.),NINT(WSIDOT*10.),NINT(SWIDOT*10.),
      &      SDIDOT,WSHIDT*10.,SHIDOT,WRIDOT*10.,
      &      RLVDOT,RLFDOT,ASMDOT,PPLTD,
      &      CLAI,NINT(CLFM*10.),NINT(CSTEM*10.),NINT(CSDM*10.),
      &      NINT(CSDN),CSHM*10.,NINT(CSHN),CRTM*10.,CRLV,
-     &      CRLF,CASM,CPPLTD,PCLMT,GDMDATA
+     &      CRLF,CASM,CPPLTD,PCLMT
   300   FORMAT(1X,I4,1X,I3.3,2(1X,I5),1X,I6,1X,F6.1,1X,F7.1,2(1X,I7),
      &      1X,I6,4(1X,F6.1),
      &      4(1X,F6.2),1X,F6.1,2(1X,I7),2(1X,I6),1X,F6.0,1X,I6,1X,F6.0,
-     &      2(1X,F6.1),1X,F7.1,1X,F6.1,1X,F6.1,
-     &      1X,A)
+     &      2(1X,F6.1),1X,F7.1,1X,F6.1,1X,F6.1)
+!       Append GDM custom columns only when the GDM provides them
+        IF (LEN_TRIM(GDMDATA) .GT. 0) THEN
+          WRITE (NOUTDD,'(A,1X,A)') TRIM(PESTLINE), TRIM(GDMDATA)
+        ELSE
+          WRITE (NOUTDD,'(A)') TRIM(PESTLINE)
+        ENDIF
       ENDIF
 
 !***********************************************************************

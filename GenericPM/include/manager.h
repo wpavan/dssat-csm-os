@@ -177,16 +177,16 @@ class Manager : virtual public BasicInterface {
             return families;
         }
   
-        static void setFilePST(std::string filePST) {
-            filePST = filePST;
+        static void setFilePST(std::string fileName) {
+            filePST = fileName;
         }
 
         static std::string getFilePST() {
             return filePST;
         }
 
-        static void setTRTNUM(int TRTNUM) {
-            TRTNUM = TRTNUM;
+        static void setTRTNUM(int trtnum) {
+            TRTNUM = trtnum;
         }
 
         static int getTRTNUM() {

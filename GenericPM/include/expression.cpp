@@ -308,14 +308,27 @@ float Expression::evaluate() {
     // Evaluate and return value
     te_type result = ParserCache::getInstance()->getParser(this->getTranslated())->evaluate();
     if (std::isnan(result)) {
-        const char *ERRKEY = "GDM";
-        const int ERRNUM = 21;
-        const char *FILE = "";
-        const int LINE = 0;
-
-        std::string errorMsg = "Evaluation resulted in NaN for expression:\n\tOriginal:   " + originalExpr + "\n\tTranslated: " + this->getTranslated() + "\n\tError Message: '" + ParserCache::getInstance()->getParser(this->getTranslated())->get_last_error_message() + "'";
-        std::cout << errorMsg << std::endl;
-        errorGDM(ERRKEY, &ERRNUM, FILE, &LINE);
+        std::string parserMsg = ParserCache::getInstance()->getParser(this->getTranslated())->get_last_error_message();
+        std::string errorMsg = "Evaluation resulted in NaN for expression:\n\tOriginal:   " + originalExpr + "\n\tTranslated: " + this->getTranslated() + "\n\tError Message: '" + parserMsg + "'";
+#if GENERICPM_DEBUG_ENABLED
+        std::cerr << errorMsg << std::endl;
+#endif
+        // NaN is not fatal: callers catch the exception and apply their fallback
+        // (e.g. 0 for INOC_EXT/DAMAGE). Report each expression once in WARNING.OUT
+        // instead of stopping the whole DSSAT run (it can legitimately be 0/0
+        // early in the season, before any disease exists).
+        static std::set<std::string> reportedNaN;
+        if (reportedNaN.insert(originalExpr).second) {
+            std::vector<std::string> messages;
+            messages.push_back("Expression evaluated to NaN (reported once); fallback used.");
+            for (std::size_t pos = 0; pos < originalExpr.size() && messages.size() < 8; pos += 78) {
+                messages.push_back(originalExpr.substr(pos, 78));
+            }
+            if (!parserMsg.empty()) {
+                messages.push_back("Parser: " + parserMsg);
+            }
+            throwWarning(messages.size(), messages);
+        }
         throw std::runtime_error(errorMsg);
     }
     return result;
