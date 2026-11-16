@@ -30,10 +30,6 @@
 #include <iomanip>
 #include <algorithm>
 
-// Initialize static members
-std::vector<std::string> Simulator::columnOrder;
-std::map<std::string, int> Simulator::columnWidths;
-bool Simulator::headerWritten = false;
 
 namespace {
     std::shared_ptr<Disease> getContextDisease() {
@@ -420,8 +416,10 @@ std::string Simulator::formatValue(float value, int width) {
  * Rebuild the entire output file with current columns using buffered rows
  */
 void Simulator::rebuildOutputFile() {
+#if GENERICPM_DEBUG_ENABLED
     std::cout << "[REBUILD] Rebuilding output file with " << columnOrder.size() << " columns" << std::endl;
     std::cout.flush();
+#endif
     
     // Write header and all buffered rows
     outputFile.open(outputFileName, std::ios::out | std::ios::trunc);
@@ -608,9 +606,10 @@ void Simulator::rate() {
             injection.apply(fioString);
             fioFloat = fio->getReal("PEST", fioString);
             if (fioFloat == -99.0f) {
-                std::cout << "Warning: FIO variable " << fioString << " has value -99.0f" << std::endl;
+#if GENERICPM_WARNINGS_ENABLED
+                std::cerr << "Warning: FIO variable " << fioString << " has value -99.0f; using 0.0f instead." << std::endl;
+#endif
                 fioFloat = 0.0f;
-                std::cout << "  Using 0.0f instead..." << std::endl;
             }
             injection.apply(fioFloat);
 
@@ -886,8 +885,10 @@ void Simulator::output() {
         if (injection.getEndpoint() == InjEndpoint::OUTPUT) {
             injection.apply(outputVal, outputVarName);
             logOutput(outputVarName, outputVal);
+#if GENERICPM_DEBUG_ENABLED
             std::cout << "[OUTPUT] Disease injection: " << outputVarName << "=" << outputVal << std::endl;
             std::cout.flush();
+#endif
         }
     }
 

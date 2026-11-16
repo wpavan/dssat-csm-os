@@ -17,6 +17,7 @@
 #include <sstream>
 #include <cmath>
 
+int CloudF::qtd = 0;
 int CloudF::firstOutputCall = 0;
 
 void CloudF::rate() {

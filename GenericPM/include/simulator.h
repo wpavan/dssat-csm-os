@@ -42,9 +42,10 @@ struct Output {
 class Simulator : virtual public BasicInterface {
 private:
     Utilities util;
-    static std::vector<std::string> columnOrder;  // Track column order across all instances
-    static std::map<std::string, int> columnWidths;  // Track width of each column
-    static bool headerWritten;                     // Flag to write header only once
+    // Output file layout is per simulator: each disease writes its own .OUT file.
+    std::vector<std::string> columnOrder;  // Column order for this simulator's output file
+    std::map<std::string, int> columnWidths;  // Width of each column
+    bool headerWritten = false;            // Header written for this simulator's file
 
 protected:
     InitialCondition* initialCondition;

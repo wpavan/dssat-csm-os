@@ -23,7 +23,7 @@
  */
 class CloudF : public Cloud, virtual public BasicInterface, public std::enable_shared_from_this<CloudF> {
 protected:
-    int qtd;
+    static int qtd;
     int ID = ++qtd;
     float firstSporeCloud = 0;
     static int firstOutputCall;

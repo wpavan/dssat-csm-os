@@ -174,7 +174,9 @@ int couplingOutput(int *doy) {
     manager->output();
     
     // Increment the current simulation date by one day at the end of output.
-    manager->setCurrentSimDate(manager->getCurrentSimDate() + 1);
+    // Use calendar-aware increment: integer +1 would produce invalid dates
+    // such as 2025366 at year end.
+    manager->setCurrentSimDate(manager->getCurrentSimDate().addOneDay());
 
     return (1);
 }
